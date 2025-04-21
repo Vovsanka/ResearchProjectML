@@ -1,1 +1,1 @@
-/usr/bin/c++ CMakeFiles/CubicClustering.dir/main.cpp.o -o CubicClustering 
+/usr/bin/g++ CMakeFiles/CubicClustering.dir/main.cpp.o -o CubicClustering 

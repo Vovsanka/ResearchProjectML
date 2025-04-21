@@ -28,7 +28,7 @@ CMAKE_BUILD_TYPE:STRING=
 CMAKE_COLOR_MAKEFILE:BOOL=ON
 
 //CXX compiler
-CMAKE_CXX_COMPILER:FILEPATH=/usr/bin/c++
+CMAKE_CXX_COMPILER:STRING=/usr/bin/g++
 
 //A wrapper around 'ar' adding the appropriate '--plugin' option
 // for the GCC compiler
@@ -54,7 +54,7 @@ CMAKE_CXX_FLAGS_RELEASE:STRING=-O3 -DNDEBUG
 CMAKE_CXX_FLAGS_RELWITHDEBINFO:STRING=-O2 -g -DNDEBUG
 
 //C compiler
-CMAKE_C_COMPILER:FILEPATH=/usr/bin/cc
+CMAKE_C_COMPILER:STRING=/usr/bin/gcc
 
 //A wrapper around 'ar' adding the appropriate '--plugin' option
 // for the GCC compiler
@@ -223,15 +223,6 @@ CubicClustering_IS_TOP_LEVEL:STATIC=ON
 
 //Value Computed by CMake
 CubicClustering_SOURCE_DIR:STATIC=/home/wowa/projects/research-ml
-
-//Value Computed by CMake
-PartiallyOptimalCubicSubspaceClustering_BINARY_DIR:STATIC=/home/wowa/projects/research-ml/build
-
-//Value Computed by CMake
-PartiallyOptimalCubicSubspaceClustering_IS_TOP_LEVEL:STATIC=ON
-
-//Value Computed by CMake
-PartiallyOptimalCubicSubspaceClustering_SOURCE_DIR:STATIC=/home/wowa/projects/research-ml
 
 
 ########################

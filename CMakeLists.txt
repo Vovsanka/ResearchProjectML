@@ -3,4 +3,6 @@ project(CubicClustering)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(CubicClustering main.cpp)
+set(SOURCES
+    main.cpp)
+add_executable(CubicClustering ${SOURCES})
