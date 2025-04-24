@@ -1,3 +1,0 @@
-/home/wowa/projects/research-ml/build/CMakeFiles/CubicClustering.dir
-/home/wowa/projects/research-ml/build/CMakeFiles/edit_cache.dir
-/home/wowa/projects/research-ml/build/CMakeFiles/rebuild_cache.dir
