@@ -166,12 +166,13 @@ public:
 double cost(UnorderedTriple<char> t) {
     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c')
         return -5;
-    if (t[0] == 'b' && t[1] == 'c' && t[2] == 'd')
-        return -7;
+    // if (t[0] == 'b' && t[1] == 'c' && t[2] == 'd')
+    //     return -7;
     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'd')
         return 10;
     return 0;
 }
+
 
 int main() {
     std::vector<char> samples = {'a', 'b', 'c', 'd'};
