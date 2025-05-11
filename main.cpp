@@ -2,18 +2,36 @@
 #include <set>
 #include <map>
 #include <vector>
+#include <array>
 #include <optional>
 #include <stdexcept>
 #include <algorithm>
 
 
 template <typename S = int> // domain S of samples
+class SampleTriple { // unordered triple (sorted in the ascending order)
+    std::array<char, 3> s;
+
+public:
+
+    SampleTriple(S s1, S s2, S s3) {
+        s = {s1, s2, s3};
+        std::sort(s.begin(), s.end());
+    }
+
+    S operator[](int index) { // only getter, not setter (S&)
+        return s[index];
+    }
+};
+
+
+template <typename S = int> // domain S of samples
 class CubicSetPartitionProblem {
-    double (*cost)(S, S, S);  // cost function for triples SxSxS
+    double (*cost)(SampleTriple<S>);  // cost function for triples SxSxS
     std::set<S> samples; 
     std::map<S, int> clusterMapping;
 
-    std::optional<std::tuple<S,S,S>> getNegativeCostTuple(std::set<S> &subset) {
+    std::optional<SampleTriple<S>> getNegativeCostTuple(std::set<S> &subset) {
         std::set<S> rest;
         std::set_difference(
             samples.begin(), samples.end(),
@@ -22,20 +40,22 @@ class CubicSetPartitionProblem {
         );
         for (S p : subset)
             for (S q : rest)
-                for (S r : samples)
-                    if (getCost(p, q, r) < 0)
-                        return std::make_tuple(p, q, r);
+                for (S r : samples) {
+                    SampleTriple<S> t(p, q, r);
+                    if (getCost(t) < 0)
+                        return t;
+                }
         return std::nullopt;
     }
 
 public: 
-    explicit CubicSetPartitionProblem(std::set<S> samples, double (*costCB)(S, S, S)) {
+    explicit CubicSetPartitionProblem(std::set<S> samples, double (*costCB)(SampleTriple<S>)) {
         this->samples = samples;
         this->cost = costCB;
     }
 
-    double getCost(S s1, S s2, S s3) {
-        return cost(s1, s2, s3);
+    double getCost(SampleTriple<S> t) {
+        return cost(t);
     }
 
     std::map<S, int> getClusterMapping() {
@@ -50,7 +70,8 @@ public:
         return clusterMapping[sample];
     }
 
-    void solveWithRegionGrowing() {
+    void applyRegionGrowing() {
+        // TODO: region growing is only the first step
         std::set<std::set<S>> R;
         std::set<S> Q;
         for (S sample : samples) {
@@ -63,14 +84,13 @@ public:
             std::set<S> R1;
             R1.insert(p);
             do {   
-                // TODO: optional function, pass R by reference!
-                auto t = getNegativeCostTuple(R1); 
-                if (t.has_value()) {
-                    auto [p, q, r] = t.value();
-                    R1.insert({p, q, r});
-                    Q.erase(p);
-                    Q.erase(q);
-                    Q.erase(r);
+                auto opt_t = getNegativeCostTuple(R1); 
+                if (opt_t.has_value()) {
+                    SampleTriple<S> t = opt_t.value();
+                    R1.insert({t[0], t[1], t[2]});
+                    Q.erase(t[0]);
+                    Q.erase(t[1]);
+                    Q.erase(t[2]);
                 } else {
                     break;
                 }
@@ -86,17 +106,19 @@ public:
             clusterNumber++;
         }
     }
+
+    void solve() {
+        applyRegionGrowing();
+    }
 };
 
 
-double cost(char s1, char s2, char s3) {
-    std::vector<char> s = {s1, s2, s3};
-    std::sort(s.begin(), s.end());
-    if (s[0] == 'a' && s[1] == 'b' && s[2] == 'c')
+double cost(SampleTriple<char> t) {
+    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c')
         return -5;
-    if (s[0] == 'b' && s[1] == 'c' && s[2] == 'd')
+    if (t[0] == 'b' && t[1] == 'c' && t[2] == 'd')
         return -7;
-    if (s[0] == 'a' && s[1] == 'b' && s[2] == 'd')
+    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'd')
         return 10;
     return 0;
 }
@@ -104,7 +126,7 @@ double cost(char s1, char s2, char s3) {
 int main() {
     std::set<char> samples = {'a', 'b', 'c', 'd'};
     CubicSetPartitionProblem<char> problem(samples, cost);
-    problem.solveWithRegionGrowing();
+    problem.solve();
     for (auto sample : samples) {
         std::cout << sample << " -> " << problem.getCluster(sample) << std::endl;
     }
