@@ -40,9 +40,9 @@ template <typename S = int> // domain S of samples
 class CubicSetPartitionProblem {
 
     std::vector<S> samples; 
-    std::function<double(UnorderedTriple<S>)> cost;  // cost function for triples SxSxS
+    std::function<int(UnorderedTriple<S>)> cost;  // cost function for triples SxSxS
     
-    std::map<UnorderedTriple<>, double> tripleCosts;
+    std::map<UnorderedTriple<>, int> tripleCosts;
     std::vector<std::vector<std::pair<int, int>>> relevantTriples;
     std::vector<std::vector<std::pair<int, int>>> negativeTriples;
 
@@ -53,7 +53,7 @@ class CubicSetPartitionProblem {
             for (int j = i + 1; j < samples.size(); j++) {
                 for (int k = j + 1; k < samples.size(); k++) {
                     UnorderedTriple<> indexTriple(i, j, k);
-                    double c = getCost(getSampleTriple(indexTriple));
+                    int c = getCost(getSampleTriple(indexTriple));
                     if (c) {
                         tripleCosts[indexTriple] = c;
                         relevantTriples[i].push_back(std::make_pair(j, k));
@@ -112,7 +112,7 @@ class CubicSetPartitionProblem {
     
     
 public: 
-    explicit CubicSetPartitionProblem(const std::vector<S>& givenSamples, const std::function<double(UnorderedTriple<S>)> costCB)
+    explicit CubicSetPartitionProblem(const std::vector<S>& givenSamples, const std::function<int(UnorderedTriple<S>)> costCB)
     : samples(givenSamples), cost(costCB) {
         std::sort(std::begin(samples), std::end(samples)); // sort the samples in the ascending order
         relevantTriples.resize(samples.size(), {});
@@ -121,17 +121,16 @@ public:
         initTripleCosts();
     }
 
-    double getCost(UnorderedTriple<S> t) {
+    int getCost(UnorderedTriple<S> t) {
         return cost(t);
     }
 
-    double getCost(S s1, S s2, S s3) {
+    int getCost(S s1, S s2, S s3) {
         return cost(UnorderedTriple<S>(s1, s2, s3));
     }
 
     std::map<S, int> getClusterMapping() {
-        if (indexClusterMapping.empty())
-            throw std::runtime_error("The problem has not been solved yet!");
+        if (indexClusterMapping.empty()) throw std::runtime_error("The problem has not been solved yet!");
         std::map<S, int> result;
         for (int i = 0; i < samples.size(); i++) {
             result[samples[i]] = indexClusterMapping[i];
@@ -160,12 +159,62 @@ public:
 
     void solveAsSubproblem() {
         // TODO !!!
-        // just for now: all samples belong to the same cluster
+        // just for now: all samples beint to the same cluster
     }
 };
 
 
-double cost(UnorderedTriple<char> t) {
+std::pair<int, std::vector<bool>> solveMinCut(int vertices, std::vector<std::tuple<int,int,int>> edges) {
+    using namespace boost;
+
+    // Define the graph type
+    typedef adjacency_list<vecS, vecS, directedS,
+        property<vertex_name_t, std::string>,
+        property<edge_capacity_t, int,
+            property<edge_residual_capacity_t, int,
+                property<edge_reverse_t, adjacency_list<>::edge_descriptor>>>> Graph;
+
+    int s = 0, t = vertices - 1;
+            
+    Graph g(vertices); 
+    auto capacity = get(edge_capacity, g);
+    auto rev = get(edge_reverse, g);
+    auto residual_capacity = get(edge_residual_capacity, g);
+
+    // Add edges with capacities
+    for (auto& e : edges) {
+        auto [u, v, c] = e;
+        if (c < 0) throw std::runtime_error("MinCutProblem: negative edges are not allowed!");
+        auto e1 = add_edge(u, v, g).first;
+        auto e2 = add_edge(v, u, g).first; // Reverse edge
+        capacity[e1] = capacity[e2] = c; // Reverse edge has 0 capacity
+        rev[e1] = e2;
+        rev[e2] = e1;
+    };
+
+    // Compute max flow
+    int maxFlow = push_relabel_max_flow(g, s, t);
+
+    std::vector<bool> visited(vertices, false);
+
+    std::function<void(int)> dfs = [&](int v) -> void {
+        if (visited[v]) return;
+        visited[v] = true;
+        for (auto [ei, e_end] = out_edges(v, g); ei != e_end; ++ei) {
+            if (residual_capacity[*ei] > 0) {
+                dfs(target(*ei, g));
+            }
+        }
+    };
+
+    // Run DFS on the residual network to determine the min cut subset
+    dfs(s);
+
+    return std::make_pair(maxFlow, visited);
+}
+
+
+int cost(UnorderedTriple<char> t) {
     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c')
         return -5;
     // if (t[0] == 'b' && t[1] == 'c' && t[2] == 'd')
@@ -175,51 +224,29 @@ double cost(UnorderedTriple<char> t) {
     return 0;
 }
 
-void testBoost() {
-    using namespace boost;
-
-    // Define the graph type
-    typedef adjacency_list<vecS, vecS, directedS,
-        property<vertex_name_t, std::string>,
-        property<edge_capacity_t, long,
-            property<edge_residual_capacity_t, long,
-                property<edge_reverse_t, adjacency_list<>::edge_descriptor>>>> Graph;
-
-    Graph g(4); // 4 vertices
-
-    auto capacity = get(edge_capacity, g);
-    auto rev = get(edge_reverse, g);
-    auto residual_capacity = get(edge_residual_capacity, g);
-
-    // Add edges with capacities
-    auto add_edge_with_capacity = [&](int u, int v, long cap) {
-        auto e1 = add_edge(u, v, g).first;
-        auto e2 = add_edge(v, u, g).first; // Reverse edge
-        capacity[e1] = cap;
-        capacity[e2] = 0; // Reverse edge has 0 capacity
-        rev[e1] = e2;
-        rev[e2] = e1;
-    };
-
-    add_edge_with_capacity(0, 1, 10);
-    add_edge_with_capacity(0, 2, 5);
-    add_edge_with_capacity(1, 2, 15);
-    add_edge_with_capacity(1, 3, 10);
-    add_edge_with_capacity(2, 3, 10);
-
-    // Compute max flow
-    long flow = push_relabel_max_flow(g, 0, 3);
-    std::cout << "Max flow: " << flow << std::endl;
-}
-
 
 int main() {
-    testBoost();
     // std::vector<char> samples = {'a', 'b', 'c', 'd'};
     // CubicSetPartitionProblem<char> problem(samples, cost);
     // problem.solve();
     // for (auto [sample, cluster] : problem.getClusterMapping()) {
     //     std::cout << sample << " -> " << cluster << std::endl;
     // }
+    //
+    std::vector<std::tuple<int,int,int>> edges = {
+        std::make_tuple(0, 1, 4),
+        std::make_tuple(0, 2, 5),
+        std::make_tuple(1, 3, 4),
+        std::make_tuple(2, 3, 5),
+        std::make_tuple(0, 3, 9) 
+    };
+    auto [maxFlow, partition] = solveMinCut(4, edges);
+    std::cout << maxFlow << std::endl;
+    for (int i = 0; i < 4; i++) {
+        if (partition[i]) {
+            std::cout << i << ' ';
+        }
+    }
+    std::cout << std::endl;
     return 0;
 }
