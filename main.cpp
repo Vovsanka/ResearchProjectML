@@ -7,6 +7,7 @@
 #include <functional>
 #include <stdexcept>
 #include <algorithm>
+#include <boost/filesystem.hpp>
 
 
 template <typename S = int> // domain S of samples
