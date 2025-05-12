@@ -7,7 +7,8 @@
 #include <functional>
 #include <stdexcept>
 #include <algorithm>
-#include <boost/filesystem.hpp>
+#include <boost/graph/push_relabel_max_flow.hpp>
+#include <boost/graph/adjacency_list.hpp>
 
 
 template <typename S = int> // domain S of samples
@@ -174,13 +175,51 @@ double cost(UnorderedTriple<char> t) {
     return 0;
 }
 
+void testBoost() {
+    using namespace boost;
+
+    // Define the graph type
+    typedef adjacency_list<vecS, vecS, directedS,
+        property<vertex_name_t, std::string>,
+        property<edge_capacity_t, long,
+            property<edge_residual_capacity_t, long,
+                property<edge_reverse_t, adjacency_list<>::edge_descriptor>>>> Graph;
+
+    Graph g(4); // 4 vertices
+
+    auto capacity = get(edge_capacity, g);
+    auto rev = get(edge_reverse, g);
+    auto residual_capacity = get(edge_residual_capacity, g);
+
+    // Add edges with capacities
+    auto add_edge_with_capacity = [&](int u, int v, long cap) {
+        auto e1 = add_edge(u, v, g).first;
+        auto e2 = add_edge(v, u, g).first; // Reverse edge
+        capacity[e1] = cap;
+        capacity[e2] = 0; // Reverse edge has 0 capacity
+        rev[e1] = e2;
+        rev[e2] = e1;
+    };
+
+    add_edge_with_capacity(0, 1, 10);
+    add_edge_with_capacity(0, 2, 5);
+    add_edge_with_capacity(1, 2, 15);
+    add_edge_with_capacity(1, 3, 10);
+    add_edge_with_capacity(2, 3, 10);
+
+    // Compute max flow
+    long flow = push_relabel_max_flow(g, 0, 3);
+    std::cout << "Max flow: " << flow << std::endl;
+}
+
 
 int main() {
-    std::vector<char> samples = {'a', 'b', 'c', 'd'};
-    CubicSetPartitionProblem<char> problem(samples, cost);
-    problem.solve();
-    for (auto [sample, cluster] : problem.getClusterMapping()) {
-        std::cout << sample << " -> " << cluster << std::endl;
-    }
+    testBoost();
+    // std::vector<char> samples = {'a', 'b', 'c', 'd'};
+    // CubicSetPartitionProblem<char> problem(samples, cost);
+    // problem.solve();
+    // for (auto [sample, cluster] : problem.getClusterMapping()) {
+    //     std::cout << sample << " -> " << cluster << std::endl;
+    // }
     return 0;
 }
