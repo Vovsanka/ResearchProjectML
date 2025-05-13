@@ -123,6 +123,7 @@ public:
         std::sort(std::begin(samples), std::end(samples)); // sort the samples in the ascending order
         relevantTriples.resize(samples.size(), {});
         negativeTriples.resize(samples.size(), {});
+        positiveTriples.resize(samples.size(), {});
         indexClusterMapping.resize(samples.size(), 0);
         initTripleCosts();
     }
@@ -168,15 +169,58 @@ public:
         // just for now: all samples beint to the same cluster
     }
 
-    // std::pair<int, std::vector<int>> solveMinCutForIndexSubset(std::vector<int> indexSubset, int s, int t) {
-    //     std::vector<std::tuple<int,int,int>> edges;
-    //     for (int sampleNodeP = 0; sampleNodeP < indexSubset.size(); sampleNodeP++) {
-    //         for (int sampleNodeQ = sampleNodeP + 1; sampleNodeQ < indexSubset.size(); sampleNodeQ++) {
-    //             int i = indexSubset[sampleNode];
-    //             for (auto [j, k] : relevantTriples) {
+//     std::pair<int, std::vector<bool>> solveMinCutForIndexSubset(std::vector<int> indexSubset, bool invertCosts, int s, int t) {
+//         int vertices = std::count(std::begin(indexSubset), std::end(indexSubset), true);
+//         std::vector<int> indexMapping(indexSubset.size());
+//         std::vector<int> invIndexMapping(vertices);
+//         for (int i = 0, sampleNode = 0; i < indexSubset.size(); i++) {
+//             if (indexSubset[i]) {
+//                 indexMapping[i] = sampleNode;
+//                 invIndexMapping[sampleNode] = i;
+//                 sampleNode++;
+//             }
+//         }
 
-    //             }
-    //     }
+//         // compute the adjancy matrix by transforming triples (the costs in the matrix are not divided by 2 to avoid floating numbers)
+//         std::vector<std::vector<int>> adjMatrix(vertices, std::vector(vertices, 0));
+//         for (int i = 0; i < indexSubset.size(); i++) {
+//             if (!indexSubset[i]) continue;
+//             for (auto [j, k] : relevantTriples[i]) {
+//                 if (!indexSubset[j] || !indexSubset[k]) continue;
+//                 auto indexTriple = UnorderedTriple<>(i, j, k); // sorted indices
+//                 int c = tripleCosts[indexTriple] * (invertCosts ? -1 : 1);
+//                 int i_node = indexMapping[indexTriple[0]]; 
+//                 int j_node = indexMapping[indexTriple[1]];
+//                 int k_node = indexMapping[indexTriple[2]];
+//                 adjMatrix[i_node][j_node] += c;
+//                 adjMatrix[i_node][k_node] += c;
+//                 adjMatrix[j_node][k_node] += c; 
+//             }
+//         }
+
+//         // create adjacency list from the adjacency matrix
+//         std::vector<std::tuple<int,int,int>> edges;
+//         for (int i_node = 0; i_node < vertices; i_node++) {
+//             for (int j_node = i_node + 1; j_node < vertices; j_node++) {
+//                 int c = adjMatrix[i_node][j_node];
+//                 if (c) {
+//                     edges.push_back(std::make_tuple(i_node, j_node, c));
+//                     edges.push_back(std::make_tuple(j_node, i_node, c));
+//                 }
+//             }
+//         } 
+
+//         // solve the MinCut problem
+//         auto [minCut, partition] = solveMinCut(vertices, edges, indexMapping[s], indexMapping[t]);
+
+//         // transform the results to the original domain
+//         std::vector<bool> partitionOnSamples(indexSubset.size(), false);
+//         for (int i_node = 0; i_node < vertices; i_node++) {
+//             partitionOnSamples[invIndexMapping[i_node]] = partition[i_node];
+//         }
+
+//         // divide the MinCut result by 2 because all triples have been transformed with a double cost
+//         return std::make_pair(minCut/2, partitionOnSamples);
     // }
 };
 
@@ -232,13 +276,21 @@ std::pair<int, std::vector<bool>> solveMinCut(int vertices, std::vector<std::tup
 }
 
 
-int cost(UnorderedTriple<char> t) {
-    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c')
-        return -5;
-    // if (t[0] == 'b' && t[1] == 'c' && t[2] == 'd')
-    //     return -7;
-    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'd')
-        return 10;
+// int cost(UnorderedTriple<char> t) {
+//     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c')
+//         return -5;
+//     if (t[0] == 'b' && t[1] == 'c' && t[2] == 'd')
+//         return -7;
+//     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'd')
+//         return 10;
+//     return 0;
+// }
+
+int cost(UnorderedTriple<int> t) {
+    // Example with the triples costs: c(0, 1, 2)=6, c(0, 2, 3)=8, c(0, 3, 4)=10 
+    if (t[0] == 0 && t[1] == 1 && t[2] == 2) return -6;
+    if (t[0] == 0 && t[1] == 2 && t[2] == 3) return -8;
+    if (t[0] == 0 && t[1] == 3 && t[2] == 4) return -10;
     return 0;
 }
 
@@ -250,31 +302,21 @@ int main() {
     // for (auto [sample, cluster] : problem.getClusterMapping()) {
     //     std::cout << sample << " -> " << cluster << std::endl;
     // }
-    //
-    // Example with the triples costs: c(0, 1, 2)=6, c(0, 2, 3)=8, c(0, 3, 4)=10 
-    std::vector<std::tuple<int,int,int>> edges = {
-        std::make_tuple(0, 1, 3),
-        std::make_tuple(1, 2, 3),
-        std::make_tuple(0, 2, 7),
-        std::make_tuple(2, 3, 4),
-        std::make_tuple(0, 3, 9),
-        std::make_tuple(0, 4, 5),
-        std::make_tuple(3, 4, 5), // reverse edges
-        std::make_tuple(1, 0, 3),
-        std::make_tuple(2, 1, 3),
-        std::make_tuple(2, 0, 7),
-        std::make_tuple(3, 2, 4),
-        std::make_tuple(3, 0, 9),
-        std::make_tuple(4, 0, 5),
-        std::make_tuple(4, 3, 5)
-    };
-    auto [maxFlow, partition] = solveMinCut(5, edges, 0, 3);
-    std::cout << maxFlow << std::endl;
-    for (int i = 0; i < 4; i++) {
-        if (partition[i]) {
-            std::cout << i << ' ';
-        }
+    std::vector<int> samples = {0, 1, 2, 3, 4};
+    CubicSetPartitionProblem<int> problem(samples, cost);
+    problem.solve();
+    for (auto [sample, cluster] : problem.getClusterMapping()) {
+        std::cout << sample << " -> " << cluster << std::endl;
     }
+    
+    // auto [minCut, partition] = solveMinCut(5, edges, 0, 3);
+    // std::cout << minCut << std::endl;
+    // for (int i = 0; i < 4; i++) {
+    //     if (partition[i]) {
+    //         std::cout << i << ' ';
+    //     }
+    // }
+
     std::cout << std::endl;
     return 0;
 }
