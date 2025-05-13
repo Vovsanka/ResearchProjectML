@@ -164,7 +164,7 @@ public:
 };
 
 
-std::pair<int, std::vector<bool>> solveMinCut(int vertices, std::vector<std::tuple<int,int,int>> edges) {
+std::pair<int, std::vector<bool>> solveMinCut(int vertices, std::vector<std::tuple<int,int,int>> edges, int s, int t) {
     using namespace boost;
 
     // Define the graph type
@@ -173,8 +173,6 @@ std::pair<int, std::vector<bool>> solveMinCut(int vertices, std::vector<std::tup
         property<edge_capacity_t, int,
             property<edge_residual_capacity_t, int,
                 property<edge_reverse_t, adjacency_list<>::edge_descriptor>>>> Graph;
-
-    int s = 0, t = vertices - 1;
             
     Graph g(vertices); 
     auto capacity = get(edge_capacity, g);
@@ -186,10 +184,15 @@ std::pair<int, std::vector<bool>> solveMinCut(int vertices, std::vector<std::tup
         auto [u, v, c] = e;
         if (c < 0) throw std::runtime_error("MinCutProblem: negative edges are not allowed!");
         auto e1 = add_edge(u, v, g).first;
-        auto e2 = add_edge(v, u, g).first; // Reverse edge
-        capacity[e1] = capacity[e2] = c; // Reverse edge has 0 capacity
-        rev[e1] = e2;
-        rev[e2] = e1;
+        auto e1r = add_edge(v, u, g).first;
+        auto e2 = add_edge(v, u, g).first; 
+        auto e2r = add_edge(u, v, g).first;
+        capacity[e1] = capacity[e2] = c; 
+        capacity[e1r] = capacity[e2r] = 0;
+        rev[e1] = e1r;
+        rev[e1r] = e1;
+        rev[e2] = e2r;
+        rev[e2r] = e2;
     };
 
     // Compute max flow
@@ -233,14 +236,17 @@ int main() {
     //     std::cout << sample << " -> " << cluster << std::endl;
     // }
     //
+    // Example with the triples costs: c(0, 1, 2)=6, c(0, 2, 3)=8, c(0, 3, 4)=10 
     std::vector<std::tuple<int,int,int>> edges = {
-        std::make_tuple(0, 1, 4),
-        std::make_tuple(0, 2, 5),
-        std::make_tuple(1, 3, 4),
-        std::make_tuple(2, 3, 5),
-        std::make_tuple(0, 3, 9) 
+        std::make_tuple(0, 1, 3),
+        std::make_tuple(1, 2, 3),
+        std::make_tuple(0, 2, 7),
+        std::make_tuple(2, 3, 4),
+        std::make_tuple(0, 3, 9),
+        std::make_tuple(0, 4, 5),
+        std::make_tuple(3, 4, 5)
     };
-    auto [maxFlow, partition] = solveMinCut(4, edges);
+    auto [maxFlow, partition] = solveMinCut(5, edges, 0, 3);
     std::cout << maxFlow << std::endl;
     for (int i = 0; i < 4; i++) {
         if (partition[i]) {
