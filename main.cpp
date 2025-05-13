@@ -45,6 +45,7 @@ class CubicSetPartitionProblem {
     std::map<UnorderedTriple<>, int> tripleCosts;
     std::vector<std::vector<std::pair<int, int>>> relevantTriples;
     std::vector<std::vector<std::pair<int, int>>> negativeTriples;
+    std::vector<std::vector<std::pair<int, int>>> positiveTriples;
 
     std::vector<int> indexClusterMapping;
  
@@ -64,6 +65,11 @@ class CubicSetPartitionProblem {
                         negativeTriples[i].push_back(std::make_pair(j, k));
                         negativeTriples[j].push_back(std::make_pair(i, k));
                         negativeTriples[k].push_back(std::make_pair(i, j));
+                    }
+                    if (c > 0) {
+                        positiveTriples[i].push_back(std::make_pair(j, k));
+                        positiveTriples[j].push_back(std::make_pair(i, k));
+                        positiveTriples[k].push_back(std::make_pair(i, j));
                     }
                 }
             }
@@ -161,10 +167,23 @@ public:
         // TODO !!!
         // just for now: all samples beint to the same cluster
     }
+
+    // std::pair<int, std::vector<int>> solveMinCutForIndexSubset(std::vector<int> indexSubset, int s, int t) {
+    //     std::vector<std::tuple<int,int,int>> edges;
+    //     for (int sampleNodeP = 0; sampleNodeP < indexSubset.size(); sampleNodeP++) {
+    //         for (int sampleNodeQ = sampleNodeP + 1; sampleNodeQ < indexSubset.size(); sampleNodeQ++) {
+    //             int i = indexSubset[sampleNode];
+    //             for (auto [j, k] : relevantTriples) {
+
+    //             }
+    //     }
+    // }
 };
 
 
 std::pair<int, std::vector<bool>> solveMinCut(int vertices, std::vector<std::tuple<int,int,int>> edges, int s, int t) {
+    // digraph edges !!!
+    
     using namespace boost;
 
     // Define the graph type
@@ -185,14 +204,10 @@ std::pair<int, std::vector<bool>> solveMinCut(int vertices, std::vector<std::tup
         if (c < 0) throw std::runtime_error("MinCutProblem: negative edges are not allowed!");
         auto e1 = add_edge(u, v, g).first;
         auto e1r = add_edge(v, u, g).first;
-        auto e2 = add_edge(v, u, g).first; 
-        auto e2r = add_edge(u, v, g).first;
-        capacity[e1] = capacity[e2] = c; 
-        capacity[e1r] = capacity[e2r] = 0;
+        capacity[e1] = c; 
+        capacity[e1r] = 0;
         rev[e1] = e1r;
         rev[e1r] = e1;
-        rev[e2] = e2r;
-        rev[e2r] = e2;
     };
 
     // Compute max flow
@@ -244,7 +259,14 @@ int main() {
         std::make_tuple(2, 3, 4),
         std::make_tuple(0, 3, 9),
         std::make_tuple(0, 4, 5),
-        std::make_tuple(3, 4, 5)
+        std::make_tuple(3, 4, 5), // reverse edges
+        std::make_tuple(1, 0, 3),
+        std::make_tuple(2, 1, 3),
+        std::make_tuple(2, 0, 7),
+        std::make_tuple(3, 2, 4),
+        std::make_tuple(3, 0, 9),
+        std::make_tuple(4, 0, 5),
+        std::make_tuple(4, 3, 5)
     };
     auto [maxFlow, partition] = solveMinCut(5, edges, 0, 3);
     std::cout << maxFlow << std::endl;
