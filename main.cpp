@@ -10,6 +10,58 @@
 #include <boost/graph/push_relabel_max_flow.hpp>
 #include <boost/graph/adjacency_list.hpp>
 
+std::pair<int, std::vector<bool>> solveMinCut(int vertices, std::vector<std::tuple<int,int,int>> edges, int s, int t) {
+    // digraph edges !!!
+    
+    using namespace boost;
+
+    // Define the graph type
+    typedef adjacency_list<vecS, vecS, directedS,
+        property<vertex_name_t, std::string>,
+        property<edge_capacity_t, int,
+            property<edge_residual_capacity_t, int,
+                property<edge_reverse_t, adjacency_list<>::edge_descriptor>>>> Graph;
+            
+    Graph g(vertices); 
+    auto capacity = get(edge_capacity, g);
+    auto rev = get(edge_reverse, g);
+    auto residual_capacity = get(edge_residual_capacity, g);
+
+    // Add edges with capacities
+    for (auto& e : edges) {
+        auto [u, v, c] = e;
+        if (c < 0) throw std::runtime_error("MinCutProblem: negative edges are not allowed!");
+        auto e1 = add_edge(u, v, g).first;
+        auto e1r = add_edge(v, u, g).first;
+        capacity[e1] = c; 
+        capacity[e1r] = 0;
+        rev[e1] = e1r;
+        rev[e1r] = e1;
+    };
+
+    // Compute max flow
+    int maxFlow = push_relabel_max_flow(g, s, t);
+
+    std::vector<bool> visited(vertices, false);
+
+    std::function<void(int)> dfs = [&](int v) -> void {
+        if (visited[v]) return;
+        visited[v] = true;
+        for (auto [ei, e_end] = out_edges(v, g); ei != e_end; ++ei) {
+            if (residual_capacity[*ei] > 0) {
+                dfs(target(*ei, g));
+            }
+        }
+    };
+
+    // Run DFS on the residual network to determine the min cut subset
+    dfs(s);
+
+    return std::make_pair(maxFlow, visited);
+}
+
+
+
 
 template <typename S = int> // domain S of samples
 class UnorderedTriple { // unordered triple (sorted in the ascending order)
@@ -169,111 +221,61 @@ public:
         // just for now: all samples beint to the same cluster
     }
 
-//     std::pair<int, std::vector<bool>> solveMinCutForIndexSubset(std::vector<int> indexSubset, bool invertCosts, int s, int t) {
-//         int vertices = std::count(std::begin(indexSubset), std::end(indexSubset), true);
-//         std::vector<int> indexMapping(indexSubset.size());
-//         std::vector<int> invIndexMapping(vertices);
-//         for (int i = 0, sampleNode = 0; i < indexSubset.size(); i++) {
-//             if (indexSubset[i]) {
-//                 indexMapping[i] = sampleNode;
-//                 invIndexMapping[sampleNode] = i;
-//                 sampleNode++;
-//             }
-//         }
-
-//         // compute the adjancy matrix by transforming triples (the costs in the matrix are not divided by 2 to avoid floating numbers)
-//         std::vector<std::vector<int>> adjMatrix(vertices, std::vector(vertices, 0));
-//         for (int i = 0; i < indexSubset.size(); i++) {
-//             if (!indexSubset[i]) continue;
-//             for (auto [j, k] : relevantTriples[i]) {
-//                 if (!indexSubset[j] || !indexSubset[k]) continue;
-//                 auto indexTriple = UnorderedTriple<>(i, j, k); // sorted indices
-//                 int c = tripleCosts[indexTriple] * (invertCosts ? -1 : 1);
-//                 int i_node = indexMapping[indexTriple[0]]; 
-//                 int j_node = indexMapping[indexTriple[1]];
-//                 int k_node = indexMapping[indexTriple[2]];
-//                 adjMatrix[i_node][j_node] += c;
-//                 adjMatrix[i_node][k_node] += c;
-//                 adjMatrix[j_node][k_node] += c; 
-//             }
-//         }
-
-//         // create adjacency list from the adjacency matrix
-//         std::vector<std::tuple<int,int,int>> edges;
-//         for (int i_node = 0; i_node < vertices; i_node++) {
-//             for (int j_node = i_node + 1; j_node < vertices; j_node++) {
-//                 int c = adjMatrix[i_node][j_node];
-//                 if (c) {
-//                     edges.push_back(std::make_tuple(i_node, j_node, c));
-//                     edges.push_back(std::make_tuple(j_node, i_node, c));
-//                 }
-//             }
-//         } 
-
-//         // solve the MinCut problem
-//         auto [minCut, partition] = solveMinCut(vertices, edges, indexMapping[s], indexMapping[t]);
-
-//         // transform the results to the original domain
-//         std::vector<bool> partitionOnSamples(indexSubset.size(), false);
-//         for (int i_node = 0; i_node < vertices; i_node++) {
-//             partitionOnSamples[invIndexMapping[i_node]] = partition[i_node];
-//         }
-
-//         // divide the MinCut result by 2 because all triples have been transformed with a double cost
-//         return std::make_pair(minCut/2, partitionOnSamples);
-    // }
-};
-
-
-std::pair<int, std::vector<bool>> solveMinCut(int vertices, std::vector<std::tuple<int,int,int>> edges, int s, int t) {
-    // digraph edges !!!
-    
-    using namespace boost;
-
-    // Define the graph type
-    typedef adjacency_list<vecS, vecS, directedS,
-        property<vertex_name_t, std::string>,
-        property<edge_capacity_t, int,
-            property<edge_residual_capacity_t, int,
-                property<edge_reverse_t, adjacency_list<>::edge_descriptor>>>> Graph;
-            
-    Graph g(vertices); 
-    auto capacity = get(edge_capacity, g);
-    auto rev = get(edge_reverse, g);
-    auto residual_capacity = get(edge_residual_capacity, g);
-
-    // Add edges with capacities
-    for (auto& e : edges) {
-        auto [u, v, c] = e;
-        if (c < 0) throw std::runtime_error("MinCutProblem: negative edges are not allowed!");
-        auto e1 = add_edge(u, v, g).first;
-        auto e1r = add_edge(v, u, g).first;
-        capacity[e1] = c; 
-        capacity[e1r] = 0;
-        rev[e1] = e1r;
-        rev[e1r] = e1;
-    };
-
-    // Compute max flow
-    int maxFlow = push_relabel_max_flow(g, s, t);
-
-    std::vector<bool> visited(vertices, false);
-
-    std::function<void(int)> dfs = [&](int v) -> void {
-        if (visited[v]) return;
-        visited[v] = true;
-        for (auto [ei, e_end] = out_edges(v, g); ei != e_end; ++ei) {
-            if (residual_capacity[*ei] > 0) {
-                dfs(target(*ei, g));
+    std::pair<int, std::vector<bool>> solveMinCutForIndexSubset(std::vector<bool> indexSubset, bool invertCosts, int s, int t) {
+        int vertices = std::count(std::begin(indexSubset), std::end(indexSubset), true);
+        std::vector<int> indexMapping(indexSubset.size());
+        std::vector<int> invIndexMapping(vertices);
+        for (int i = 0, sampleNode = 0; i < indexSubset.size(); i++) {
+            if (indexSubset[i]) {
+                indexMapping[i] = sampleNode;
+                invIndexMapping[sampleNode] = i;
+                sampleNode++;
             }
         }
-    };
 
-    // Run DFS on the residual network to determine the min cut subset
-    dfs(s);
+        // compute the adjancy matrix by transforming triples (the costs in the matrix are not divided by 2 to avoid floating numbers)
+        std::vector<std::vector<int>> adjMatrix(vertices, std::vector(vertices, 0));
+        for (int i = 0; i < indexSubset.size(); i++) {
+            if (!indexSubset[i]) continue;
+            for (auto [j, k] : relevantTriples[i]) {
+                if (!indexSubset[j] || !indexSubset[k]) continue;
+                auto indexTriple = UnorderedTriple<>(i, j, k); // sorted indices
+                int c = tripleCosts[indexTriple] * (invertCosts ? -1 : 1);
+                int i_node = indexMapping[indexTriple[0]]; 
+                int j_node = indexMapping[indexTriple[1]];
+                int k_node = indexMapping[indexTriple[2]];
+                adjMatrix[i_node][j_node] += c;
+                adjMatrix[i_node][k_node] += c;
+                adjMatrix[j_node][k_node] += c; 
+            }
+        }
 
-    return std::make_pair(maxFlow, visited);
-}
+        // create adjacency list from the adjacency matrix
+        std::vector<std::tuple<int,int,int>> edges;
+        for (int i_node = 0; i_node < vertices; i_node++) {
+            for (int j_node = i_node + 1; j_node < vertices; j_node++) {
+                int c = adjMatrix[i_node][j_node] / 3; // since each triple has been considered 3 times
+                if (c) {
+                    edges.push_back(std::make_tuple(i_node, j_node, c));
+                    edges.push_back(std::make_tuple(j_node, i_node, c));
+                }
+            }
+        } 
+
+        // solve the MinCut problem
+        auto [minCut, partition] = solveMinCut(vertices, edges, indexMapping[s], indexMapping[t]);
+
+        // transform the results to the original domain
+        std::vector<bool> partitionOnSamples(indexSubset.size(), false);
+        for (int i_node = 0; i_node < vertices; i_node++) {
+            partitionOnSamples[invIndexMapping[i_node]] = partition[i_node];
+        }
+
+        // divide the MinCut result by 2 because all triples have been transformed with a double cost
+        return std::make_pair(minCut/2, partitionOnSamples);
+    }
+};
+
 
 
 // int cost(UnorderedTriple<char> t) {
@@ -309,13 +311,15 @@ int main() {
         std::cout << sample << " -> " << cluster << std::endl;
     }
     
-    // auto [minCut, partition] = solveMinCut(5, edges, 0, 3);
-    // std::cout << minCut << std::endl;
-    // for (int i = 0; i < 4; i++) {
-    //     if (partition[i]) {
-    //         std::cout << i << ' ';
-    //     }
-    // }
+    std::vector<bool> indexSubset(5, true);
+    // indexSubset[1] = false;
+    auto [minCut, partition] = problem.solveMinCutForIndexSubset(indexSubset, true, 0, 3);
+    std::cout << minCut << std::endl;
+    for (int i = 0; i < 4; i++) {
+        if (partition[i]) {
+            std::cout << i << ' ';
+        }
+    }
 
     std::cout << std::endl;
     return 0;
