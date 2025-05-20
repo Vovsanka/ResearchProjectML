@@ -154,8 +154,6 @@ public:
 
 template <typename S = int> // domain S of samples
 class CubicSetPartitionProblem {
-    
-    using JoinSubproblemSetting = std::tuple<int,std::vector<std::vector<int>>,CubicSetPartitionProblem<S>>;
 
     std::vector<S> samples;
     
@@ -182,6 +180,7 @@ class CubicSetPartitionProblem {
     }
 
     std::pair<int, std::vector<bool>> solveMinCutForIndexSubset(bool globalMinCut, std::vector<bool> indexSubset, bool invertCosts, int s = 0, int t = 0) {
+        // apply proposition 4.2
         int vertices = std::count(std::begin(indexSubset), std::end(indexSubset), true);
         std::vector<int> indexMapping(indexSubset.size());
         std::vector<int> invIndexMapping(vertices);
@@ -197,7 +196,17 @@ class CubicSetPartitionProblem {
         std::vector<std::vector<int>> adjMatrix(vertices, std::vector(vertices, 0));
         for (int i = 0; i < indexSubset.size(); i++) {
             if (!indexSubset[i]) continue;
+            for (int j : relevantPairs[i]) {
+                if (i > j) continue; // consider only (i < j)
+                if (!indexSubset[j]) continue;
+                auto indexPair = UnorderedPair<>(i, j); // sorted indices
+                int c = pairCosts[indexPair] * (invertCosts ? -1 : 1);
+                int i_node = indexMapping[indexPair[0]]; 
+                int j_node = indexMapping[indexPair[1]];
+                adjMatrix[i_node][j_node] += c;
+            }
             for (auto [j, k] : relevantTriples[i]) {
+                if (i > j) continue; // consider only (i < j < k)
                 if (!indexSubset[j] || !indexSubset[k]) continue;
                 auto indexTriple = UnorderedTriple<>(i, j, k); // sorted indices
                 int c = tripleCosts[indexTriple] * (invertCosts ? -1 : 1);
@@ -214,7 +223,7 @@ class CubicSetPartitionProblem {
         std::vector<std::tuple<int,int,int>> edges;
         for (int i_node = 0; i_node < vertices; i_node++) {
             for (int j_node = i_node + 1; j_node < vertices; j_node++) {
-                int c = adjMatrix[i_node][j_node] / 3; // since each triple has been considered 3 times
+                int c = adjMatrix[i_node][j_node];
                 if (c) {
                     edges.push_back(std::make_tuple(i_node, j_node, c));
                 }
@@ -351,7 +360,7 @@ class CubicSetPartitionProblem {
         return true;
     }
 
-    JoinSubproblemSetting createJoinSubproblem(std::vector<int> joinSamples) {
+    void createSolveAccumulateJoinSubproblem(std::vector<int> joinSamples) {
         // aplying proposition 5.1
         int subSampleCount = sampleCount - joinSamples.size() + 1;
         int indexOfJoint = subSampleCount - 1;
@@ -361,8 +370,6 @@ class CubicSetPartitionProblem {
         for (auto i : joinSamples) {
             joinSamplesSet.insert(i);
         }
-
-        int joiningCost = 0;
 
         // index of samples in the subproblem
         std::vector<std::vector<int>> backIndexing(subSampleCount);
@@ -393,10 +400,10 @@ class CubicSetPartitionProblem {
         // filter relevant triples for the subproblem which have no relations to the samples being joint
         std::vector<std::vector<std::pair<int, int>>> subRelevantTriples(subSampleCount);
         std::map<UnorderedTriple<>, int> subTripleCosts;
-        for (int i : joinSamples) {
+        for (int i = 0; i < sampleCount; i++) {
             if (joinSamplesSet.count(i)) continue; // skip the relations for the joint set
             for (auto [j, k] : relevantTriples[i]) {
-                if (joinSamplesSet.count(i) || joinSamplesSet.count(j)) continue; // skip the relations for the joint set
+                if (joinSamplesSet.count(j) || joinSamplesSet.count(k)) continue; // skip the relations for the joint set
                 subRelevantTriples[indexOf[i]].push_back(std::make_pair(indexOf[j], indexOf[k]));
                 subTripleCosts[UnorderedTriple(indexOf[i], indexOf[j], indexOf[k])] = tripleCosts[UnorderedTriple<>(i, j, k)];
             }
@@ -405,9 +412,8 @@ class CubicSetPartitionProblem {
         // compute the costs to the joint subset as well as the inner joining cost
         for (int i : joinSamples) {
             for (int j : relevantPairs[i]) {
-                if (i > j) continue; // take only one direction to make accumulation less difficult
                 if (joinSamplesSet.count(j)) {
-                    joiningCost += pairCosts[UnorderedPair<>(i, j)];
+                    if (i < j) resultingCost += pairCosts[UnorderedPair<>(i, j)]; // consider one direction (i, j) and skip (j, i)
                 } else {
                     UnorderedPair<> indexPair(indexOf[i], indexOf[j]);
                     if (!subPairCosts.count(indexPair)) subPairCosts[indexPair] = 0;
@@ -419,15 +425,22 @@ class CubicSetPartitionProblem {
         }
         for (int i : joinSamples) {
             for (auto [j, k] : relevantTriples[i]) {
-                if (i > j) continue; // (i < j < k) take only one direction to make accumulation less difficult
                 bool innerJ = joinSamplesSet.count(j);
                 bool innerK = joinSamplesSet.count(k);
                 if (innerJ && innerK) {
-                    joiningCost += tripleCosts[UnorderedTriple<>(i, j, k)];
+                    // (i < j < k) consider only (i, j, k) and skip the others
+                    if (i < j) resultingCost += tripleCosts[UnorderedTriple<>(i, j, k)];
                 } else if (innerJ || innerK) {
-                    int outer;
-                    if (innerJ) outer = j;
-                    if (innerK) outer = k;
+                    int outer, inner;
+                    if (innerJ) {
+                        inner = j;
+                        outer = k;
+                    }
+                    if (innerK) {
+                        inner = k;
+                        outer = j;
+                    }
+                    if (i > inner) continue; // consider one direction (i, inner) and skip (inner, i)
                     UnorderedPair<> indexPair(indexOf[i], indexOf[outer]);
                     if (!subPairCosts.count(indexPair)) subPairCosts[indexPair] = 0;
                     subRelevantPairs[indexOf[i]].push_back(indexOf[outer]);
@@ -444,18 +457,69 @@ class CubicSetPartitionProblem {
             } 
         }
 
-        // create the subproblem
-        return std::make_tuple(
-            joiningCost,
-            backIndexing,
-            CubicSetPartitionProblem(
-                subSampleCount,
-                subRelevantTriples,
-                subTripleCosts,
-                subRelevantPairs,
-                subPairCosts
-            )
+        // create and solve the subproblem
+        auto subproblem = CubicSetPartitionProblem(
+            subSampleCount,
+            subRelevantTriples,
+            subTripleCosts,
+            subRelevantPairs,
+            subPairCosts
         );
+        subproblem.solve();
+
+        // accumulate the results (resulting cost for the join has been accumulated)
+        resultingCost += subproblem.getResultingCost();
+        auto subIndexClusterMapping = subproblem.getIndexClusterMapping();
+        for (int ind = 0; ind < subSampleCount; ind++) {
+            int subcluster = subIndexClusterMapping[ind];
+            for (int originalIndex : backIndexing[ind]) {
+                indexClusterMapping[originalIndex] = subcluster;
+            }
+        }
+    }
+
+    bool applyBipartiteSubsetJoinForIndexSubset(std::vector<bool> &indexSubset) {   
+        // compute rhs
+        int lhsLowerBound = 0; // avoid MinCut computation for lhs>rhs and the edge cases where lhs=0 (rhs<0 because of 3.1) or avoid
+        int singleR = 0, doubleR = 0;
+        for (int i = 0; i < sampleCount; i++) {
+            if (!indexSubset[i]) continue; // i is in R
+            for (auto j : relevantPairs[i]) {
+                int c = pairCosts[UnorderedPair<>(i, j)];
+                if (indexSubset[j]) {
+                    if (i < j) lhsLowerBound += c;
+                } else if (c < 0) {
+                    singleR += c;
+                }
+            }
+            for (auto [j, k] : relevantTriples[i]) {
+                int c = tripleCosts[UnorderedTriple<>(i, j, k)];
+                if (indexSubset[j] && indexSubset[k]) {
+                    if (i < j) lhsLowerBound += c;
+                    continue; // j or k must be not in R
+                }
+                if (c > 0) continue; // omit positive costs
+                if (!indexSubset[k] && !indexSubset[j]) {
+                    singleR += c;
+                } else {
+                    doubleR += c; // since two elements of the triple are in R, the cost will be added twice
+                }
+            }
+        }
+        int rhs = singleR + doubleR/2;
+        if (lhsLowerBound > rhs) return false;
+
+        auto [minCut, partition] = solveMinCutForIndexSubset(true, indexSubset, true);
+        int lhs = -minCut; 
+        if (lhs <= rhs) {
+            std::vector<int> joinSamples;
+            for (int i = 0; i < sampleCount; i++) {
+                if (indexSubset[i]) joinSamples.push_back(i);
+            }
+            createSolveAccumulateJoinSubproblem(joinSamples);
+            return true;
+        }  
+        return false;
     }
 
     bool applyBipartiteSubsetJoin() {
@@ -463,21 +527,25 @@ class CubicSetPartitionProblem {
         // heuristically construct and check the candidate sets R for possible joining
         for (int i = 0; i < sampleCount; i++) {
             for (int j = i + 1; j < sampleCount; j++) {
-                if (pairCosts.count(UnorderedPair<>(i, j)) && pairCosts[UnorderedPair<>(i, j)] < 0) continue;
-                std::set<int> elementsR = {i, j}; // R must not be a connected component
+                if (pairCosts.count(UnorderedPair<>(i, j)) && pairCosts[UnorderedPair<>(i, j)] > 0) continue;
+
+                std::vector<bool> subsetR(sampleCount, false); // R doesn't have to be a connected component
+                subsetR[i] = subsetR[j] = true;
+                if (applyBipartiteSubsetJoinForIndexSubset(subsetR)) return true;
+
                 std::set<int> candidates;
                 for (int k = 0; k < sampleCount; k++) {
-                    if (k != i && k != j) {
+                    if (!subsetR[k]) {
                         candidates.insert(k);
                     }
                 }
 
                 std::function<int(int)> computeOffset = [&](int i) {
                     // positive offset if not mergeable
-                    if (elementsR.count(i)) return 1;
+                    if (subsetR[i]) return 1;
                     int offset = 0;
                     for (auto j : relevantPairs[i]) {
-                        if (elementsR.count(j) != 1) continue;
+                        if (!subsetR[j]) continue;
                         int c = pairCosts[UnorderedPair<>(i, j)];
                         if (c > 0) {
                             return 1;
@@ -486,7 +554,7 @@ class CubicSetPartitionProblem {
                         }
                     }
                     for (auto [j, k] : relevantTriples[i]) {
-                        if (elementsR.count(j) + elementsR.count(k) != 2) continue; // 2 of 3 triple elements are already in R
+                        if (!subsetR[j] || !subsetR[k]) continue; // 2 of 3 triple elements are already in R
                         int c = tripleCosts[UnorderedTriple<>(i, j, k)];
                         if (c > 0) {
                             return 1;
@@ -514,45 +582,11 @@ class CubicSetPartitionProblem {
                         candidates.erase(k);
                     }
                     if (bestCandidate != -1) {
-                        elementsR.insert(bestCandidate);
+                        subsetR[bestCandidate] = true;
                         candidates.erase(bestCandidate);
+                        if (applyBipartiteSubsetJoinForIndexSubset(subsetR)) return true;
                     }
                 }
-
-                std::vector<bool> indexSubset(sampleCount, false);
-                for (auto r : elementsR) {
-                    indexSubset[r] = true;
-                }
-                auto [minCut, partition] = solveMinCutForIndexSubset(true, indexSubset, true);
-                
-                // compute rhs
-                int singleR = 0, doubleR = 0;
-                for (int i = 0; i < sampleCount; i++) {
-                    if (!indexSubset[i]) continue; // i is in R
-                    for (auto j : relevantPairs[i]) {
-                        if (indexSubset[j]) continue; // j must be not in R
-                        int c = pairCosts[UnorderedPair<>(i, j)];
-                        if (c > 0) continue;
-                        singleR += c;
-                    }
-                    for (auto [j, k] : relevantTriples[i]) {
-                        if (indexSubset[j] && indexSubset[k]) continue; // j or k must be not in R
-                        int c = tripleCosts[UnorderedTriple<>(i, j, k)];
-                        if (c > 0) continue; // omit positive costs
-                        if (!indexSubset[k] && !indexSubset[j]) {
-                            singleR += c;
-                        } else {
-                            doubleR += c; // since two elements of the triple are in R, the cost will be added twice
-                        }
-                    }
-                }
-
-                int lhs = -minCut, rhs = singleR + doubleR/2;
-                std::cout << sampleCount << " : " << lhs << " vs " << rhs << std::endl;     
-                if (lhs <= rhs) {
-                    // TODO: create and solve the join subproblem
-                    return true;
-                }           
             }
         }
         return false;
@@ -636,7 +670,7 @@ public:
 
 int cost(UnorderedTriple<char> t) {
     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c') return -1;
-    if (t[0] == 'a' && t[1] == 'c' && t[2] == 'd') return 15;
+    if (t[0] == 'a' && t[1] == 'c' && t[2] == 'd') return -15;
     if (t[0] == 'd' && t[1] == 'e' && t[2] == 'h') return 50;
     if (t[0] == 'e' && t[1] == 'f' && t[2] == 'h') return -50;
     if (t[0] == 'f' && t[1] == 'g' && t[2] == 'i') return -30;
@@ -654,7 +688,7 @@ int main() {
     for (auto [sample, cluster] : problem.getClusterMapping()) {
         std::cout << sample << " -> " << cluster << std::endl;
     }
+    std::cout << problem.getResultingCost() << std::endl;
 
-    std::cout << std::endl;
     return 0;
 }
