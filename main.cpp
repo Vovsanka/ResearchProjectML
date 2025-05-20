@@ -254,9 +254,9 @@ class CubicSetPartitionProblem {
         int subSampleCount = subsamples.size();
         
         // subsamples as a set
-        std::set<int> subsampleSet;
+        std::vector<bool> subsetR(sampleCount, false);
         for (auto i : subsamples) {
-            subsampleSet.insert(i);
+            subsetR[i] = true;
         }
 
         // index of samples in the subproblem
@@ -270,7 +270,7 @@ class CubicSetPartitionProblem {
         std::map<UnorderedPair<>, int> subPairCosts;
         for (int i : subsamples) {
             for (int j : relevantPairs[i]) {
-                if (subsampleSet.count(j)) {
+                if (subsetR[j]) {
                     subRelevantPairs[indexOf[i]].push_back(indexOf[j]);
                     subPairCosts[UnorderedPair<>(indexOf[i], indexOf[j])] = pairCosts[UnorderedPair<>(i, j)];
                 }
@@ -281,7 +281,7 @@ class CubicSetPartitionProblem {
         std::map<UnorderedTriple<>, int> subTripleCosts;
         for (int i : subsamples) {
             for (auto [j, k] : relevantTriples[i]) {
-                if (subsampleSet.count(j) && subsampleSet.count(k)) {
+                if (subsetR[j] && subsetR[k]) {
                     subRelevantTriples[indexOf[i]].push_back(std::make_pair(indexOf[j], indexOf[k]));
                     subTripleCosts[UnorderedTriple(indexOf[i], indexOf[j], indexOf[k])] = tripleCosts[UnorderedTriple<>(i, j, k)];
                 }
@@ -360,22 +360,21 @@ class CubicSetPartitionProblem {
         return true;
     }
 
-    void createSolveAccumulateJoinSubproblem(std::vector<int> joinSamples) {
+    void createSolveAccumulateJoinSubproblem(std::vector<bool> subsetR) {
+        std::vector<int> joinSamples;
+        for (int i = 0; i < sampleCount; i++) {
+            if (subsetR[i]) joinSamples.push_back(i);
+        }
+
         // aplying proposition 5.1
         int subSampleCount = sampleCount - joinSamples.size() + 1;
         int indexOfJoint = subSampleCount - 1;
-
-        // subsamples as a set
-        std::set<int> joinSamplesSet;
-        for (auto i : joinSamples) {
-            joinSamplesSet.insert(i);
-        }
 
         // index of samples in the subproblem
         std::vector<std::vector<int>> backIndexing(subSampleCount);
         std::vector<int> indexOf(sampleCount);
         for (int i = 0, ind = 0; i < sampleCount; i++) {
-            if (joinSamplesSet.count(i)) {
+            if (subsetR[i]) {
                 indexOf[i] = indexOfJoint;
                 backIndexing[indexOfJoint].push_back(i);
             } else {
@@ -389,9 +388,9 @@ class CubicSetPartitionProblem {
         std::vector<std::vector<int>> subRelevantPairs(subSampleCount);
         std::map<UnorderedPair<>, int> subPairCosts;
         for (int i = 0; i < sampleCount; i++) {
-            if (joinSamplesSet.count(i)) continue; // skip the relations for the joint set
+            if (subsetR[i]) continue; // skip the relations for the joint set
             for (int j : relevantPairs[i]) {
-                if (joinSamplesSet.count(j)) continue; // skip the relations for the joint set
+                if (subsetR[j]) continue; // skip the relations for the joint set
                 subRelevantPairs[indexOf[i]].push_back(indexOf[j]);
                 subPairCosts[UnorderedPair<>(indexOf[i], indexOf[j])] = pairCosts[UnorderedPair<>(i, j)];
             }
@@ -401,9 +400,9 @@ class CubicSetPartitionProblem {
         std::vector<std::vector<std::pair<int, int>>> subRelevantTriples(subSampleCount);
         std::map<UnorderedTriple<>, int> subTripleCosts;
         for (int i = 0; i < sampleCount; i++) {
-            if (joinSamplesSet.count(i)) continue; // skip the relations for the joint set
+            if (subsetR[i]) continue; // skip the relations for the joint set
             for (auto [j, k] : relevantTriples[i]) {
-                if (joinSamplesSet.count(j) || joinSamplesSet.count(k)) continue; // skip the relations for the joint set
+                if (subsetR[j] || subsetR[k]) continue; // skip the relations for the joint set
                 subRelevantTriples[indexOf[i]].push_back(std::make_pair(indexOf[j], indexOf[k]));
                 subTripleCosts[UnorderedTriple(indexOf[i], indexOf[j], indexOf[k])] = tripleCosts[UnorderedTriple<>(i, j, k)];
             }
@@ -412,7 +411,7 @@ class CubicSetPartitionProblem {
         // compute the costs to the joint subset as well as the inner joining cost
         for (int i : joinSamples) {
             for (int j : relevantPairs[i]) {
-                if (joinSamplesSet.count(j)) {
+                if (subsetR[j]) {
                     if (i < j) resultingCost += pairCosts[UnorderedPair<>(i, j)]; // consider one direction (i, j) and skip (j, i)
                 } else {
                     UnorderedPair<> indexPair(indexOf[i], indexOf[j]);
@@ -425,8 +424,7 @@ class CubicSetPartitionProblem {
         }
         for (int i : joinSamples) {
             for (auto [j, k] : relevantTriples[i]) {
-                bool innerJ = joinSamplesSet.count(j);
-                bool innerK = joinSamplesSet.count(k);
+                bool innerJ = subsetR[j], innerK = subsetR[k];
                 if (innerJ && innerK) {
                     // (i < j < k) consider only (i, j, k) and skip the others
                     if (i < j) resultingCost += tripleCosts[UnorderedTriple<>(i, j, k)];
@@ -512,11 +510,7 @@ class CubicSetPartitionProblem {
         auto [minCut, partition] = solveMinCutForIndexSubset(true, indexSubset, true);
         int lhs = -minCut; 
         if (lhs <= rhs) {
-            std::vector<int> joinSamples;
-            for (int i = 0; i < sampleCount; i++) {
-                if (indexSubset[i]) joinSamples.push_back(i);
-            }
-            createSolveAccumulateJoinSubproblem(joinSamples);
+            createSolveAccumulateJoinSubproblem(indexSubset);
             return true;
         }  
         return false;
