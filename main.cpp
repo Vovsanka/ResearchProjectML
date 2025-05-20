@@ -165,6 +165,7 @@ class CubicSetPartitionProblem {
     std::vector<std::vector<int>> relevantPairs;
     std::map<UnorderedPair<>, int> pairCosts;
 
+    std::vector<std::vector<bool>> labelFixed, labelValue;
     std::vector<int> indexClusterMapping;
     int resultingCost;
 
@@ -341,6 +342,19 @@ class CubicSetPartitionProblem {
 
         if (partition.size() == 1) return false; // no cuts => no smaller subproblems
 
+        // fix the labels
+        for (int subsetI = 0; subsetI < partition.size(); subsetI++) {
+            for (int subsetJ = subsetI + 1; subsetJ < partition.size(); subsetJ++) {
+                for (auto i : partition[subsetI]) {
+                    for (auto j : partition[subsetJ]) {
+                        labelFixed[i][j] = labelFixed[j][i] = true;
+                        labelValue[i][j] = labelValue[j][i] = false;
+                    }
+                }
+            }
+        }
+
+        // create, solve the subproblems, accumulate the results
         int clusterOffset = 0;
         for (auto backIndexing : partition) {
             // create and solve the independent subproblems
@@ -356,7 +370,18 @@ class CubicSetPartitionProblem {
                 subClusterCount = std::max(subClusterCount, subcluster + 1);
             }
             clusterOffset += subClusterCount;
+            // accumulate the labels
+            auto subLabelFixed = subproblem.getIndexLabelFixed();
+            auto subLabelValue = subproblem.getIndexLabelValue();
+            for (int i = 0; i < subLabelFixed.size(); i++) {
+                for (int j = i + 1; j < subLabelFixed.size(); j++) {
+                    int originalI = backIndexing[i], originalJ = backIndexing[j];
+                    labelFixed[originalI][originalJ] = labelFixed[originalJ][originalI] = subLabelFixed[i][j];
+                    labelValue[originalI][originalJ] = labelValue[originalJ][originalI] = subLabelValue[i][j];
+                }
+            } 
         }
+        
         return true;
     }
 
@@ -474,6 +499,27 @@ class CubicSetPartitionProblem {
                 indexClusterMapping[originalIndex] = subcluster;
             }
         }
+        // fix the labels for join
+        for (int indI = 0; indI < joinSamples.size(); indI++) {
+            for (int indJ = indI + 1; indJ < joinSamples.size(); indJ++) {
+                int i = joinSamples[indI], j = joinSamples[indJ];
+                labelFixed[i][j] = labelFixed[j][i] = true;
+                labelValue[i][j] = labelValue[j][i] = true;
+            }
+        }
+        // accumulate the labels
+        auto subLabelFixed = subproblem.getIndexLabelFixed();
+        auto subLabelValue = subproblem.getIndexLabelValue();
+        for (int i = 0; i < subLabelFixed.size(); i++) {
+            for (int j = i + 1; j < subLabelFixed.size(); j++) {
+                for (int originalI : backIndexing[i]) {
+                    for (int originalJ : backIndexing[j]) {
+                        labelFixed[originalI][originalJ] = labelFixed[originalJ][originalI] = subLabelFixed[i][j];
+                        labelValue[originalI][originalJ] = labelValue[originalJ][originalI] = subLabelValue[i][j];
+                    }
+                }   
+            }
+        } 
     }
 
     bool applyBipartiteSubsetJoinForIndexSubset(std::vector<bool> &indexSubset) {   
@@ -625,6 +671,14 @@ public:
         return indexClusterMapping;
     } 
 
+    std::vector<std::vector<bool>> getIndexLabelFixed() {
+        return labelFixed;
+    }
+
+    std::vector<std::vector<bool>> getIndexLabelValue() {
+        return labelValue;
+    }
+
     int getResultingCost() {
         return resultingCost;
     }
@@ -633,8 +687,11 @@ public:
         if (!sampleCount) throw std::runtime_error("Cannot solve a cubic set partition problem with no samples!");
 
         // init the problem results (all elements are joint by default)
+        labelFixed.resize(sampleCount, std::vector<bool>(sampleCount, false));
+        labelValue.resize(sampleCount, std::vector<bool>(sampleCount, false));
         indexClusterMapping.resize(sampleCount, 0);
         resultingCost = 0;
+
         
         if (sampleCount == 1) return; // trivial problem
 
