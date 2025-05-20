@@ -741,5 +741,26 @@ int main() {
     }
     std::cout << problem.getResultingCost() << std::endl;
 
+    auto labelFixed = problem.getIndexLabelFixed();
+    auto labelValue = problem.getIndexLabelValue();
+    std::cout << "  ";
+    for (auto s : samples) {
+        std::cout << s << " ";
+    }
+    std::cout << std::endl;
+    for (int i = 0; i < samples.size(); i++) {
+        std::cout << samples[i] << " ";
+        for (int j = 0; j < samples.size(); j++) {
+            if (labelFixed[i][j]) {
+                std::cout << int(labelValue[i][j]);
+            } else {
+                std::cout << "x";
+            }
+            std::cout << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    
     return 0;
 }
