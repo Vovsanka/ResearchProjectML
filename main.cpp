@@ -180,7 +180,7 @@ class CubicSetPartitionProblem {
         this->sampleCount = sampleCount;
     }
 
-    std::pair<int, std::vector<bool>> solveMinCutForIndexSubset(bool globalMinCut, std::vector<bool> indexSubset, bool invertCosts, int s = 0, int t = 0) {
+    std::pair<int, std::vector<bool>> solveMinCutForIndexSubset(std::vector<bool> indexSubset, bool globalMinCut, int s = 0, int t = 0) {
         // apply proposition 4.2
         int vertices = std::count(std::begin(indexSubset), std::end(indexSubset), true);
         std::vector<int> indexMapping(indexSubset.size());
@@ -201,7 +201,7 @@ class CubicSetPartitionProblem {
                 if (i > j) continue; // consider only (i < j)
                 if (!indexSubset[j]) continue;
                 auto indexPair = UnorderedPair<>(i, j); // sorted indices
-                int c = pairCosts[indexPair] * (invertCosts ? -1 : 1);
+                int c = abs(pairCosts[indexPair]);
                 int i_node = indexMapping[indexPair[0]]; 
                 int j_node = indexMapping[indexPair[1]];
                 adjMatrix[i_node][j_node] += c;
@@ -210,7 +210,7 @@ class CubicSetPartitionProblem {
                 if (i > j) continue; // consider only (i < j < k)
                 if (!indexSubset[j] || !indexSubset[k]) continue;
                 auto indexTriple = UnorderedTriple<>(i, j, k); // sorted indices
-                int c = tripleCosts[indexTriple] * (invertCosts ? -1 : 1);
+                int c = abs(tripleCosts[indexTriple]);
                 int i_node = indexMapping[indexTriple[0]]; 
                 int j_node = indexMapping[indexTriple[1]];
                 int k_node = indexMapping[indexTriple[2]];
@@ -553,7 +553,7 @@ class CubicSetPartitionProblem {
         int rhs = singleR + doubleR/2;
         if (lhsLowerBound > rhs) return false;
 
-        auto [minCut, partition] = solveMinCutForIndexSubset(true, indexSubset, true);
+        auto [minCut, partition] = solveMinCutForIndexSubset(indexSubset, true);
         int lhs = -minCut; 
         if (lhs <= rhs) {
             createSolveAccumulateJoinSubproblem(indexSubset);
@@ -632,7 +632,37 @@ class CubicSetPartitionProblem {
         return false;
     }
     
-    
+    bool applyPairJoin() {
+        for (int i = 0; i < sampleCount; i++) {
+            for (int j = i + 1; j < sampleCount; j++) {
+                // compute lhs
+                int lhs = 0;
+                UnorderedPair<> indexPair(i, j);
+                if (pairCosts.count(indexPair)) {
+                    int c = pairCosts[indexPair];
+                    if (c < 0) lhs += -2*c;
+                }
+                for (auto [k1, k2] : relevantTriples[i]) {
+                    if (k1 != j && k2 != j) continue; // k1 or k2 is j
+                    int c = tripleCosts[UnorderedTriple<> (i, k1, k2)];
+                    if (c < 0) lhs += -c;
+                }
+                // compute rhs (assume that the underlying graph is connected after applying the proposition 3.1)
+                auto [minCut, partition] = solveMinCutForIndexSubset(std::vector<bool>(sampleCount, true), true, i, j);
+
+                int rhs = minCut;
+                std::cout << lhs << " vs " << rhs << std::endl;
+                if (lhs >= rhs) {
+                    std::vector<bool> subsetR(sampleCount, false);
+                    subsetR[i] = subsetR[j] = true;
+                    createSolveAccumulateJoinSubproblem(subsetR);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
 public: 
     explicit CubicSetPartitionProblem(const std::vector<S>& givenSamples, const std::function<int(UnorderedTriple<S>)> costCB)
     : samples(givenSamples) {
@@ -698,10 +728,11 @@ public:
         // apply partial optimality conditions (solve the subproblems)
         if (applyIndependentSubproblemCut()) return;
         if (applyBipartiteSubsetJoin()) return;
-        // TODO: apply other conditions if-return
+        // if (applyPairJoin()) return;
+        // TODO: apply other partial optimality conditions if-return
         
         // current problem could not be reduced to subproblems
-        std::cout << "WARNING: found a non-trivial problem (2+ samples) that has been reduced to subproblems!" << std::endl;
+        std::cout << "WARNING: found a non-trivial problem (2+ samples) that has not been reduced to subproblems! All samples are joint by default!" << std::endl;
         return;
     }
 
@@ -719,21 +750,29 @@ public:
 //     return 0;
 // }
 
+// int cost(UnorderedTriple<char> t) {
+//     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c') return -1;
+//     if (t[0] == 'a' && t[1] == 'c' && t[2] == 'd') return -15;
+//     if (t[0] == 'd' && t[1] == 'e' && t[2] == 'h') return 50;
+//     if (t[0] == 'e' && t[1] == 'f' && t[2] == 'h') return -50;
+//     if (t[0] == 'f' && t[1] == 'g' && t[2] == 'i') return -30;
+//     if (t[0] == 'd' && t[1] == 'h' && t[2] == 'k') return -2;
+//     if (t[0] == 'i' && t[1] == 'k' && t[2] == 'l') return -4;
+//     if (t[0] == 'j' && t[1] == 'l' && t[2] == 'm') return -10;
+//     return 0;
+// }
+
+
 int cost(UnorderedTriple<char> t) {
-    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c') return -1;
-    if (t[0] == 'a' && t[1] == 'c' && t[2] == 'd') return -15;
-    if (t[0] == 'd' && t[1] == 'e' && t[2] == 'h') return 50;
-    if (t[0] == 'e' && t[1] == 'f' && t[2] == 'h') return -50;
-    if (t[0] == 'f' && t[1] == 'g' && t[2] == 'i') return -30;
-    if (t[0] == 'd' && t[1] == 'h' && t[2] == 'k') return -2;
-    if (t[0] == 'i' && t[1] == 'k' && t[2] == 'l') return -4;
-    if (t[0] == 'j' && t[1] == 'l' && t[2] == 'm') return -10;
-    return 0;
+    // pyramid + 1 example: a, b, c, d (requires pair join!)
+    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'e') return -1;
+    if (t.contains('a')) return -50;
+    return 10;
 }
 
-
 int main() {
-    std::vector<char> samples = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm'};
+    // std::vector<char> samples = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm'};
+    std::vector<char> samples = {'a', 'b', 'c', 'd', 'e'};
     CubicSetPartitionProblem<char> problem(samples, cost);
     problem.solve();
     for (auto [sample, cluster] : problem.getClusterMapping()) {
