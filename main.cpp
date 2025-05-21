@@ -207,7 +207,7 @@ class CubicSetPartitionProblem {
                 adjMatrix[i_node][j_node] += c;
             }
             for (auto [j, k] : relevantTriples[i]) {
-                if (i > j) continue; // consider only (i < j < k)
+                if (i > j || j > k) continue; // consider only (i < j < k)
                 if (!indexSubset[j] || !indexSubset[k]) continue;
                 auto indexTriple = UnorderedTriple<>(i, j, k); // sorted indices
                 int c = abs(tripleCosts[indexTriple]);
@@ -440,9 +440,11 @@ class CubicSetPartitionProblem {
                     if (i < j) resultingCost += pairCosts[UnorderedPair<>(i, j)]; // consider one direction (i, j) and skip (j, i)
                 } else {
                     UnorderedPair<> indexPair(indexOf[i], indexOf[j]);
-                    if (!subPairCosts.count(indexPair)) subPairCosts[indexPair] = 0;
-                    subRelevantPairs[indexOf[i]].push_back(indexOf[j]);
-                    subRelevantPairs[indexOf[j]].push_back(indexOf[i]);
+                    if (!subPairCosts.count(indexPair)) {
+                        subPairCosts[indexPair] = 0;
+                        subRelevantPairs[indexOf[i]].push_back(indexOf[j]);
+                        subRelevantPairs[indexOf[j]].push_back(indexOf[i]);
+                    }
                     subPairCosts[indexPair] += pairCosts[UnorderedPair<>(i, j)];
                 }
             }
@@ -465,16 +467,20 @@ class CubicSetPartitionProblem {
                     }
                     if (i > inner) continue; // consider one direction (i, inner) and skip (inner, i)
                     UnorderedPair<> indexPair(indexOf[i], indexOf[outer]);
-                    if (!subPairCosts.count(indexPair)) subPairCosts[indexPair] = 0;
-                    subRelevantPairs[indexOf[i]].push_back(indexOf[outer]);
-                    subRelevantPairs[indexOf[outer]].push_back(indexOf[i]);
+                    if (!subPairCosts.count(indexPair)) {
+                        subPairCosts[indexPair] = 0;
+                        subRelevantPairs[indexOf[i]].push_back(indexOf[outer]);
+                        subRelevantPairs[indexOf[outer]].push_back(indexOf[i]);
+                    }
                     subPairCosts[indexPair] += tripleCosts[UnorderedTriple<>(i, j, k)];
                 } else { // j and k are outer
                     UnorderedTriple<> indexTriple(indexOf[i], indexOf[j], indexOf[k]);
-                    if (!subTripleCosts.count(indexTriple)) subTripleCosts[indexTriple] = 0;
-                    subRelevantTriples[indexOf[i]].push_back(std::make_pair(indexOf[j], indexOf[k]));
-                    subRelevantTriples[indexOf[j]].push_back(std::make_pair(indexOf[k], indexOf[i])); // indexOf[i] > indexOf[k] by definition above
-                    subRelevantTriples[indexOf[k]].push_back(std::make_pair(indexOf[j], indexOf[i])); // indexOf[i] > indexOff[j] by definition above
+                    if (!subTripleCosts.count(indexTriple)) {
+                        subTripleCosts[indexTriple] = 0;
+                        subRelevantTriples[indexOf[i]].push_back(std::make_pair(indexOf[j], indexOf[k]));
+                        subRelevantTriples[indexOf[j]].push_back(std::make_pair(indexOf[k], indexOf[i])); // indexOf[i] > indexOf[k] by definition above
+                        subRelevantTriples[indexOf[k]].push_back(std::make_pair(indexOf[j], indexOf[i])); // indexOf[i] > indexOff[j] by definition above
+                    }
                     subTripleCosts[indexTriple] += tripleCosts[UnorderedTriple<>(i, j, k)];
                 }
             } 
@@ -651,7 +657,6 @@ class CubicSetPartitionProblem {
                 auto [minCut, partition] = solveMinCutForIndexSubset(std::vector<bool>(sampleCount, true), true, i, j);
 
                 int rhs = minCut;
-                std::cout << lhs << " vs " << rhs << std::endl;
                 if (lhs >= rhs) {
                     std::vector<bool> subsetR(sampleCount, false);
                     subsetR[i] = subsetR[j] = true;
@@ -728,7 +733,7 @@ public:
         // apply partial optimality conditions (solve the subproblems)
         if (applyIndependentSubproblemCut()) return;
         if (applyBipartiteSubsetJoin()) return;
-        // if (applyPairJoin()) return;
+        if (applyPairJoin()) return;
         // TODO: apply other partial optimality conditions if-return
         
         // current problem could not be reduced to subproblems
@@ -751,6 +756,7 @@ public:
 // }
 
 // int cost(UnorderedTriple<char> t) {
+//     // example: 3.1 and 3.11 are sufficient
 //     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c') return -1;
 //     if (t[0] == 'a' && t[1] == 'c' && t[2] == 'd') return -15;
 //     if (t[0] == 'd' && t[1] == 'e' && t[2] == 'h') return 50;
@@ -764,10 +770,13 @@ public:
 
 
 int cost(UnorderedTriple<char> t) {
-    // pyramid + 1 example: a, b, c, d (requires pair join!)
-    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'e') return -1;
-    if (t.contains('a')) return -50;
-    return 10;
+    // pyramid + 1 example: a, b, c, d (3.1 + 3.11 + 3.4 are not sufficient)
+    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'e') return -75;
+    if (t[0] == 'b' && t[1] == 'c' && t[2] == 'd') return 10;
+    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c') return -50;
+    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'd') return -50;
+    if (t[0] == 'a' && t[1] == 'c' && t[2] == 'd') return -50;
+    return 0;
 }
 
 int main() {
