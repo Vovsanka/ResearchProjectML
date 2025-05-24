@@ -13,8 +13,8 @@
 #include <boost/property_map/property_map.hpp>
 
 
-std::pair<int, std::vector<bool>> solveMinCut(int vertices, std::vector<std::tuple<int,int,int>> edges, int s, int t) {
-    // Bigraph!
+int solveMinCut(int vertices, std::vector<std::tuple<int,int,int>> edges, int s, int t) {
+    // handled as bigraph!
     using namespace boost;
 
     // Define the graph type
@@ -63,11 +63,11 @@ std::pair<int, std::vector<bool>> solveMinCut(int vertices, std::vector<std::tup
     // Run DFS on the residual network to determine the min cut subset
     dfs(s);
 
-    return std::make_pair(minCut, visited);
+    return minCut;
 }
 
 
-std::pair<int, std::vector<bool>> solveGlobalMinCut(std::vector<std::tuple<int,int,int>> edges) {
+int solveGlobalMinCut(std::vector<std::tuple<int,int,int>> edges) {
     using namespace boost;
 
     typedef adjacency_list<vecS, vecS, undirectedS, no_property, property<edge_weight_t, int>> Graph;
@@ -87,7 +87,7 @@ std::pair<int, std::vector<bool>> solveGlobalMinCut(std::vector<std::tuple<int,i
 
     int minCut = stoer_wagner_min_cut(g, weight_map, boost::parity_map(parity_map));
 
-    return std::make_pair(minCut, parity);
+    return minCut;
 }
 
 
@@ -180,16 +180,13 @@ class CubicSetPartitionProblem {
         this->sampleCount = sampleCount;
     }
 
-    std::pair<int, std::vector<bool>> solveMinCutForIndexSubset(std::vector<bool> indexSubset, bool globalMinCut, int s = 0, int t = 0) {
+    int solveMinCutForIndexSubset(std::vector<bool> indexSubset, bool globalMinCut = true, int source = 0, std::vector<int> sinks = std::vector<int>({0})) {
         // apply proposition 4.2
         int vertices = std::count(std::begin(indexSubset), std::end(indexSubset), true);
-        std::vector<int> indexMapping(indexSubset.size());
-        std::vector<int> invIndexMapping(vertices);
-        for (int i = 0, sampleNode = 0; i < indexSubset.size(); i++) {
+        std::vector<int> indexMapping(sampleCount);
+        for (int i = 0, sampleNode = 0; i < sampleCount; i++) {
             if (indexSubset[i]) {
-                indexMapping[i] = sampleNode;
-                invIndexMapping[sampleNode] = i;
-                sampleNode++;
+                indexMapping[i] = sampleNode++;
             }
         }
 
@@ -222,33 +219,31 @@ class CubicSetPartitionProblem {
 
         // create adjacency list from the adjacency matrix
         std::vector<std::tuple<int,int,int>> edges;
+        int sumCosts = 0;
         for (int i_node = 0; i_node < vertices; i_node++) {
             for (int j_node = i_node + 1; j_node < vertices; j_node++) {
                 int c = adjMatrix[i_node][j_node];
                 if (c) {
                     edges.push_back(std::make_tuple(i_node, j_node, c));
+                    sumCosts += c;
                 }
             }
         } 
 
         // solve the MinCut problem
-        std::pair<int, std::vector<bool>> solution;
+        int minCut;
         if (globalMinCut) {
-            solution = solveGlobalMinCut(edges);
+            minCut = solveGlobalMinCut(edges);
         } else {
-            solution = solveMinCut(vertices, edges, indexMapping[s], indexMapping[t]);
-        }
-        int minCut = solution.first;
-        std::vector<bool> partition = solution.second;
-
-        // transform the results to the original domain
-        std::vector<bool> partitionOnSamples(indexSubset.size(), false);
-        for (int i_node = 0; i_node < vertices; i_node++) {
-            partitionOnSamples[invIndexMapping[i_node]] = partition[i_node];
+            int superSink = vertices;
+            for (auto sink : sinks) {
+                edges.push_back(std::make_tuple(indexMapping[sink], superSink, sumCosts));
+            }
+            minCut = solveMinCut(vertices + 1, edges, indexMapping[source], superSink);
         }
 
         // divide the MinCut result by 2 because all triples have been transformed with a double cost
-        return std::make_pair(minCut/2, partitionOnSamples);
+        return minCut/2;
     }
 
     CubicSetPartitionProblem<S> createIndependentCutSubproblem(std::vector<int> subsamples) {
@@ -559,7 +554,7 @@ class CubicSetPartitionProblem {
         int rhs = singleR + doubleR/2;
         if (lhsLowerBound > rhs) return false;
 
-        auto [minCut, partition] = solveMinCutForIndexSubset(indexSubset, true);
+        int minCut = solveMinCutForIndexSubset(indexSubset);
         int lhs = -minCut; 
         if (lhs <= rhs) {
             createSolveAccumulateJoinSubproblem(indexSubset);
@@ -654,7 +649,7 @@ class CubicSetPartitionProblem {
                     if (c < 0) lhs += -c;
                 }
                 // compute rhs (assume that the underlying graph is connected after applying the proposition 3.1)
-                auto [minCut, partition] = solveMinCutForIndexSubset(std::vector<bool>(sampleCount, true), true, i, j);
+                int minCut = solveMinCutForIndexSubset(std::vector<bool>(sampleCount, true), false, i, {j});
 
                 int rhs = minCut;
                 if (lhs >= rhs) {
