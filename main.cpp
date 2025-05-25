@@ -197,7 +197,7 @@ class CubicSetPartitionProblem {
                 if (i > j) continue; // consider only (i < j)
                 if (!indexSubset[j]) continue;
                 auto indexPair = UnorderedPair<>(i, j); // sorted indices
-                int c = abs(pairCosts[indexPair]);
+                int c = 2*abs(pairCosts[indexPair]);
                 int i_node = indexMapping[indexPair[0]]; 
                 int j_node = indexMapping[indexPair[1]];
                 adjMatrix[i_node][j_node] += c;
@@ -642,6 +642,8 @@ class CubicSetPartitionProblem {
                     std::vector<bool> subsetR(sampleCount, false);
                     subsetR[i] = subsetR[j] = true;
                     std::cout << "Applying the pair join (proposition 3.4)" << std::endl;
+                    std::cout << i << " " << j << std::endl;
+                    std::cout << lhs << " vs " << rhs << std::endl;
                     createSolveAccumulateJoinSubproblem(subsetR);
                     return true;
                 }
