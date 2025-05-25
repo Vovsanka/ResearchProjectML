@@ -166,7 +166,6 @@ class CubicSetPartitionProblem {
     std::map<UnorderedPair<>, int> pairCosts;
 
     std::vector<std::vector<bool>> labelFixed, labelValue;
-    std::vector<int> indexClusterMapping;
     int resultingCost;
 
     explicit CubicSetPartitionProblem(
@@ -336,6 +335,7 @@ class CubicSetPartitionProblem {
         }
 
         if (partition.size() == 1) return false; // no cuts => no smaller subproblems
+        std::cout << "Applying the independent subproblem cut (proposition 3.1)" << std::endl;
 
         // fix the labels
         for (int subsetI = 0; subsetI < partition.size(); subsetI++) {
@@ -357,14 +357,6 @@ class CubicSetPartitionProblem {
             subproblem.solve();
             // accumulate the results
             resultingCost += subproblem.getResultingCost();
-            int subClusterCount = 1;
-            auto subIndexClusterMapping = subproblem.getIndexClusterMapping();
-            for (int ind = 0; ind < subIndexClusterMapping.size(); ind++) {
-                int subcluster = subIndexClusterMapping[ind];
-                indexClusterMapping[backIndexing[ind]] = subcluster + clusterOffset;
-                subClusterCount = std::max(subClusterCount, subcluster + 1);
-            }
-            clusterOffset += subClusterCount;
             // accumulate the labels
             auto subLabelFixed = subproblem.getIndexLabelFixed();
             auto subLabelValue = subproblem.getIndexLabelValue();
@@ -493,13 +485,6 @@ class CubicSetPartitionProblem {
 
         // accumulate the results (resulting cost for the join has been accumulated)
         resultingCost += subproblem.getResultingCost();
-        auto subIndexClusterMapping = subproblem.getIndexClusterMapping();
-        for (int ind = 0; ind < subSampleCount; ind++) {
-            int subcluster = subIndexClusterMapping[ind];
-            for (int originalIndex : backIndexing[ind]) {
-                indexClusterMapping[originalIndex] = subcluster;
-            }
-        }
         // fix the labels for join
         for (int indI = 0; indI < joinSamples.size(); indI++) {
             for (int indJ = indI + 1; indJ < joinSamples.size(); indJ++) {
@@ -557,6 +542,7 @@ class CubicSetPartitionProblem {
         int minCut = solveMinCutForIndexSubset(indexSubset);
         int lhs = -minCut; 
         if (lhs <= rhs) {
+            std::cout << "Applying the bipartite subset join (proposition 3.11)" << std::endl;
             createSolveAccumulateJoinSubproblem(indexSubset);
             return true;
         }  
@@ -655,6 +641,7 @@ class CubicSetPartitionProblem {
                 if (lhs >= rhs) {
                     std::vector<bool> subsetR(sampleCount, false);
                     subsetR[i] = subsetR[j] = true;
+                    std::cout << "Applying the pair join (proposition 3.4)" << std::endl;
                     createSolveAccumulateJoinSubproblem(subsetR);
                     return true;
                 }
@@ -688,38 +675,61 @@ public:
         }
     }
 
-    std::map<S, int> getClusterMapping() {
-        if (samples.empty()) throw std::runtime_error("Cluster mapping for samples is available only for the original problem, not subproblems!");
-        std::map<S, int> result;
-        for (int i = 0; i < sampleCount; i++) {
-            result[samples[i]] = indexClusterMapping[i];
-        }
-        return result;
-    } 
-
-    std::vector<int> getIndexClusterMapping() {
-        return indexClusterMapping;
-    } 
+    std::vector<std::vector<bool>> getIndexLabelValue() {
+        return labelValue;
+    }
 
     std::vector<std::vector<bool>> getIndexLabelFixed() {
         return labelFixed;
     }
 
-    std::vector<std::vector<bool>> getIndexLabelValue() {
-        return labelValue;
+    bool isSolvedCompletely() {
+        for (int i = 0; i < sampleCount; i++) {
+            for (int j = i + 1; j < sampleCount; j++) {
+                if (!labelFixed[i][j]) return false;
+            }
+        }
+        return true;
     }
 
     int getResultingCost() {
         return resultingCost;
     }
 
+    void printResultingLabels() {
+        std::cout << "  ";
+        for (auto s : samples) {
+            std::cout << s << " ";
+        }
+        std::cout << std::endl;
+        for (int i = 0; i < samples.size(); i++) {
+            std::cout << samples[i] << " ";
+            for (int j = 0; j < samples.size(); j++) {
+                if (labelFixed[i][j]) {
+                    std::cout << int(labelValue[i][j]);
+                } else {
+                    std::cout << "x";
+                }
+                std::cout << " ";
+            }
+            std::cout << std::endl;
+        }
+    }
+    
+    void printResults() {
+        bool completeSolution = isSolvedCompletely();
+        std::cout << std::endl;
+        std::cout << "Problem solved: " << ((completeSolution) ? "completely" : "partially") << std::endl; 
+        std::cout << "Resulting cost: " << resultingCost << ((completeSolution) ? "" : " (ignoring the unsolved subproblems)") << std::endl;
+        printResultingLabels();
+    }
+
     void solve() {
         if (!sampleCount) throw std::runtime_error("Cannot solve a cubic set partition problem with no samples!");
 
-        // init the problem results (all elements are joint by default)
+        // init the problem results
         labelFixed.resize(sampleCount, std::vector<bool>(sampleCount, false));
         labelValue.resize(sampleCount, std::vector<bool>(sampleCount, false));
-        indexClusterMapping.resize(sampleCount, 0);
         resultingCost = 0;
 
         
@@ -732,7 +742,7 @@ public:
         // TODO: apply other partial optimality conditions if-return
         
         // current problem could not be reduced to subproblems
-        std::cout << "WARNING: found a non-trivial problem (2+ samples) that has not been reduced to subproblems! All samples are joint by default!" << std::endl;
+        std::cout << "WARNING: found a non-trivial problem (2+ samples) that has not been reduced to subproblems! " << std::endl;
         return;
     }
 
@@ -779,31 +789,7 @@ int main() {
     std::vector<char> samples = {'a', 'b', 'c', 'd', 'e'};
     CubicSetPartitionProblem<char> problem(samples, cost);
     problem.solve();
-    for (auto [sample, cluster] : problem.getClusterMapping()) {
-        std::cout << sample << " -> " << cluster << std::endl;
-    }
-    std::cout << problem.getResultingCost() << std::endl;
-
-    auto labelFixed = problem.getIndexLabelFixed();
-    auto labelValue = problem.getIndexLabelValue();
-    std::cout << "  ";
-    for (auto s : samples) {
-        std::cout << s << " ";
-    }
-    std::cout << std::endl;
-    for (int i = 0; i < samples.size(); i++) {
-        std::cout << samples[i] << " ";
-        for (int j = 0; j < samples.size(); j++) {
-            if (labelFixed[i][j]) {
-                std::cout << int(labelValue[i][j]);
-            } else {
-                std::cout << "x";
-            }
-            std::cout << " ";
-        }
-        std::cout << std::endl;
-    }
-
+    problem.printResults();
     
     return 0;
 }
