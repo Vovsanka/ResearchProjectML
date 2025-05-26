@@ -797,6 +797,67 @@ class CubicSetPartitionProblem {
         return false;
     }
 
+    bool applyExplicitPairJoinViaTriple() {
+        // proposition 3.9
+        for (int i = 0; i < sampleCount; i++) {
+            for (int k = i + 1; k < sampleCount; k++) {
+                for (int j = 0; j < sampleCount; j++) {
+                    if (j == i || j == k) continue;
+                    // compute costs for the triple
+                    UnorderedPair<> indexPairIJ(i, j), indexPairIK(i, k), indexPairJK(j, k);
+                    UnorderedTriple<> indexTriple(i, j, k);
+                    int cIJ = 0, cIK = 0, cJK = 0, cIJK;
+                    if (pairCosts.count(indexPairIJ)) cIJ = pairCosts[indexPairIJ];
+                    if (pairCosts.count(indexPairIK)) cIK = pairCosts[indexPairIK];
+                    if (pairCosts.count(indexPairJK)) cIJ = pairCosts[indexPairJK];
+                    if (tripleCosts.count(indexTriple)) cIJK = tripleCosts[indexTriple];
+                    // compute rhs
+                    int singleR = 0, doubleR = 0;
+                    std::vector<int> elementsR = {i, j, k};
+                    std::vector<bool> subsetR(sampleCount, false);
+                    subsetR[i] = subsetR[j] = subsetR[k] = true;
+                    for (int i1 : elementsR) {
+                        for (int j1 : relevantPairs[i1]) {
+                            if (subsetR[j1]) continue;
+                            int c = pairCosts[UnorderedPair<>(i1, j1)];
+                            if (c < 0) singleR += c;
+                        }
+                        for (auto [j1, k1] : relevantTriples[i1]) {
+                            if (subsetR[j1] && subsetR[k1]) continue;
+                            int c = tripleCosts[UnorderedTriple<>(i1, j1, k1)];
+                            if (c > 0) continue;
+                            if (subsetR[j1] xor subsetR[k1]) {
+                                doubleR += c;
+                            } else { // only i1 is in R
+                                singleR += c;
+                            }
+                        }
+                    }
+                    int rhs = singleR + doubleR/2;
+                    // check the conditions
+                    if (
+                        cIJ + cIK <= 0 &&
+                        cIJ + cJK <= 0 &&
+                        cIK + cJK <= 0 &&
+                        cIJ + cIK + cJK <= 0 &&
+                        2*cIJ + 2*cIK + 2*cJK + cIJK <= 0 &&
+                        cIJ + cIK + cIJK <= rhs &&
+                        cJK + cIK + cIJK <= rhs
+                    ) {
+                        std::vector<bool> subsetR(sampleCount, false);
+                        subsetR[i] = subsetR[k] = true; // join i and k
+                        std::cout << "Applying the complex pair join (proposition 3.9)" << std::endl;
+                        // std::cout << i << " " << j << " " << k << std::endl;
+                        std::cout << rhs << std::endl;
+                        createSolveAccumulateJoinSubproblem(subsetR);
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
 public: 
     explicit CubicSetPartitionProblem(const std::vector<S>& givenSamples, const std::function<int(UnorderedTriple<S>)> tripleCostCB, const std::function<int(UnorderedPair<S>)> pairCostCB  = [](UnorderedPair<S> p)->int{return 0;})
     : samples(givenSamples) {
@@ -900,6 +961,7 @@ public:
         if (applyPairJoin()) return;
         if (applyComplexPairJoin()) return;
         if (applyExplicitPairJoin()) return;
+        if (applyExplicitPairJoinViaTriple()) return;
         // TODO: apply other partial optimality conditions if-return
         
         // current problem could not be reduced to subproblems
