@@ -847,7 +847,7 @@ class CubicSetPartitionProblem {
                         std::vector<bool> subsetR(sampleCount, false);
                         subsetR[i] = subsetR[k] = true; // join i and k
                         std::cout << "Applying the complex pair join (proposition 3.9)" << std::endl;
-                        // std::cout << i << " " << j << " " << k << std::endl;
+                        std::cout << i << " " << j << " " << k << std::endl;
                         std::cout << rhs << std::endl;
                         createSolveAccumulateJoinSubproblem(subsetR);
                         return true;
@@ -957,10 +957,10 @@ public:
 
         // apply partial optimality conditions (solve the subproblems)
         if (applyIndependentSubproblemCut()) return;
-        if (applySubsetJoin()) return;
-        if (applyPairJoin()) return;
-        if (applyComplexPairJoin()) return;
-        if (applyExplicitPairJoin()) return;
+        // if (applySubsetJoin()) return;
+        // if (applyPairJoin()) return;
+        // if (applyComplexPairJoin()) return;
+        // if (applyExplicitPairJoin()) return;
         if (applyExplicitPairJoinViaTriple()) return;
         // TODO: apply other partial optimality conditions if-return
         
@@ -972,15 +972,15 @@ public:
 
 
 
-// int cost(UnorderedTriple<char> t) {
-//     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c')
-//         return -5;
-//     if (t[0] == 'b' && t[1] == 'c' && t[2] == 'd')
-//         return -7;
-//     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'd')
-//         return 10;
-//     return 0;
-// }
+int cost(UnorderedTriple<char> t) {
+    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c')
+        return -5;
+    if (t[0] == 'b' && t[1] == 'c' && t[2] == 'd')
+        return -7;
+    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'd')
+        return 10;
+    return 0;
+}
 
 // int cost(UnorderedTriple<char> t) {
 //     // example: 3.1 and 3.11 are sufficient
@@ -996,17 +996,17 @@ public:
 // }
 
 
-int cost(UnorderedTriple<char> t) {
-    // pyramid example (3.1 + 3.11 are not sufficient)
-    if (t[0] == 'b' && t[1] == 'e' && t[2] == 'f') return -1; // add this and the next line to make 3.4 and 3.6 and 3.8 insufficient
-    if (t[0] == 'a' && t[1] == 'e' && t[2] == 'f') return 500; 
-    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'e') return -75; // commment this line to make 3.4 insufficient too! But 3.6 is sufficient!
-    if (t[0] == 'b' && t[1] == 'c' && t[2] == 'd') return 10;
-    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c') return -50;
-    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'd') return -50;
-    if (t[0] == 'a' && t[1] == 'c' && t[2] == 'd') return -50;
-    return 0;
-}
+// int cost(UnorderedTriple<char> t) {
+//     // pyramid example (3.1 + 3.11 are not sufficient)
+//     if (t[0] == 'b' && t[1] == 'e' && t[2] == 'f') return -1; // add this and the next line to make 3.4 and 3.6 and 3.8 insufficient
+//     if (t[0] == 'a' && t[1] == 'e' && t[2] == 'f') return 500; 
+//     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'e') return -75; // commment this line to make 3.4 insufficient too! But 3.6 is sufficient!
+//     if (t[0] == 'b' && t[1] == 'c' && t[2] == 'd') return 10;
+//     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c') return -50;
+//     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'd') return -50;
+//     if (t[0] == 'a' && t[1] == 'c' && t[2] == 'd') return -50;
+//     return 0;
+// }
 
 int main() {
     std::vector<char> samples = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm'};
