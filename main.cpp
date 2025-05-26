@@ -508,7 +508,7 @@ class CubicSetPartitionProblem {
         } 
     }
 
-    bool applyBipartiteSubsetJoinForIndexSubset(std::vector<bool> &indexSubset) {   
+    bool checkSubsetJoinForIndexSubset(std::vector<bool> &indexSubset) {   
         // compute rhs
         int lhsLowerBound = 0; // avoid MinCut computation for lhs>rhs (in particular the edge cases with lhs=0) (rhs<0 because of 3.1)
         int singleR = 0, doubleR = 0;
@@ -541,15 +541,10 @@ class CubicSetPartitionProblem {
 
         int minCut = solveMinCutForIndexSubset(indexSubset);
         int lhs = -minCut; 
-        if (lhs <= rhs) {
-            std::cout << "Applying the bipartite subset join (proposition 3.11)" << std::endl;
-            createSolveAccumulateJoinSubproblem(indexSubset);
-            return true;
-        }  
-        return false;
+        return (lhs <= rhs);
     }
 
-    bool applyBipartiteSubsetJoin() {
+    bool applySubsetJoin() {
         // subset join criterion 3.11
         // heuristically construct and check the candidate sets R for possible joining
         for (int i = 0; i < sampleCount; i++) {
@@ -558,7 +553,8 @@ class CubicSetPartitionProblem {
 
                 std::vector<bool> subsetR(sampleCount, false); // R doesn't have to be a connected component
                 subsetR[i] = subsetR[j] = true;
-                if (applyBipartiteSubsetJoinForIndexSubset(subsetR)) return true;
+                std::vector<bool> joinR;
+                if (checkSubsetJoinForIndexSubset(subsetR)) joinR = subsetR;
 
                 std::set<int> candidates;
                 for (int k = 0; k < sampleCount; k++) {
@@ -611,8 +607,13 @@ class CubicSetPartitionProblem {
                     if (bestCandidate != -1) {
                         subsetR[bestCandidate] = true;
                         candidates.erase(bestCandidate);
-                        if (applyBipartiteSubsetJoinForIndexSubset(subsetR)) return true;
+                        if (checkSubsetJoinForIndexSubset(subsetR)) joinR = subsetR;
                     }
+                }
+                if (!joinR.empty()) {
+                    std::cout << "Applying the subset join (proposition 3.11)" << std::endl;
+                    createSolveAccumulateJoinSubproblem(joinR);
+                    return true;
                 }
             }
         }
@@ -741,9 +742,9 @@ class CubicSetPartitionProblem {
                         std::vector<bool> subsetR(sampleCount, false);
                         subsetR[i] = subsetR[k] = true; // join i and k
                         std::cout << "Applying the complex pair join (proposition 3.6)" << std::endl;
-                        std::cout << i << " " << j << " " << k << std::endl;
-                        std::cout << "(" << lhs1 << "," << lhs2 << "," << lhs3 << ") vs ";
-                        std:: cout << "(" << rhs1 << "," << rhs2 << "," << rhs3 << ")" << std::endl;
+                        // std::cout << i << " " << j << " " << k << std::endl;
+                        // std::cout << "(" << lhs1 << "," << lhs2 << "," << lhs3 << ") vs ";
+                        // std:: cout << "(" << rhs1 << "," << rhs2 << "," << rhs3 << ")" << std::endl;
                         createSolveAccumulateJoinSubproblem(subsetR);
                         return true;
                     }
@@ -840,13 +841,13 @@ public:
 
         // apply partial optimality conditions (solve the subproblems)
         if (applyIndependentSubproblemCut()) return;
-        if (applyBipartiteSubsetJoin()) return;
+        if (applySubsetJoin()) return;
         if (applyPairJoin()) return;
         if (applyComplexPairJoin()) return;
         // TODO: apply other partial optimality conditions if-return
         
         // current problem could not be reduced to subproblems
-        std::cout << "WARNING: found a non-trivial problem (2+ samples) that has not been reduced to subproblems! " << std::endl;
+        std::cout << "WARNING: found a non-trivial problem (" << sampleCount << " samples) that has not been reduced to subproblems! " << std::endl;
         return;
     }
 
@@ -880,7 +881,9 @@ public:
 
 int cost(UnorderedTriple<char> t) {
     // pyramid + 1 example: a, b, c, d (3.1 + 3.11 are not sufficient)
-    // if (t[0] == 'a' && t[1] == 'b' && t[2] == 'e') return -75; // commment this line to make 3.4 insufficient too! But 3.6 is sufficient!
+    if (t[0] == 'b' && t[1] == 'e' && t[2] == 'f') return -1; // add this and the next line to make 3.4 and 3.6 insufficient
+    if (t[0] == 'a' && t[1] == 'e' && t[2] == 'f') return 500; 
+    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'e') return -75; // commment this line to make 3.4 insufficient too! But 3.6 is sufficient!
     if (t[0] == 'b' && t[1] == 'c' && t[2] == 'd') return 10;
     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c') return -50;
     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'd') return -50;
@@ -890,7 +893,7 @@ int cost(UnorderedTriple<char> t) {
 
 int main() {
     // std::vector<char> samples = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm'};
-    std::vector<char> samples = {'a', 'b', 'c', 'd', 'e'};
+    std::vector<char> samples = {'a', 'b', 'c', 'd', 'e', 'f'};
     CubicSetPartitionProblem<char> problem(samples, cost);
     problem.solve();
     problem.printResults();
