@@ -896,9 +896,9 @@ public:
 
         // apply partial optimality conditions (solve the subproblems)
         if (applyIndependentSubproblemCut()) return;
-        // if (applySubsetJoin()) return;
-        // if (applyPairJoin()) return;
-        // if (applyComplexPairJoin()) return;
+        if (applySubsetJoin()) return;
+        if (applyPairJoin()) return;
+        if (applyComplexPairJoin()) return;
         if (applyExplicitPairJoin()) return;
         // TODO: apply other partial optimality conditions if-return
         
@@ -908,16 +908,6 @@ public:
     }
 };
 
-
-int cost(UnorderedTriple<char> t) {
-    return 0;
-}
-
-int costP(UnorderedPair<char> p) {
-    if (p[0] == 'a' && p[1] == 'b') return -10;
-    if (p[0] == 'b' && p[1] == 'c') return -7;
-    return 0;
-}
 
 
 // int cost(UnorderedTriple<char> t) {
@@ -944,21 +934,21 @@ int costP(UnorderedPair<char> p) {
 // }
 
 
-// int cost(UnorderedTriple<char> t) {
-//     // pyramid example (3.1 + 3.11 are not sufficient)
-//     if (t[0] == 'b' && t[1] == 'e' && t[2] == 'f') return -1; // add this and the next line to make 3.4 and 3.6 and 3.8 insufficient
-//     if (t[0] == 'a' && t[1] == 'e' && t[2] == 'f') return 500; 
-//     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'e') return -75; // commment this line to make 3.4 insufficient too! But 3.6 is sufficient!
-//     if (t[0] == 'b' && t[1] == 'c' && t[2] == 'd') return 10;
-//     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c') return -50;
-//     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'd') return -50;
-//     if (t[0] == 'a' && t[1] == 'c' && t[2] == 'd') return -50;
-//     return 0;
-// }
+int cost(UnorderedTriple<char> t) {
+    // pyramid example (3.1 + 3.11 are not sufficient)
+    if (t[0] == 'b' && t[1] == 'e' && t[2] == 'f') return -1; // add this and the next line to make 3.4 and 3.6 and 3.8 insufficient
+    if (t[0] == 'a' && t[1] == 'e' && t[2] == 'f') return 500; 
+    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'e') return -75; // commment this line to make 3.4 insufficient too! But 3.6 is sufficient!
+    if (t[0] == 'b' && t[1] == 'c' && t[2] == 'd') return 10;
+    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c') return -50;
+    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'd') return -50;
+    if (t[0] == 'a' && t[1] == 'c' && t[2] == 'd') return -50;
+    return 0;
+}
 
 int main() {
     std::vector<char> samples = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm'};
-    CubicSetPartitionProblem<char> problem(samples, cost, costP);
+    CubicSetPartitionProblem<char> problem(samples, cost);
     problem.solve();
     problem.printResults();
     
