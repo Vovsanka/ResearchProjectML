@@ -798,11 +798,23 @@ class CubicSetPartitionProblem {
     }
 
 public: 
-    explicit CubicSetPartitionProblem(const std::vector<S>& givenSamples, const std::function<int(UnorderedTriple<S>)> costCB)
+    explicit CubicSetPartitionProblem(const std::vector<S>& givenSamples, const std::function<int(UnorderedTriple<S>)> tripleCostCB, const std::function<int(UnorderedPair<S>)> pairCostCB  = [](UnorderedPair<S> p)->int{return 0;})
     : samples(givenSamples) {
         sampleCount = samples.size();
         // init relevant pairs
         relevantPairs.resize(sampleCount, {});
+        for (int i = 0; i < sampleCount; i++) {
+            for (int j = i + 1; j < sampleCount; j++) {
+                UnorderedPair<> indexPair(i, j);
+                UnorderedPair<S> samplePair(samples[i], samples[j]);
+                int c = pairCostCB(samplePair);
+                if (c) {
+                    pairCosts[indexPair] = c;
+                    relevantPairs[i].push_back(j);
+                    relevantPairs[j].push_back(i);
+                }
+            }
+        }
         // init relevant triples
         relevantTriples.resize(sampleCount, {});
         for (int i = 0; i < sampleCount; i++) {
@@ -810,7 +822,7 @@ public:
                 for (int k = j + 1; k < sampleCount; k++) {
                     UnorderedTriple<> indexTriple(i, j, k);
                     UnorderedTriple<S> sampleTriple(samples[i], samples[j], samples[k]);
-                    int c = costCB(sampleTriple);
+                    int c = tripleCostCB(sampleTriple);
                     if (c) {
                         tripleCosts[indexTriple] = c;
                         relevantTriples[i].push_back(std::make_pair(j, k));
@@ -908,31 +920,31 @@ public:
 //     return 0;
 // }
 
-int cost(UnorderedTriple<char> t) {
-    // example: 3.1 and 3.11 are sufficient
-    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c') return -1;
-    if (t[0] == 'a' && t[1] == 'c' && t[2] == 'd') return -15;
-    if (t[0] == 'd' && t[1] == 'e' && t[2] == 'h') return 50;
-    if (t[0] == 'e' && t[1] == 'f' && t[2] == 'h') return -50;
-    if (t[0] == 'f' && t[1] == 'g' && t[2] == 'i') return -30;
-    if (t[0] == 'd' && t[1] == 'h' && t[2] == 'k') return -2;
-    if (t[0] == 'i' && t[1] == 'k' && t[2] == 'l') return -4;
-    if (t[0] == 'j' && t[1] == 'l' && t[2] == 'm') return -10;
-    return 0;
-}
-
-
 // int cost(UnorderedTriple<char> t) {
-//     // pyramid example (3.1 + 3.11 are not sufficient)
-//     // if (t[0] == 'b' && t[1] == 'e' && t[2] == 'f') return -1; // add this and the next line to make 3.4 and 3.6 and 3.8 insufficient
-//     // if (t[0] == 'a' && t[1] == 'e' && t[2] == 'f') return 500; 
-//     // if (t[0] == 'a' && t[1] == 'b' && t[2] == 'e') return -75; // commment this line to make 3.4 insufficient too! But 3.6 is sufficient!
-//     if (t[0] == 'b' && t[1] == 'c' && t[2] == 'd') return 10;
-//     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c') return -50;
-//     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'd') return -50;
-//     if (t[0] == 'a' && t[1] == 'c' && t[2] == 'd') return -50;
+//     // example: 3.1 and 3.11 are sufficient
+//     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c') return -1;
+//     if (t[0] == 'a' && t[1] == 'c' && t[2] == 'd') return -15;
+//     if (t[0] == 'd' && t[1] == 'e' && t[2] == 'h') return 50;
+//     if (t[0] == 'e' && t[1] == 'f' && t[2] == 'h') return -50;
+//     if (t[0] == 'f' && t[1] == 'g' && t[2] == 'i') return -30;
+//     if (t[0] == 'd' && t[1] == 'h' && t[2] == 'k') return -2;
+//     if (t[0] == 'i' && t[1] == 'k' && t[2] == 'l') return -4;
+//     if (t[0] == 'j' && t[1] == 'l' && t[2] == 'm') return -10;
 //     return 0;
 // }
+
+
+int cost(UnorderedTriple<char> t) {
+    // pyramid example (3.1 + 3.11 are not sufficient)
+    if (t[0] == 'b' && t[1] == 'e' && t[2] == 'f') return -1; // add this and the next line to make 3.4 and 3.6 and 3.8 insufficient
+    if (t[0] == 'a' && t[1] == 'e' && t[2] == 'f') return 500; 
+    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'e') return -75; // commment this line to make 3.4 insufficient too! But 3.6 is sufficient!
+    if (t[0] == 'b' && t[1] == 'c' && t[2] == 'd') return 10;
+    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c') return -50;
+    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'd') return -50;
+    if (t[0] == 'a' && t[1] == 'c' && t[2] == 'd') return -50;
+    return 0;
+}
 
 int main() {
     std::vector<char> samples = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm'};
