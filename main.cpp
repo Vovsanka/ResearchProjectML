@@ -179,7 +179,7 @@ class CubicSetPartitionProblem {
         this->sampleCount = sampleCount;
     }
 
-    int solveMinCutForIndexSubset(std::vector<bool> indexSubset, bool globalMinCut = true, int source = 0, std::vector<int> sinks = std::vector<int>({0})) {
+    int solveMinCutForIndexSubset(std::vector<bool> indexSubset, bool takeNegativeCosts, bool takePositiveCosts,  bool globalMinCut, int source = 0, std::vector<int> sinks = std::vector<int>({0})) {
         // apply proposition 4.2
         int vertices = std::count(std::begin(indexSubset), std::end(indexSubset), true);
         std::vector<int> indexMapping(sampleCount);
@@ -197,22 +197,26 @@ class CubicSetPartitionProblem {
                 if (i > j) continue; // consider only (i < j)
                 if (!indexSubset[j]) continue;
                 auto indexPair = UnorderedPair<>(i, j); // sorted indices
-                int c = 2*abs(pairCosts[indexPair]);
+                int c = pairCosts[indexPair];
+                if (c < 0 && !takeNegativeCosts) continue;
+                if (c > 0 && !takePositiveCosts) continue;
                 int i_node = indexMapping[indexPair[0]]; 
                 int j_node = indexMapping[indexPair[1]];
-                adjMatrix[i_node][j_node] += c;
+                adjMatrix[i_node][j_node] += 2*abs(c);
             }
             for (auto [j, k] : relevantTriples[i]) {
                 if (i > j || j > k) continue; // consider only (i < j < k)
                 if (!indexSubset[j] || !indexSubset[k]) continue;
                 auto indexTriple = UnorderedTriple<>(i, j, k); // sorted indices
-                int c = abs(tripleCosts[indexTriple]);
+                int c = tripleCosts[indexTriple];
+                if (c < 0 && !takeNegativeCosts) continue;
+                if (c > 0 && !takePositiveCosts) continue;
                 int i_node = indexMapping[indexTriple[0]]; 
                 int j_node = indexMapping[indexTriple[1]];
                 int k_node = indexMapping[indexTriple[2]];
-                adjMatrix[i_node][j_node] += c;
-                adjMatrix[i_node][k_node] += c;
-                adjMatrix[j_node][k_node] += c; 
+                adjMatrix[i_node][j_node] += abs(c);
+                adjMatrix[i_node][k_node] += abs(c);
+                adjMatrix[j_node][k_node] += abs(c); 
             }
         }
 
@@ -539,7 +543,7 @@ class CubicSetPartitionProblem {
         int rhs = singleR + doubleR/2;
         if (lhsLowerBound > rhs) return false;
 
-        int minCut = solveMinCutForIndexSubset(indexSubset);
+        int minCut = solveMinCutForIndexSubset(indexSubset, true, false, true);
         int lhs = -minCut; 
         return (lhs <= rhs);
     }
@@ -637,7 +641,7 @@ class CubicSetPartitionProblem {
                     if (c < 0) lhs += -c;
                 }
                 // compute rhs (assume that the underlying graph is connected after applying the proposition 3.1)
-                int rhs = solveMinCutForIndexSubset(std::vector<bool>(sampleCount, true), false, i, {j});
+                int rhs = solveMinCutForIndexSubset(std::vector<bool>(sampleCount, true), true, true, false, i, {j});
 
                 if (lhs >= rhs) {
                     std::vector<bool> subsetR(sampleCount, false);
@@ -736,8 +740,8 @@ class CubicSetPartitionProblem {
                     // check the 3d condition
                     if (!(lhs3 <= rhs3)) continue; 
                     // check the 1st and the 2d condition
-                    int rhs1 = solveMinCutForIndexSubset(std::vector<bool>(sampleCount, true), false, i, {j, k});
-                    int rhs2 = solveMinCutForIndexSubset(std::vector<bool>(sampleCount, true), false, k, {i, j});
+                    int rhs1 = solveMinCutForIndexSubset(std::vector<bool>(sampleCount, true), true, true, false, i, {j, k});
+                    int rhs2 = solveMinCutForIndexSubset(std::vector<bool>(sampleCount, true), true, true, false, k, {i, j});
                     if (lhs1 >= rhs1 && lhs2 >= rhs2) {
                         std::vector<bool> subsetR(sampleCount, false);
                         subsetR[i] = subsetR[k] = true; // join i and k
