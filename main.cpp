@@ -1052,9 +1052,9 @@ public:
         // if (applyComplexPairJoin()) return;
         // if (applyExplicitPairJoin()) return;
         // if (applyExplicitPairJoinViaTriple()) return;
-        if (applyTripleJoin()) return;
+        // if (applyTripleJoin()) return;
         applyPairCuts();
-        applyTripleCuts();
+        // applyTripleCuts();
         
         if (!isSolvedCompletely()) {
             // current problem could not be reduced to subproblems
