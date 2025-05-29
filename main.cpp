@@ -543,8 +543,7 @@ class CubicSetPartitionProblem {
         int rhs = singleR + doubleR/2;
         if (lhsLowerBound > rhs) return false;
 
-        int minCut = solveMinCutForIndexSubset(indexSubset, true, false, true);
-        int lhs = -minCut; 
+        int lhs = -solveMinCutForIndexSubset(indexSubset, true, false, true);
         return (lhs <= rhs);
     }
 
@@ -810,10 +809,10 @@ class CubicSetPartitionProblem {
                     // compute costs for the triple
                     UnorderedPair<> indexPairIJ(i, j), indexPairIK(i, k), indexPairJK(j, k);
                     UnorderedTriple<> indexTriple(i, j, k);
-                    int cIJ = 0, cIK = 0, cJK = 0, cIJK;
+                    int cIJ = 0, cIK = 0, cJK = 0, cIJK = 0;
                     if (pairCosts.count(indexPairIJ)) cIJ = pairCosts[indexPairIJ];
                     if (pairCosts.count(indexPairIK)) cIK = pairCosts[indexPairIK];
-                    if (pairCosts.count(indexPairJK)) cIJ = pairCosts[indexPairJK];
+                    if (pairCosts.count(indexPairJK)) cJK = pairCosts[indexPairJK];
                     if (tripleCosts.count(indexTriple)) cIJK = tripleCosts[indexTriple];
                     // compute rhs
                     int singleR = 0, doubleR = 0;
@@ -861,6 +860,66 @@ class CubicSetPartitionProblem {
         }
         return false;
     }
+
+    bool applyTripleJoin() {
+        // proposition 3.5
+        // compute lhs base value
+        int lhsBase = 0;
+        for (int i = 0; i < sampleCount; i++) {
+            for (int j : relevantPairs[i]) {
+                if (i > j) continue;
+                int c = pairCosts[UnorderedPair<>(i, j)];
+                if (c > 0) lhsBase += c;
+            }
+            for (auto [j, k] : relevantTriples[i]) {
+                if (i > j) continue;
+                int c = tripleCosts[UnorderedTriple<>(i, j, k)];
+                if (c > 0) lhsBase += c;
+            }
+        }
+        // iterate over all unordered triples (i, j, k)
+        for (int i = 0; i < sampleCount; i++) {
+            for (int j = i + 1; j < sampleCount; j++) {
+                for (int k = j + 1; k < sampleCount; k++) {
+                    // compute lhs
+                    int lhs = lhsBase;
+                    UnorderedPair<> indexPairIJ(i, j), indexPairIK(i, k), indexPairJK(j, k);
+                    UnorderedTriple<> indexTriple(i, j, k);
+                    int cIJ = 0, cIK = 0, cJK = 0, cIJK = 0;
+                    if (pairCosts.count(indexPairIJ)) cIJ = pairCosts[indexPairIJ];
+                    if (cIJ < 0) lhs += -2*cIJ;
+                    if (pairCosts.count(indexPairIK)) cIK = pairCosts[indexPairIK];
+                    if (cIK < 0) lhs += -2*cIK;
+                    if (pairCosts.count(indexPairJK)) cJK = pairCosts[indexPairJK];
+                    if (cJK < 0) lhs += -cJK;
+                    if (tripleCosts.count(indexTriple)) cIJK = tripleCosts[indexTriple];
+                    if (cIJK < 0) lhs += -2*cIJK;
+                    lhs += std::min(std::min(0, cIJ), std::min(cIK, cJK)); // min for 4 cases
+                    // compute rhs
+                    int rhs = solveMinCutForIndexSubset(std::vector<bool>(sampleCount, true), true, false, false, i, {j, k});
+                    if (lhs >= rhs) {
+                        std::vector<bool> subsetR(sampleCount, false);
+                        subsetR[i] = subsetR[j] = subsetR[k] = true; // join ijk
+                        std::cout << "Applying the triple join (proposition 3.5)" << std::endl;
+                        // std::cout << i << " " << j << " " << k << std::endl;
+                        // std::cout << lhs << " vs " << rhs << std::endl;
+                        createSolveAccumulateJoinSubproblem(subsetR);
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    void applyPairCut() {
+        // TODO
+    }
+
+    void applyTripleCut() {
+        // TODO
+    }
+
 
 public: 
     explicit CubicSetPartitionProblem(const std::vector<S>& givenSamples, const std::function<int(UnorderedTriple<S>)> tripleCostCB, const std::function<int(UnorderedPair<S>)> pairCostCB  = [](UnorderedPair<S> p)->int{return 0;})
@@ -961,17 +1020,21 @@ public:
         
         if (sampleCount == 1) return; // trivial problem
 
-        // apply partial optimality conditions (solve the subproblems)
+        // apply partial optimality conditions (solve the subproblems if needed)
         if (applyIndependentSubproblemCut()) return;
         if (applySubsetJoin()) return;
         if (applyPairJoin()) return;
         if (applyComplexPairJoin()) return;
         if (applyExplicitPairJoin()) return;
         if (applyExplicitPairJoinViaTriple()) return;
-        // TODO: apply other partial optimality conditions if-return
+        if (applyTripleJoin()) return;
+        applyPairCut();
+        applyTripleCut();
         
-        // current problem could not be reduced to subproblems
-        std::cout << "WARNING: found a non-trivial problem (" << sampleCount << " samples) that has not been reduced to subproblems! " << std::endl;
+        if (!isSolvedCompletely()) {
+            // current problem could not be reduced to subproblems
+            std::cout << "WARNING: found a non-trivial problem (" << sampleCount << " samples) that has not been reduced to subproblems! " << std::endl;
+        }
         return;
     }
 };
@@ -1003,10 +1066,12 @@ public:
 
 
 int cost(UnorderedTriple<char> t) {
-    // pyramid example (3.1 + 3.11 are not sufficient)
+    // pyramid example below (3.1 + 3.11 + 3.4 + 3.6 + 3.8 + 3.9 are not sufficient) (3.5 is sufficient)
     if (t[0] == 'b' && t[1] == 'e' && t[2] == 'f') return -1; // add this and the next line to make 3.4 and 3.6 and 3.8 and 3.9 insufficient
     if (t[0] == 'a' && t[1] == 'e' && t[2] == 'f') return 500; 
-    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'e') return -75; // commment this line to make 3.4 insufficient too! But 3.6 is sufficient!
+    // pyramid example below (3.1 + 3.11 are not sufficient) (3.4 is sufficient)
+    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'e') return -75;
+    // pyramid example below (3.1 + 3.11 + 3.4 are not sufficient) (3.6 is sufficient)
     if (t[0] == 'b' && t[1] == 'c' && t[2] == 'd') return 10;
     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c') return -50;
     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'd') return -50;
