@@ -869,12 +869,12 @@ class CubicSetPartitionProblem {
             for (int j : relevantPairs[i]) {
                 if (i > j) continue;
                 int c = pairCosts[UnorderedPair<>(i, j)];
-                if (c > 0) lhsBase += c;
+                if (c > 0) lhsBase -= c;
             }
             for (auto [j, k] : relevantTriples[i]) {
                 if (i > j) continue;
                 int c = tripleCosts[UnorderedTriple<>(i, j, k)];
-                if (c > 0) lhsBase += c;
+                if (c > 0) lhsBase -= c;
             }
         }
         // iterate over all unordered triples (i, j, k)
@@ -901,8 +901,8 @@ class CubicSetPartitionProblem {
                         std::vector<bool> subsetR(sampleCount, false);
                         subsetR[i] = subsetR[j] = subsetR[k] = true; // join ijk
                         std::cout << "Applying the triple join (proposition 3.5)" << std::endl;
-                        // std::cout << i << " " << j << " " << k << std::endl;
-                        // std::cout << lhs << " vs " << rhs << std::endl;
+                        std::cout << i << " " << j << " " << k << std::endl;
+                        std::cout << lhs << " vs " << rhs << std::endl;
                         createSolveAccumulateJoinSubproblem(subsetR);
                         return true;
                     }
@@ -912,11 +912,36 @@ class CubicSetPartitionProblem {
         return false;
     }
 
-    void applyPairCut() {
-        // TODO
+    void applyPairCuts() {
+        // proposition 3.2
+        for (int i = 0; i < sampleCount; i++) {
+            for (int j = i + 1; j < sampleCount; j++) {
+                // check if already cut
+                if (labelFixed[i][j]) {
+                    if (labelValue[i][j]) throw std::runtime_error("Error in the program detected: cannot cut the joint elements! ");
+                    else continue;
+                }
+                // check the condition
+                int lhs = 0;
+                UnorderedPair<> indexPair(i, j);
+                if (pairCosts.count(indexPair)) {
+                    int c = pairCosts[indexPair];
+                    if (c > 0) lhs += c;
+                }
+                int rhs = solveMinCutForIndexSubset(std::vector<bool>(sampleCount, true), true, false, false, i, {j});
+                if (lhs >= rhs) {
+                    std::cout << "Applying the pair cut (proposition 3.2)" << std::endl;
+                    std::cout << i << " " << j << std::endl;
+                    std::cout << lhs << " vs " << rhs << std::endl;
+                    // assume no joint labels in this problems, because it would be solved by a join-subproblem!
+                    labelFixed[i][j] = labelFixed[j][i] = true;
+                    labelValue[i][j] = labelValue[j][i] = false;
+                }
+            }
+        }
     }
 
-    void applyTripleCut() {
+    void applyTripleCuts() {
         // TODO
     }
 
@@ -1021,15 +1046,15 @@ public:
         if (sampleCount == 1) return; // trivial problem
 
         // apply partial optimality conditions (solve the subproblems if needed)
-        if (applyIndependentSubproblemCut()) return;
-        if (applySubsetJoin()) return;
-        if (applyPairJoin()) return;
-        if (applyComplexPairJoin()) return;
-        if (applyExplicitPairJoin()) return;
-        if (applyExplicitPairJoinViaTriple()) return;
+        // if (applyIndependentSubproblemCut()) return;
+        // if (applySubsetJoin()) return;
+        // if (applyPairJoin()) return;
+        // if (applyComplexPairJoin()) return;
+        // if (applyExplicitPairJoin()) return;
+        // if (applyExplicitPairJoinViaTriple()) return;
         if (applyTripleJoin()) return;
-        applyPairCut();
-        applyTripleCut();
+        applyPairCuts();
+        applyTripleCuts();
         
         if (!isSolvedCompletely()) {
             // current problem could not be reduced to subproblems
@@ -1041,15 +1066,17 @@ public:
 
 
 
-// int cost(UnorderedTriple<char> t) {
-//     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c')
-//         return -5;
-//     if (t[0] == 'b' && t[1] == 'c' && t[2] == 'd')
-//         return -7;
-//     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'd')
-//         return 10;
-//     return 0;
-// }
+int cost(UnorderedTriple<char> t) {
+    // if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c')
+    //     return -5;
+    if (t[0] == 'b' && t[1] == 'c' && t[2] == 'd')
+        return -22; // -7
+    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'd')
+        return 10;
+    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'e')
+        return 10;
+    return 0;
+}
 
 // int cost(UnorderedTriple<char> t) {
 //     // example: 3.1 and 3.11 are sufficient
@@ -1065,22 +1092,19 @@ public:
 // }
 
 
-int cost(UnorderedTriple<char> t) {
-    // pyramid example below (3.1 + 3.11 + 3.4 + 3.6 + 3.8 + 3.9 are not sufficient) (3.5 is sufficient)
-    if (t[0] == 'b' && t[1] == 'e' && t[2] == 'f') return -1; // add this and the next line to make 3.4 and 3.6 and 3.8 and 3.9 insufficient
-    if (t[0] == 'a' && t[1] == 'e' && t[2] == 'f') return 500; 
-    // pyramid example below (3.1 + 3.11 are not sufficient) (3.4 is sufficient)
-    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'e') return -75;
-    // pyramid example below (3.1 + 3.11 + 3.4 are not sufficient) (3.6 is sufficient)
-    if (t[0] == 'b' && t[1] == 'c' && t[2] == 'd') return 10;
-    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c') return -50;
-    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'd') return -50;
-    if (t[0] == 'a' && t[1] == 'c' && t[2] == 'd') return -50;
-    return 0;
-}
+// int cost(UnorderedTriple<char> t) {
+//     // // pyramid example below (3.1 + 3.11 are not sufficient) (3.4 is sufficient)
+//     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'e') return -75;
+//     // pyramid example below (3.1 + 3.11 + 3.4 are not sufficient) (3.6 is sufficient for 10) (3.5 is sufficient for 100)
+//     if (t[0] == 'b' && t[1] == 'c' && t[2] == 'd') return 10; // 10
+//     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c') return -50;
+//     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'd') return -50;
+//     if (t[0] == 'a' && t[1] == 'c' && t[2] == 'd') return -50;
+//     return 0;
+// }
 
 int main() {
-    std::vector<char> samples = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm'};
+    std::vector<char> samples = {'a', 'b', 'c', 'd', 'e'};
     CubicSetPartitionProblem<char> problem(samples, cost);
     problem.solve();
     problem.printResults();
