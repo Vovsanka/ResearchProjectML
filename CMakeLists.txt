@@ -6,7 +6,11 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(Boost REQUIRED COMPONENTS system filesystem)
 
 set(SOURCES
-    main.cpp)
+    main.cpp
+    clustering_problem.hpp
+    clustering_problem.tpp
+    utuple.hpp
+    utuple.tpp)
 add_executable(CubicClustering ${SOURCES})
 
 target_include_directories(CubicClustering PRIVATE ${Boost_INCLUDE_DIRS})
