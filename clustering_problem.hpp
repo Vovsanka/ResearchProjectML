@@ -33,7 +33,11 @@ class ClusteringProblem {
     std::vector<std::vector<bool>> labelFixed, labelValue;
     int resultingCost;
 
-    void solve(const std::vector<bool> &indexSubset);
+    void solve(const std::vector<bool> &relevant);
+
+    bool applyIndependentSubproblemCut(const std::vector<bool> &relevant);
+
+    void cutIndexSubset(const std::vector<bool> &relevant, const std::vector<bool> &subIndexSubset);
 
 public:
 
