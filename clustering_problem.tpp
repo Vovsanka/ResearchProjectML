@@ -6,7 +6,13 @@ ClusteringProblem<S>::ClusteringProblem(
     const std::function<int(Utuple<3,S>)> &tripleCostCB,
     const std::function<int(Utuple<2,S>)> &pairCostCB
 ) : samples(samples) {
-    int sampleCount = samples.size();
+    // init sample count
+    sampleCount = samples.size();
+    // init sample mapping
+    sampleMapping.resize(sampleCount, {});
+    for (int i = 0; i < sampleCount; i++) {
+        sampleMapping[i].push_back(i);
+    }
     // init relevant pairs
     relevantPairs.resize(sampleCount, {});
     for (int i = 0; i < sampleCount; i++) {
@@ -38,4 +44,35 @@ ClusteringProblem<S>::ClusteringProblem(
             }
         }
     }
+}
+
+
+template<typename S>
+void ClusteringProblem<S>::solve(const std::vector<bool> &indexSubset) {
+    int subSampleCount = std::count(std::begin(indexSubset), std::end(indexSubset), true);
+    if (!subSampleCount) throw std::runtime_error("Cannot solve a clustering problem with no samples!");
+    if (subSampleCount == 1) return; // trivial problem
+    // apply partial optimality conditions (solve the subproblems if needed)
+    // if (applyIndependentSubproblemCut(indexSubset))) return;
+    // if (applySubsetJoin(indexSubset))) return;
+    // if (applyPairJoin(indexSubset))) return;
+    // if (applyComplexPairJoin(indexSubset))) return;
+    // if (applyExplicitPairJoin(indexSubset))) return;
+    // if (applyExplicitPairJoinViaTriple(indexSubset))) return;
+    // if (applyTripleJoin(indexSubset))) return;
+    // applyPairCuts(indexSubset));
+    // applyTripleCuts(indexSubset));
+    return;
+}
+
+template<typename S>
+void ClusteringProblem<S>::solve() {
+    labelFixed.resize(sampleCount, std::vector<bool>(sampleCount, false));
+    labelValue.resize(sampleCount, std::vector<bool>(sampleCount, false));
+    resultingCost = 0;
+    solve(std::vector<bool>(sampleCount, true));
+}
+
+void solve() {
+    
 }

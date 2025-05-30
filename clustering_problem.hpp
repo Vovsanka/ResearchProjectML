@@ -2,7 +2,6 @@
 #define CLUSTERING_PROBLEM_HPP
 
 #include <iostream>
-#include <set>
 #include <map>
 #include <vector>
 #include <array>
@@ -21,6 +20,7 @@ template <typename S = int> // domain S of samples
 class ClusteringProblem {
 
     const std::vector<S> &samples;
+    int sampleCount;
     
     std::vector<std::vector<int>> sampleMapping; 
 
@@ -33,6 +33,8 @@ class ClusteringProblem {
     std::vector<std::vector<bool>> labelFixed, labelValue;
     int resultingCost;
 
+    void solve(const std::vector<bool> &indexSubset);
+
 public:
 
     explicit ClusteringProblem(
@@ -41,6 +43,7 @@ public:
         const std::function<int(Utuple<2,S>)> &pairCostCB = [](Utuple<2,S> p)->int{return 0;}
     );
     
+    void solve();
 };
 
 #include "clustering_problem.tpp"

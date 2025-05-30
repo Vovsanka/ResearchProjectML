@@ -1104,7 +1104,7 @@ int cost(Utuple<3,char> t) {
 int main() {
     std::vector<char> samples = {'a', 'b', 'c', 'd', 'e'};
     ClusteringProblem<char> problem(samples, cost);
-    // problem.solve();
+    problem.solve();
     // problem.printResults();
     
     return 0;
