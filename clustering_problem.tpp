@@ -66,9 +66,98 @@ void ClusteringProblem<S>::solve(const std::vector<bool> &relevant) {
 }
 
 template<typename S>
+std::map<Upair, int> ClusteringProblem<S>::getLabels() {
+    return label;
+}
+
+template<typename S>
+bool ClusteringProblem<S>::isSolvedCompletely() {
+    for (int i = 0; i < sampleCount; i++) {
+        for (int j = i + 1; j < sampleCount; j++) {
+            if (!label[Upair({i, j})]) return false;
+        }
+    }
+    return true;
+}
+
+template<typename S>
+int ClusteringProblem<S>::getResultingCost() {
+    return resultingCost;
+}
+
+template<typename S>
+void ClusteringProblem<S>::printResultingLabeling() {
+    std::cout << "  ";
+    for (auto s : samples) {
+        std::cout << s << " ";
+    }
+    std::cout << std::endl;
+    for (int i = 0; i < samples.size(); i++) {
+        std::cout << samples[i] << " ";
+        for (int j = 0; j < samples.size(); j++) {
+            if (i == j) {
+                std::cout << "- ";
+                continue;
+            }
+            int l = label[Upair({i, j})];
+            if (l == 2) {
+                std::cout << 1;
+            } else if (l == 1) {
+                std::cout << 0;
+            } else {
+                std::cout << "x";
+            }
+            std::cout << " ";
+        }
+        std::cout << std::endl;
+    }
+}
+
+template<typename S>
+void ClusteringProblem<S>::printResultingClustering() {
+    std::vector<std::vector<int>> cluster(sampleCount, std::vector<int>());
+    std::vector<std::vector<int>> unknown(sampleCount, std::vector<int>());
+    for (int i = 0; i < sampleCount; i++) {
+        cluster[i].push_back(i);
+        for (int j = i + 1; j < sampleCount; j++) {
+            int l = label[Upair({i, j})];
+            if (l == 2) {
+                cluster[i].push_back(j);
+                cluster[j].push_back(i);
+            } else if (!l) {
+                unknown[i].push_back(j);
+                unknown[j].push_back(i);
+            } 
+        }
+    }
+    std::cout << "Clusters: " << std::endl; 
+    std::vector<bool> shown(sampleCount, false);
+    for (int i = 0; i < sampleCount; i++) {
+        if (shown[i]) continue;
+        for (auto j : cluster[i]) {
+            std::cout << samples[j];
+            shown[j] = true;
+        }
+        if (!unknown[i].empty()) std::cout << " ? ";
+        for (auto j : unknown[i]) {
+            std::cout << samples[j];
+        }
+        std::cout << std::endl;
+    }
+}
+  
+template<typename S>
+void ClusteringProblem<S>::printResults() {
+    printResultingLabeling();
+    printResultingClustering();
+    bool completeSolution = isSolvedCompletely();
+    std::cout << std::endl;
+    std::cout << "Problem solved: " << ((completeSolution) ? "completely" : "partially") << std::endl; 
+    std::cout << "Resulting cost: " << resultingCost << std::endl;
+}
+
+template<typename S>
 void ClusteringProblem<S>::solve() {
-    labelFixed.resize(sampleCount, std::vector<bool>(sampleCount, false));
-    labelValue.resize(sampleCount, std::vector<bool>(sampleCount, false));
     resultingCost = 0;
     solve(std::vector<bool>(sampleCount, true));
 }
@@ -117,7 +206,7 @@ bool ClusteringProblem<S>::applyIndependentSubproblemCut(const std::vector<bool>
         partition.push_back(chosen);
     }
     if (partition.size() == 1) return false; // no cuts => no smaller subproblems
-    std::cout << "Applying the independent subproblem cut (proposition 3.1)\nCut: ";
+    std::cout << "Applying the independent subproblem cut (proposition 3.1)" << std::endl;
     for (auto subproblemIndices : partition) {
         for (int i : subproblemIndices) {
             for (int originalI : sampleMapping[i]) {
@@ -144,20 +233,18 @@ template<typename S>
 void ClusteringProblem<S>::cutIndexSubset(const std::vector<bool> &relevant, const std::vector<bool> &indexSubset) {
     // fix the labels
     for (int i = 0; i < sampleCount; i++) {
-        if (!indexSubset[i]) continue; // i is in the index subset of the relevant subset
+        if (!relevant[i] || !indexSubset[i]) continue; // i is in the index subset of the relevant subset
         for (int j = 0; j < sampleCount; j++) {
             if (!relevant[j] || indexSubset[j]) continue; // j is not in the subset but in the relevant subset
             for (int originalI : sampleMapping[i]) {
                 for (int originalJ : sampleMapping[j]) {
-                    labelFixed[originalI][originalJ] = labelFixed[originalJ][originalI] = true;
-                    labelValue[originalI][originalJ] = labelValue[originalJ][originalI] = false;
+                    label[Upair({originalI, originalJ})] = label[Upair({originalJ, originalI})] = 1;
                 }
             }
         }
     }
     // filter the relevant pairs
     for (int i = 0; i < sampleCount; i++) {
-        if (!relevant[i]) continue;
         std::vector<int> filtered;
         for (int j : relevantPairs[i]) {
             if (indexSubset[i] xor indexSubset[j]) {
@@ -170,7 +257,6 @@ void ClusteringProblem<S>::cutIndexSubset(const std::vector<bool> &relevant, con
     }
     // filter the relevant triples
     for (int i = 0; i < sampleCount; i++) {
-        if (!relevant[i]) continue;
         std::vector<std::pair<int,int>> filtered;
         for (auto [j, k] : relevantTriples[i]) {
             if (
@@ -184,4 +270,5 @@ void ClusteringProblem<S>::cutIndexSubset(const std::vector<bool> &relevant, con
         }
         relevantTriples[i] = filtered;
     }
+    return;
 }

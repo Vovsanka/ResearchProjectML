@@ -1105,7 +1105,7 @@ int main() {
     std::vector<char> samples = {'a', 'b', 'c', 'd', 'e'};
     ClusteringProblem<char> problem(samples, cost);
     problem.solve();
-    // problem.printResults();
+    problem.printResults();
     
     return 0;
 }

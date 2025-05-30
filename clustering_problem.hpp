@@ -30,7 +30,7 @@ class ClusteringProblem {
     std::vector<std::vector<int>> relevantPairs;
     std::map<Upair, int> pairCosts;
 
-    std::vector<std::vector<bool>> labelFixed, labelValue;
+    std::map<Upair, int> label;
     int resultingCost;
 
     void solve(const std::vector<bool> &relevant);
@@ -46,6 +46,18 @@ public:
         const std::function<int(Utuple<3,S>)> &tripleCostCB,
         const std::function<int(Utuple<2,S>)> &pairCostCB = [](Utuple<2,S> p)->int{return 0;}
     );
+
+    std::map<Upair, int> getLabels();
+
+    bool isSolvedCompletely();
+
+    int getResultingCost();
+
+    void printResultingLabeling();
+
+    void printResultingClustering();
+
+    void printResults();
     
     void solve();
 };
