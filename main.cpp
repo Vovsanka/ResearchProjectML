@@ -431,7 +431,7 @@ class CubicSetPartitionProblem {
                     if (i < j) resultingCost += pairCosts[UnorderedPair<>(i, j)]; // consider one direction (i, j) and skip (j, i)
                 } else {
                     UnorderedPair<> indexPair(indexOf[i], indexOf[j]);
-                    if (!subPairCosts.count(indexPair)) {
+                    if (!subPairCosts[indexPair]) {
                         subPairCosts[indexPair] = 0;
                         subRelevantPairs[indexOf[i]].push_back(indexOf[j]);
                         subRelevantPairs[indexOf[j]].push_back(indexOf[i]);
@@ -458,7 +458,7 @@ class CubicSetPartitionProblem {
                     }
                     if (i > inner) continue; // consider one direction (i, inner) and skip (inner, i)
                     UnorderedPair<> indexPair(indexOf[i], indexOf[outer]);
-                    if (!subPairCosts.count(indexPair)) {
+                    if (!subPairCosts[indexPair]) {
                         subPairCosts[indexPair] = 0;
                         subRelevantPairs[indexOf[i]].push_back(indexOf[outer]);
                         subRelevantPairs[indexOf[outer]].push_back(indexOf[i]);
@@ -466,7 +466,7 @@ class CubicSetPartitionProblem {
                     subPairCosts[indexPair] += tripleCosts[UnorderedTriple<>(i, j, k)];
                 } else { // j and k are outer
                     UnorderedTriple<> indexTriple(indexOf[i], indexOf[j], indexOf[k]);
-                    if (!subTripleCosts.count(indexTriple)) {
+                    if (!subTripleCosts[indexTriple]) {
                         subTripleCosts[indexTriple] = 0;
                         subRelevantTriples[indexOf[i]].push_back(std::make_pair(indexOf[j], indexOf[k]));
                         subRelevantTriples[indexOf[j]].push_back(std::make_pair(indexOf[k], indexOf[i])); // indexOf[i] > indexOf[k] by definition above
@@ -552,7 +552,7 @@ class CubicSetPartitionProblem {
         // heuristically construct and check the candidate sets R for possible joining
         for (int i = 0; i < sampleCount; i++) {
             for (int j = i + 1; j < sampleCount; j++) {
-                if (pairCosts.count(UnorderedPair<>(i, j)) && pairCosts[UnorderedPair<>(i, j)] > 0) continue;
+                if (pairCosts[UnorderedPair<>(i, j)] > 0) continue;
 
                 std::vector<bool> subsetR(sampleCount, false); // R doesn't have to be a connected component
                 subsetR[i] = subsetR[j] = true;
@@ -630,10 +630,8 @@ class CubicSetPartitionProblem {
                 // compute lhs
                 int lhs = 0;
                 UnorderedPair<> indexPair(i, j);
-                if (pairCosts.count(indexPair)) {
-                    int c = pairCosts[indexPair];
-                    if (c < 0) lhs += -2*c;
-                }
+                int c = pairCosts[indexPair];
+                if (c < 0) lhs += -2*c;
                 for (auto [k1, k2] : relevantTriples[i]) {
                     if (k1 != j && k2 != j) continue; // k1 or k2 is j
                     int c = tripleCosts[UnorderedTriple<> (i, k1, k2)];
@@ -665,7 +663,7 @@ class CubicSetPartitionProblem {
                     // compute lhs1, lhs2, lhs3
                     int lhs1 = 0, lhs2 = 0, lhs3 = 0;
                     UnorderedTriple<> indexTriple(i, j, k);
-                    if (tripleCosts.count(indexTriple)) {
+                    {
                         int c = tripleCosts[indexTriple];
                         lhs3 += c;
                         if (c < 0) {
@@ -674,17 +672,17 @@ class CubicSetPartitionProblem {
                         }
                     }
                     UnorderedPair<> indexPairIJ(i, j), indexPairIK(i, k), indexPairJK(j, k);
-                    if (pairCosts.count(indexPairIJ)) {
+                    {
                         int c = pairCosts[indexPairIJ];
                         lhs3 += c;
                         if (c < 0) lhs1 += -2*c; 
                     }
-                    if (pairCosts.count(indexPairJK)) {
+                    {
                         int c = pairCosts[indexPairJK];
                         lhs3 += c;
                         if (c < 0) lhs2 += -2*c; 
                     }
-                    if (pairCosts.count(indexPairIK)) {
+                    {
                         int c = pairCosts[indexPairIK];
                         lhs3 += c;
                         if (c < 0) {
@@ -763,7 +761,7 @@ class CubicSetPartitionProblem {
             for (int j = i + 1; j < sampleCount; j++) {
                 int lhs = 0;
                 UnorderedPair indexPair(i, j);
-                if (pairCosts.count(indexPair)) lhs += pairCosts[indexPair];
+                if (pairCosts[indexPair]) lhs += pairCosts[indexPair];
                 // compute rhs
                 int rhs = 0;
                 for (int k : relevantPairs[i]) {
@@ -809,11 +807,10 @@ class CubicSetPartitionProblem {
                     // compute costs for the triple
                     UnorderedPair<> indexPairIJ(i, j), indexPairIK(i, k), indexPairJK(j, k);
                     UnorderedTriple<> indexTriple(i, j, k);
-                    int cIJ = 0, cIK = 0, cJK = 0, cIJK = 0;
-                    if (pairCosts.count(indexPairIJ)) cIJ = pairCosts[indexPairIJ];
-                    if (pairCosts.count(indexPairIK)) cIK = pairCosts[indexPairIK];
-                    if (pairCosts.count(indexPairJK)) cJK = pairCosts[indexPairJK];
-                    if (tripleCosts.count(indexTriple)) cIJK = tripleCosts[indexTriple];
+                    int cIJ = pairCosts[indexPairIJ];
+                    int cIK = pairCosts[indexPairIK];
+                    int cJK = pairCosts[indexPairJK];
+                    int cIJK = tripleCosts[indexTriple];
                     // compute rhs
                     int singleR = 0, doubleR = 0;
                     std::vector<int> elementsR = {i, j, k};
@@ -885,14 +882,13 @@ class CubicSetPartitionProblem {
                     int lhs = lhsBase;
                     UnorderedPair<> indexPairIJ(i, j), indexPairIK(i, k), indexPairJK(j, k);
                     UnorderedTriple<> indexTriple(i, j, k);
-                    int cIJ = 0, cIK = 0, cJK = 0, cIJK = 0;
-                    if (pairCosts.count(indexPairIJ)) cIJ = pairCosts[indexPairIJ];
+                    int cIJ = pairCosts[indexPairIJ];
                     if (cIJ < 0) lhs += -2*cIJ;
-                    if (pairCosts.count(indexPairIK)) cIK = pairCosts[indexPairIK];
+                    int cIK = pairCosts[indexPairIK];
                     if (cIK < 0) lhs += -2*cIK;
-                    if (pairCosts.count(indexPairJK)) cJK = pairCosts[indexPairJK];
+                    int cJK = pairCosts[indexPairJK];
                     if (cJK < 0) lhs += -cJK;
-                    if (tripleCosts.count(indexTriple)) cIJK = tripleCosts[indexTriple];
+                    int cIJK = tripleCosts[indexTriple];
                     if (cIJK < 0) lhs += -2*cIJK;
                     lhs += std::min(std::min(0, cIJ), std::min(cIK, cJK)); // min for 4 cases
                     // compute rhs
@@ -924,7 +920,7 @@ class CubicSetPartitionProblem {
                 // check the condition
                 int lhs = 0;
                 UnorderedPair<> indexPair(i, j);
-                if (pairCosts.count(indexPair)) {
+                {
                     int c = pairCosts[indexPair];
                     if (c > 0) lhs += c;
                 }
