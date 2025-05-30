@@ -230,7 +230,10 @@ bool ClusteringProblem<S>::applyIndependentSubproblemCut(const std::vector<bool>
 }
 
 template<typename S>
-void ClusteringProblem<S>::cutIndexSubset(const std::vector<bool> &relevant, const std::vector<bool> &indexSubset) {
+void ClusteringProblem<S>::cutIndexSubset(
+    const std::vector<bool> &relevant,
+    const std::vector<bool> &indexSubset
+) {
     // fix the labels
     for (int i = 0; i < sampleCount; i++) {
         if (!relevant[i] || !indexSubset[i]) continue; // i is in the index subset of the relevant subset
@@ -271,4 +274,78 @@ void ClusteringProblem<S>::cutIndexSubset(const std::vector<bool> &relevant, con
         relevantTriples[i] = filtered;
     }
     return;
+}
+
+template<typename S>
+int ClusteringProblem<S>::solveMinCutForIndexSubset(
+    std::vector<bool> indexSubset, 
+    bool takeNegativeCosts, 
+    bool takePositiveCosts, 
+    bool globalMinCut, 
+    int source, 
+    std::vector<int> sinks
+) {
+    // apply proposition 4.2
+    int vertices = std::count(std::begin(indexSubset), std::end(indexSubset), true);
+    std::vector<int> indexMapping(sampleCount);
+    for (int i = 0, sampleNode = 0; i < sampleCount; i++) {
+        if (indexSubset[i]) {
+            indexMapping[i] = sampleNode++;
+        }
+    }
+    // compute the adjacency matrix by transforming triples (the costs in the matrix are not divided by 2 to avoid floating numbers)
+    std::vector<std::vector<int>> adjMatrix(vertices, std::vector(vertices, 0));
+    for (int i = 0; i < indexSubset.size(); i++) {
+        if (!indexSubset[i]) continue;
+        for (int j : relevantPairs[i]) {
+            if (i > j) continue; // consider only (i < j)
+            if (!indexSubset[j]) continue;
+            auto indexPair = Upair({i, j}); // sorted indices
+            int c = pairCosts[indexPair];
+            if (c < 0 && !takeNegativeCosts) continue;
+            if (c > 0 && !takePositiveCosts) continue;
+            int i_node = indexMapping[indexPair[0]]; 
+            int j_node = indexMapping[indexPair[1]];
+            adjMatrix[i_node][j_node] += 2*abs(c);
+        }
+        for (auto [j, k] : relevantTriples[i]) {
+            if (i > j || j > k) continue; // consider only (i < j < k)
+            if (!indexSubset[j] || !indexSubset[k]) continue;
+            auto indexTriple = Utriple({i, j, k}); // sorted indices
+            int c = tripleCosts[indexTriple];
+            if (c < 0 && !takeNegativeCosts) continue;
+            if (c > 0 && !takePositiveCosts) continue;
+            int i_node = indexMapping[indexTriple[0]]; 
+            int j_node = indexMapping[indexTriple[1]];
+            int k_node = indexMapping[indexTriple[2]];
+            adjMatrix[i_node][j_node] += abs(c);
+            adjMatrix[i_node][k_node] += abs(c);
+            adjMatrix[j_node][k_node] += abs(c); 
+        }
+    }
+    // create adjacency list from the adjacency matrix
+    std::vector<std::tuple<int,int,int>> edges;
+    int sumCosts = 0;
+    for (int i_node = 0; i_node < vertices; i_node++) {
+        for (int j_node = i_node + 1; j_node < vertices; j_node++) {
+            int c = adjMatrix[i_node][j_node];
+            if (c) {
+                edges.push_back(std::make_tuple(i_node, j_node, c));
+                sumCosts += c;
+            }
+        }
+    } 
+    // solve the MinCut problem
+    int minCut;
+    if (globalMinCut) {
+        minCut = MinCut::solveGlobalMinCut(edges);
+    } else {
+        int superSink = vertices;
+        for (auto sink : sinks) {
+            edges.push_back(std::make_tuple(indexMapping[sink], superSink, sumCosts));
+        }
+        minCut = MinCut::solveMinCut(vertices + 1, edges, indexMapping[source], superSink);
+    }
+    // divide the MinCut result by 2 because all triples have been transformed with a double cost
+    return minCut/2;
 }

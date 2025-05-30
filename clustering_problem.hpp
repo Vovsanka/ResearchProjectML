@@ -40,6 +40,14 @@ class ClusteringProblem {
 
     void cutIndexSubset(const std::vector<bool> &relevant, const std::vector<bool> &subIndexSubset);
 
+    int solveMinCutForIndexSubset(
+        std::vector<bool> indexSubset,
+        bool takeNegativeCosts, bool takePositiveCosts,
+        bool globalMinCut, 
+        int source = 0, 
+        std::vector<int> sinks = std::vector<int>({0})
+    );
+
 public:
 
     explicit ClusteringProblem(
