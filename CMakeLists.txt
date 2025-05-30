@@ -10,7 +10,9 @@ set(SOURCES
     clustering_problem.hpp
     clustering_problem.tpp
     utuple.hpp
-    utuple.tpp)
+    utuple.tpp
+    min_cut.hpp
+    min_cut.cpp)
 add_executable(CubicClustering ${SOURCES})
 
 target_include_directories(CubicClustering PRIVATE ${Boost_INCLUDE_DIRS})

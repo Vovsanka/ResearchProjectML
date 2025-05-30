@@ -11,6 +11,7 @@
 #include <algorithm>
 
 #include "utuple.hpp"
+#include "min_cut.hpp"
 
 using Upair = Utuple<2>;
 using Utriple = Utuple<3>;
