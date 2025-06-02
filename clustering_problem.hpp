@@ -38,10 +38,7 @@ class ClusteringProblem {
 
     bool applyIndependentSubproblemCut(const std::vector<bool> &relevant);
 
-    void createSolveCutSubproblem(const std::vector<bool> &relevant, const std::vector<bool> &subIndexSubset);
-
-
-    void createSolveJoinSubproblem(const std::vector<bool> &relevant, const std::vector<bool> &indexSubset);
+    void createSolveCutSubproblem(const std::vector<bool> &relevant, const std::vector<bool> &indexSubset);
 
     int solveMinCutForIndexSubset(
         const std::vector<bool> &indexSubset,
@@ -50,6 +47,12 @@ class ClusteringProblem {
         int source = 0, 
         const std::vector<int> &sinks = std::vector<int>({0})
     );
+
+    void createSolveJoinSubproblem(const std::vector<bool> &relevant, const std::vector<bool> &indexSubset);
+
+    bool checkSubsetJoinForIndexSubset(const std::vector<bool> &indexSubset);
+
+    bool applySubsetJoin(const std::vector<bool> &relevant);
 
 public:
 
