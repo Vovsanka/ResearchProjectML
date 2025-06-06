@@ -387,10 +387,14 @@ void ClusteringProblem<S>::createSolveJoinSubproblem(const std::vector<bool> &re
     }
     // update the sample mapping (modify the problem state)
     int jointIndex = joinSamples[0];
+    std::vector<int> originalJoint;
     for (int i : joinSamples) {
+        for (auto originalI : sampleMapping[i]) {
+            originalJoint.push_back(originalI);
+        }
         sampleMapping[i].clear();
     }
-    sampleMapping[jointIndex] = joinSamples;
+    sampleMapping[jointIndex] = originalJoint;
     // compute the costs to the joint subset as well as the inner joining cost (modify the problem state)
     std::map<Upair, int> subPairCosts; // additional variable in order not to overwrite the values before reading them
     std::map<Utriple, int> subTripleCosts; // additional variable in order not tot overwrite the values before reading them
