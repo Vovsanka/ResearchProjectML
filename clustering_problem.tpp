@@ -60,7 +60,7 @@ void ClusteringProblem<S>::solve(const std::vector<bool> &relevant) {
     // apply partial optimality conditions (solve the subproblems if needed)
     if (applyIndependentSubproblemCut(relevant)) return;
     if (applySubsetJoin(relevant)) return;
-    // if (applyPairJoin(relevant))) return;
+    if (applyPairJoin(relevant)) return;
     // if (applyComplexPairJoin(relevant))) return;
     // if (applyExplicitPairJoin(relevant))) return;
     // if (applyExplicitPairJoinViaTriple(relevant))) return;
@@ -219,7 +219,7 @@ bool ClusteringProblem<S>::applyIndependentSubproblemCut(const std::vector<bool>
         partition.push_back(chosen);
     }
     if (partition.size() == 1) return false; // no cuts => no smaller subproblems
-    std::cout << "* Applying the independent subproblem cut (proposition 3.1)" << std::endl;
+    std::cout << "* Applying the independent subproblem cut (3.1)" << std::endl;
     for (const auto &subproblemIndices : partition) {
         std::cout << "Subproblem: ";
         for (int i : subproblemIndices) {
@@ -302,7 +302,7 @@ int ClusteringProblem<S>::solveMinCutForIndexSubset(
     int source, 
     const std::vector<int> &sinks
 ) {
-    // apply proposition 4.2
+    // apply 4.2
     int vertices = std::count(std::begin(indexSubset), std::end(indexSubset), true);
     std::vector<int> indexMapping(sampleCount);
     for (int i = 0, sampleNode = 0; i < sampleCount; i++) {
@@ -369,7 +369,7 @@ int ClusteringProblem<S>::solveMinCutForIndexSubset(
 
 template<typename S>
 void ClusteringProblem<S>::createSolveJoinSubproblem(const std::vector<bool> &relevant, const std::vector<bool> &indexSubset) {
-    // aplying proposition 5.1
+    // aplying 5.1
     std::vector<int> joinSamples;
     for (int i = 0; i < sampleCount; i++) {
         if (indexSubset[i]) joinSamples.push_back(i);
@@ -400,21 +400,22 @@ void ClusteringProblem<S>::createSolveJoinSubproblem(const std::vector<bool> &re
             if (i > j) continue; // consider only one direction (another combination j > i also occures)
             Upair oldIndexPair({i, j});
             int c = pairCosts[oldIndexPair];
-            pairCosts.erase(oldIndexPair);
             if (indexSubset[i] && indexSubset[j]) { // inner joining
                 resultingCost += c;
+                pairCosts.erase(oldIndexPair);
             } else if (indexSubset[i] || indexSubset[j]) { // modify the costs to the samples being joint
                 if (indexSubset[i]) subPairCosts[Upair({j, jointIndex})] += c;
                 if (indexSubset[j]) subPairCosts[Upair({i, jointIndex})] += c;
+                pairCosts.erase(oldIndexPair);
             } // else: outer costs are left unchanged
         }
         for (auto [j, k] : relevantTriples[i]) {
             if (i > j) continue; // consider only one direction (another triples will also occur)
             Utriple oldIndexTriple({i, j, k});
             int c = tripleCosts[oldIndexTriple];
-            tripleCosts.erase(oldIndexTriple);
             if (indexSubset[i] && indexSubset[j] && indexSubset[k]) {
                 resultingCost += c;
+                tripleCosts.erase(oldIndexTriple);
             } else if (indexSubset[i] || indexSubset[j] || indexSubset[k]) { // modify the cost to the samples being joint
                 if (indexSubset[i] && indexSubset[j]) subPairCosts[Upair({k, jointIndex})] += c;
                 if (indexSubset[i] && indexSubset[k]) subPairCosts[Upair({j, jointIndex})] += c;
@@ -422,6 +423,7 @@ void ClusteringProblem<S>::createSolveJoinSubproblem(const std::vector<bool> &re
                 if (!indexSubset[i] && !indexSubset[j]) subTripleCosts[Utriple({i, j, jointIndex})] += c;
                 if (!indexSubset[i] && !indexSubset[k]) subTripleCosts[Utriple({i, k, jointIndex})] += c;
                 if (!indexSubset[j] && !indexSubset[k]) subTripleCosts[Utriple({j, k, jointIndex})] += c;
+                tripleCosts.erase(oldIndexTriple);
             } // else: outer costs are left unchanged
         }
     }
@@ -564,7 +566,7 @@ bool ClusteringProblem<S>::applySubsetJoin(const std::vector<bool> &relevant) {
                 }
             }
             if (!joinIndexSubset.empty()) {
-                std::cout << "* Applying the subset join (proposition 3.11)" << std::endl;
+                std::cout << "* Applying the subset join (3.11)" << std::endl;
                 std::cout << "Join: ";
                 for (int k = 0; k < sampleCount; k++) {
                     if (!joinIndexSubset[k]) continue;
@@ -573,7 +575,7 @@ bool ClusteringProblem<S>::applySubsetJoin(const std::vector<bool> &relevant) {
                     }
                     std::cout << " ";
                 }
-                std::cout << "\n" <<  std::endl;
+                std::cout << '\n' << std::endl;
                 createSolveJoinSubproblem(relevant, joinIndexSubset);
                 return true;
             }
@@ -581,3 +583,45 @@ bool ClusteringProblem<S>::applySubsetJoin(const std::vector<bool> &relevant) {
     }
     return false;
 }
+
+template<typename S>
+bool ClusteringProblem<S>::applyPairJoin(const std::vector<bool> &relevant) {
+    // 3.4
+    for (int i = 0; i < sampleCount; i++) {
+        if (!relevant[i]) continue;
+        for (int j = i + 1; j < sampleCount; j++) {
+            if (!relevant[j]) continue;
+            // compute lhs
+            int lhs = 0;
+            Upair indexPair({i, j});
+            int c = pairCosts[indexPair];
+            if (c < 0) lhs += -2*c;
+            for (auto [k1, k2] : relevantTriples[i]) {
+                if (k1 != j && k2 != j) continue; // k1 or k2 is j
+                int c = tripleCosts[Utriple({i, k1, k2})];
+                if (c < 0) lhs += -c;
+            }
+            // compute rhs (assume that the underlying graph is connected after applying the 3.1)
+            int rhs = solveMinCutForIndexSubset(relevant, true, true, false, i, {j});
+            if (lhs >= rhs) {
+                std::vector<bool> indexSubset(sampleCount, false);
+                indexSubset[i] = indexSubset[j] = true;
+                std::cout << "* Applying the pair join (3.4)" << std::endl;
+                std::cout << "Join: ";
+                for (int originalI : sampleMapping[i]) {
+                    std::cout << samples[originalI];
+                }
+                std::cout << " ";
+                for (int originalJ : sampleMapping[j]) {
+                    std::cout << samples[originalJ];
+                }
+                std::cout << "\n" <<  std::endl;
+                createSolveJoinSubproblem(relevant, indexSubset);
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+
