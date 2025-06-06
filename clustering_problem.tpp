@@ -50,6 +50,7 @@ template<typename S>
 void ClusteringProblem<S>::solve() {
     resultingCost = 0;
     solve(std::vector<bool>(sampleCount, true));
+    printResults();
 }
 
 template<typename S>
@@ -85,12 +86,13 @@ bool ClusteringProblem<S>::isSolvedCompletely() {
 }
 
 template<typename S>
-int ClusteringProblem<S>::getResultingCost() {
+int ClusteringProblem<S>::getCost() {
     return resultingCost;
 }
 
 template<typename S>
-void ClusteringProblem<S>::printResultingLabeling() {
+void ClusteringProblem<S>::printLabeling() {
+    std::cout << "Labeling: " << std::endl;
     std::cout << "  ";
     for (auto s : samples) {
         std::cout << s << " ";
@@ -115,36 +117,46 @@ void ClusteringProblem<S>::printResultingLabeling() {
         }
         std::cout << std::endl;
     }
+    std::cout << std::endl;
 }
 
 template<typename S>
-void ClusteringProblem<S>::printResultingClustering() {
-    std::vector<std::vector<int>> cluster(sampleCount, std::vector<int>());
-    std::vector<std::vector<int>> unknown(sampleCount, std::vector<int>());
+void ClusteringProblem<S>::printClustering() {
+    std::vector<std::vector<int>> clustering;
     for (int i = 0; i < sampleCount; i++) {
-        cluster[i].push_back(i);
-        for (int j = i + 1; j < sampleCount; j++) {
-            int l = label[Upair({i, j})];
-            if (l == 2) {
-                cluster[i].push_back(j);
-                cluster[j].push_back(i);
-            } else if (!l) {
-                unknown[i].push_back(j);
-                unknown[j].push_back(i);
-            } 
-        }
+        if (sampleMapping[i].empty()) continue;
+        clustering.push_back(sampleMapping[i]);
     }
-    std::cout << "Clusters: " << std::endl; 
-    std::vector<bool> shown(sampleCount, false);
-    for (int i = 0; i < sampleCount; i++) {
-        if (shown[i]) continue;
-        for (auto j : cluster[i]) {
-            std::cout << samples[j];
-            shown[j] = true;
+    int clusterCount = clustering.size();
+    for (int clusterInd = 0; clusterInd < clusterCount; clusterInd++) {
+        std::cout << "Cluster " << clusterInd << ": "; 
+        for (auto originalI : clustering[clusterInd]) {
+            std::cout << samples[originalI];
         }
-        if (!unknown[i].empty()) std::cout << " ? ";
-        for (auto j : unknown[i]) {
-            std::cout << samples[j];
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
+    std::cout << "Clustering: " << std::endl;
+    std::cout << "  ";
+    for (int i = 0; i < clusterCount; i++) {
+        std::cout << i << " ";
+    }
+    std::cout << std::endl;
+    for (int ci = 0; ci < clusterCount; ci++) {
+        std::cout << ci << " ";
+        int i = clustering[ci][0];
+        for (int cj = 0; cj < clusterCount; cj++) {
+            if (ci == cj) {
+                std::cout << "- ";
+                continue;
+            }
+            int j = clustering[cj][0];
+            if (label[Upair({i, j})] == 1) { // cut clusters
+                std::cout << "0";
+            } else { // label[i][j] == 0 unknown 
+                std::cout << "x";
+            }
+            std::cout << " ";
         }
         std::cout << std::endl;
     }
@@ -152,12 +164,15 @@ void ClusteringProblem<S>::printResultingClustering() {
   
 template<typename S>
 void ClusteringProblem<S>::printResults() {
-    printResultingLabeling();
-    printResultingClustering();
+    std::cout << "---------------------------------------" << std::endl;
+    std::cout << "(0: cut; 1: joint; x: unknown)\n" << std::endl;
+    printLabeling();
+    printClustering();
     bool completeSolution = isSolvedCompletely();
     std::cout << std::endl;
     std::cout << "Problem solved: " << ((completeSolution) ? "completely" : "partially") << std::endl; 
-    std::cout << "Resulting cost: " << resultingCost << std::endl;
+    std::cout << "Cost: " << resultingCost << std::endl;
+    std::cout << "---------------------------------------" << std::endl;
 }
 
 template<typename S>
@@ -204,7 +219,7 @@ bool ClusteringProblem<S>::applyIndependentSubproblemCut(const std::vector<bool>
         partition.push_back(chosen);
     }
     if (partition.size() == 1) return false; // no cuts => no smaller subproblems
-    std::cout << "Applying the independent subproblem cut (proposition 3.1)" << std::endl;
+    std::cout << "* Applying the independent subproblem cut (proposition 3.1)" << std::endl;
     for (const auto &subproblemIndices : partition) {
         std::cout << "Subproblem: ";
         for (int i : subproblemIndices) {
@@ -549,8 +564,8 @@ bool ClusteringProblem<S>::applySubsetJoin(const std::vector<bool> &relevant) {
                 }
             }
             if (!joinIndexSubset.empty()) {
-                std::cout << "Applying the subset join (proposition 3.11)" << std::endl;
-                std::cout << "Same cluster: ";
+                std::cout << "* Applying the subset join (proposition 3.11)" << std::endl;
+                std::cout << "Join: ";
                 for (int k = 0; k < sampleCount; k++) {
                     if (!joinIndexSubset[k]) continue;
                     for (int originalK : sampleMapping[k]) {
@@ -558,7 +573,7 @@ bool ClusteringProblem<S>::applySubsetJoin(const std::vector<bool> &relevant) {
                     }
                     std::cout << " ";
                 }
-                std::cout << "\n" << std::endl;
+                std::cout << "\n" <<  std::endl;
                 createSolveJoinSubproblem(relevant, joinIndexSubset);
                 return true;
             }

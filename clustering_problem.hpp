@@ -66,11 +66,11 @@ public:
 
     bool isSolvedCompletely();
 
-    int getResultingCost();
+    int getCost();
 
-    void printResultingLabeling();
+    void printLabeling();
 
-    void printResultingClustering();
+    void printClustering();
 
     void printResults();
     
