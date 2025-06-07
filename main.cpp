@@ -4,48 +4,7 @@
 
 
 
-//     bool applyExplicitPairJoin() {
-//         // 3.8
-//         for (int i = 0; i < sampleCount; i++) {
-//             for (int j = i + 1; j < sampleCount; j++) {
-//                 int lhs = 0;
-//                 UnorderedPair indexPair(i, j);
-//                 if (pairCosts[indexPair]) lhs += pairCosts[indexPair];
-//                 // compute rhs
-//                 int rhs = 0;
-//                 for (int k : relevantPairs[i]) {
-//                     if (k == j) continue;
-//                     int c = pairCosts[UnorderedPair<>(i, k)];
-//                     if (c < 0) rhs += c;
-//                 }
-//                 for (int k : relevantPairs[j]) {
-//                     if (k == i) continue;
-//                     int c = pairCosts[UnorderedPair<>(j, k)];
-//                     if (c < 0) rhs += c;
-//                 }
-//                 for (auto [k1, k2] : relevantTriples[i]) {
-//                     int c = tripleCosts[UnorderedTriple<>(i, k1, k2)];
-//                     if (c < 0) rhs += c;
-//                 }
-//                 for (auto [k1, k2] : relevantTriples[j]) {
-//                     if (k1 == i || k2 == i) continue; // the triples (i, j, *) have already been considered in the previos for-loop
-//                     int c = tripleCosts[UnorderedTriple<>(j, k1, k2)];
-//                     if (c < 0) rhs += c;
-//                 }
-//                 // check the condition
-//                 if (lhs <= rhs) {
-//                     std::vector<bool> subsetR(sampleCount, false);
-//                     subsetR[i] = subsetR[j] = true;
-//                     std::cout << "Applying the explicit pair join (3.8)" << std::endl;
-//                     std::cout << i << " " << j << std::endl;
-//                     std::cout << lhs << " vs " << rhs << std::endl;
-//                     createSolveAccumulateJoinSubproblem(subsetR);
-//                     return true;
-//                 }
-//             }
-//         }
-//         return false;
-//     }
+
 
 //     bool applyExplicitPairJoinViaTriple() {
 //         // 3.9
@@ -222,7 +181,7 @@ int cost(Utuple<3,char> t) {
     // // pyramid example below (3.1 + 3.11 are not sufficient) (3.4 is sufficient)
     // if (t[0] == 'a' && t[1] == 'b' && t[2] == 'e') return -75;
     // pyramid example below (3.1 + 3.11 + 3.4 are not sufficient) (3.6 is sufficient for 10) (3.5 is sufficient for 100)
-    if (t[0] == 'b' && t[1] == 'c' && t[2] == 'd') return 10; // 10 or 100
+    if (t[0] == 'b' && t[1] == 'c' && t[2] == 'd') return 100; // 10 or 100
     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c') return -50;
     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'd') return -50;
     if (t[0] == 'a' && t[1] == 'c' && t[2] == 'd') return -50;
