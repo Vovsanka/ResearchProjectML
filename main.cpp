@@ -3,55 +3,6 @@
 #include "clustering_problem.hpp"
 
 
-//     bool applyTripleJoin() {
-//         // 3.5
-//         // compute lhs base value
-//         int lhsBase = 0;
-//         for (int i = 0; i < sampleCount; i++) {
-//             for (int j : relevantPairs[i]) {
-//                 if (i > j) continue;
-//                 int c = pairCosts[UnorderedPair<>(i, j)];
-//                 if (c > 0) lhsBase -= c;
-//             }
-//             for (auto [j, k] : relevantTriples[i]) {
-//                 if (i > j) continue;
-//                 int c = tripleCosts[UnorderedTriple<>(i, j, k)];
-//                 if (c > 0) lhsBase -= c;
-//             }
-//         }
-//         // iterate over all unordered triples (i, j, k)
-//         for (int i = 0; i < sampleCount; i++) {
-//             for (int j = i + 1; j < sampleCount; j++) {
-//                 for (int k = j + 1; k < sampleCount; k++) {
-//                     // compute lhs
-//                     int lhs = lhsBase;
-//                     UnorderedPair<> indexPairIJ(i, j), indexPairIK(i, k), indexPairJK(j, k);
-//                     UnorderedTriple<> indexTriple(i, j, k);
-//                     int cIJ = pairCosts[indexPairIJ];
-//                     if (cIJ < 0) lhs += -2*cIJ;
-//                     int cIK = pairCosts[indexPairIK];
-//                     if (cIK < 0) lhs += -2*cIK;
-//                     int cJK = pairCosts[indexPairJK];
-//                     if (cJK < 0) lhs += -cJK;
-//                     int cIJK = tripleCosts[indexTriple];
-//                     if (cIJK < 0) lhs += -2*cIJK;
-//                     lhs += std::min(std::min(0, cIJ), std::min(cIK, cJK)); // min for 4 cases
-//                     // compute rhs
-//                     int rhs = solveMinCutForIndexSubset(std::vector<bool>(sampleCount, true), true, false, false, i, {j, k});
-//                     if (lhs >= rhs) {
-//                         std::vector<bool> subsetR(sampleCount, false);
-//                         subsetR[i] = subsetR[j] = subsetR[k] = true; // join ijk
-//                         std::cout << "Applying the triple join (3.5)" << std::endl;
-//                         std::cout << i << " " << j << " " << k << std::endl;
-//                         std::cout << lhs << " vs " << rhs << std::endl;
-//                         createSolveAccumulateJoinSubproblem(subsetR);
-//                         return true;
-//                     }
-//                 }
-//             }
-//         }
-//         return false;
-//     }
 
 //     void applyPairCuts() {
 //         // 3.2
@@ -117,8 +68,8 @@
 int cost(Utuple<3,char> t) {
     // // pyramid example below (3.1 + 3.11 are not sufficient) (3.4 is sufficient)
     // if (t[0] == 'a' && t[1] == 'b' && t[2] == 'e') return -75;
-    // pyramid example below (3.1 + 3.11 + 3.4 are not sufficient) (3.6 is sufficient for 10) (3.5 is sufficient for 100)
-    if (t[0] == 'b' && t[1] == 'c' && t[2] == 'd') return 100; // 10 or 100
+    // pyramid example below (3.1 + 3.11 + 3.4 are not sufficient) (3.6 is sufficient for 10) (everything is insufficient for 100)
+    if (t[0] == 'b' && t[1] == 'c' && t[2] == 'd') return 1000; // 10 or 100
     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c') return -50;
     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'd') return -50;
     if (t[0] == 'a' && t[1] == 'c' && t[2] == 'd') return -50;

@@ -64,7 +64,7 @@ void ClusteringProblem<S>::solve(const std::vector<bool> &relevant) {
     if (applyComplexPairJoin(relevant)) return;
     if (applyExplicitPairJoin(relevant)) return;
     if (applyExplicitPairJoinViaTriple(relevant)) return;
-    // if (applyTripleJoin(relevant))) return;
+    if (applyTripleJoin(relevant)) return;
     // applyPairCuts(relevant));
     // applyTripleCuts(relevant));
     return;
@@ -619,7 +619,6 @@ bool ClusteringProblem<S>::applyPairJoin(const std::vector<bool> &relevant) {
     return false;
 }
 
-
 template<typename S>
 bool ClusteringProblem<S>::applyComplexPairJoin(const std::vector<bool> &relevant) {
     // 3.6
@@ -726,7 +725,9 @@ template<typename S>
 bool ClusteringProblem<S>::applyExplicitPairJoin(const std::vector<bool> &relevant) {
     // 3.8
     for (int i = 0; i < sampleCount; i++) {
+        if (!relevant[i]) continue;
         for (int j = i + 1; j < sampleCount; j++) {
+            if (!relevant[j]) continue;
             int lhs = 0;
             Upair indexPair({i, j});
             if (pairCosts[indexPair]) lhs += pairCosts[indexPair];
@@ -755,7 +756,7 @@ bool ClusteringProblem<S>::applyExplicitPairJoin(const std::vector<bool> &releva
             if (lhs <= rhs) {
                 std::vector<bool> indexSubset(sampleCount, false);
                 indexSubset[i] = indexSubset[j] = true;
-                std::cout << "Applying the explicit pair join (3.8)" << std::endl;
+                std::cout << "* Applying the explicit pair join (3.8)" << std::endl;
                 createSolveJoinSubproblem(relevant, indexSubset);
                 return true;
             }
@@ -816,7 +817,61 @@ bool ClusteringProblem<S>::applyExplicitPairJoinViaTriple(const std::vector<bool
                 ) {
                     std::vector<bool> indexSubset(sampleCount, false);
                     indexSubset[i] = indexSubset[k] = true; // join i and k
-                    std::cout << "Applying the complex pair join (3.9)" << std::endl;
+                    std::cout << "* Applying the complex pair join (3.9)" << std::endl;
+                    createSolveJoinSubproblem(relevant, indexSubset);
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+template<typename S>
+bool ClusteringProblem<S>::applyTripleJoin(const std::vector<bool> &relevant) {
+    // 3.5
+    // compute lhs base value
+    int lhsBase = 0;
+    for (int i = 0; i < sampleCount; i++) {
+        if (!relevant[i]) continue;
+        for (int j : relevantPairs[i]) {
+            if (i > j) continue;
+            int c = pairCosts[Upair({i, j})];
+            if (c > 0) lhsBase -= c;
+        }
+        for (auto [j, k] : relevantTriples[i]) {
+            if (i > j) continue;
+            int c = tripleCosts[Utriple({i, j, k})];
+            if (c > 0) lhsBase -= c;
+        }
+    }
+    // iterate over all unordered triples (i, j, k)
+    for (int i = 0; i < sampleCount; i++) {
+        if (!relevant[i]) continue;
+        for (int j = i + 1; j < sampleCount; j++) {
+            if (!relevant[j]) continue;
+            for (int k = 0; k < sampleCount; k++) {
+                if (i == k || j == k) continue;
+                if (!relevant[k]) continue;
+                // compute lhs
+                int lhs = lhsBase;
+                Upair indexPairIJ({i, j}), indexPairIK({i, k}), indexPairJK({j, k});
+                Utriple indexTriple({i, j, k});
+                int cIJ = pairCosts[indexPairIJ];
+                if (cIJ < 0) lhs += -2*cIJ;
+                int cIK = pairCosts[indexPairIK];
+                if (cIK < 0) lhs += -2*cIK;
+                int cJK = pairCosts[indexPairJK];
+                if (cJK < 0) lhs += -cJK;
+                int cIJK = tripleCosts[indexTriple];
+                if (cIJK < 0) lhs += -2*cIJK;
+                lhs += std::min(std::min(0, cIJ), std::min(cIK, cJK)); // min for 4 cases
+                // compute rhs
+                int rhs = solveMinCutForIndexSubset(relevant, true, false, false, i, {j, k});
+                if (lhs >= rhs) {
+                    std::vector<bool> indexSubset(sampleCount, false);
+                    indexSubset[i] = indexSubset[j] = indexSubset[k] = true; // join ijk
+                    std::cout << "* Applying the triple join (3.5)" << std::endl;
                     createSolveJoinSubproblem(relevant, indexSubset);
                     return true;
                 }
