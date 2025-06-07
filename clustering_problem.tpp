@@ -63,7 +63,7 @@ void ClusteringProblem<S>::solve(const std::vector<bool> &relevant) {
     if (applyPairJoin(relevant)) return;
     if (applyComplexPairJoin(relevant)) return;
     if (applyExplicitPairJoin(relevant)) return;
-    // if (applyExplicitPairJoinViaTriple(relevant))) return;
+    if (applyExplicitPairJoinViaTriple(relevant)) return;
     // if (applyTripleJoin(relevant))) return;
     // applyPairCuts(relevant));
     // applyTripleCuts(relevant));
@@ -764,4 +764,64 @@ bool ClusteringProblem<S>::applyExplicitPairJoin(const std::vector<bool> &releva
     return false;
 }
 
-
+template<typename S>
+bool ClusteringProblem<S>::applyExplicitPairJoinViaTriple(const std::vector<bool> &relevant) {
+    // 3.9
+    for (int i = 0; i < sampleCount; i++) {
+        if (!relevant[i]) continue;
+        for (int k = i + 1; k < sampleCount; k++) {
+            if (!relevant[k]) continue;
+            for (int j = 0; j < sampleCount; j++) {
+                if (j == i || j == k) continue;
+                if (!relevant[j]) continue;
+                // compute costs for the triple
+                Upair indexPairIJ({i, j}), indexPairIK({i, k}), indexPairJK({j, k});
+                Utriple indexTriple({i, j, k});
+                int cIJ = pairCosts[indexPairIJ];
+                int cIK = pairCosts[indexPairIK];
+                int cJK = pairCosts[indexPairJK];
+                int cIJK = tripleCosts[indexTriple];
+                // compute rhs
+                int singleR = 0, doubleR = 0;
+                std::vector<int> elementsR = {i, j, k};
+                std::vector<bool> indexSubset(sampleCount, false);
+                indexSubset[i] = indexSubset[j] = indexSubset[k] = true;
+                for (int i1 : elementsR) {
+                    for (int j1 : relevantPairs[i1]) {
+                        if (indexSubset[j1]) continue;
+                        int c = pairCosts[Upair({i1, j1})];
+                        if (c < 0) singleR += c;
+                    }
+                    for (auto [j1, k1] : relevantTriples[i1]) {
+                        if (indexSubset[j1] && indexSubset[k1]) continue;
+                        int c = tripleCosts[Utriple({i1, j1, k1})];
+                        if (c > 0) continue;
+                        if (indexSubset[j1] xor indexSubset[k1]) {
+                            doubleR += c;
+                        } else { // only i1 is in R
+                            singleR += c;
+                        }
+                    }
+                }
+                int rhs = singleR + doubleR/2;
+                // check the conditions
+                if (
+                    cIJ + cIK <= 0 &&
+                    cIJ + cJK <= 0 &&
+                    cIK + cJK <= 0 &&
+                    cIJ + cIK + cJK <= 0 &&
+                    2*cIJ + 2*cIK + 2*cJK + cIJK <= 0 &&
+                    cIJ + cIK + cIJK <= rhs &&
+                    cJK + cIK + cIJK <= rhs
+                ) {
+                    std::vector<bool> indexSubset(sampleCount, false);
+                    indexSubset[i] = indexSubset[k] = true; // join i and k
+                    std::cout << "Applying the complex pair join (3.9)" << std::endl;
+                    createSolveJoinSubproblem(relevant, indexSubset);
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
