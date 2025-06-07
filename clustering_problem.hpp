@@ -56,6 +56,8 @@ class ClusteringProblem {
 
     bool applyPairJoin(const std::vector<bool> &relevant);
 
+    bool applyComplexPairJoin(const std::vector<bool> &relevant);
+
 public:
 
     explicit ClusteringProblem(

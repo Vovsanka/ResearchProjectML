@@ -3,106 +3,6 @@
 #include "clustering_problem.hpp"
 
 
-//     bool applyComplexPairJoin() {
-//         // 3.6
-//         for (int i = 0; i < sampleCount; i++) {
-//             for (int k = i + 1; k < sampleCount; k++) {
-//                 for (int j = 0; j < sampleCount; j++) {
-//                     if (j == i || j == k) continue;
-//                     // compute lhs1, lhs2, lhs3
-//                     int lhs1 = 0, lhs2 = 0, lhs3 = 0;
-//                     UnorderedTriple<> indexTriple(i, j, k);
-//                     {
-//                         int c = tripleCosts[indexTriple];
-//                         lhs3 += c;
-//                         if (c < 0) {
-//                             lhs1 += -c;
-//                             lhs2 += -c; 
-//                         }
-//                     }
-//                     UnorderedPair<> indexPairIJ(i, j), indexPairIK(i, k), indexPairJK(j, k);
-//                     {
-//                         int c = pairCosts[indexPairIJ];
-//                         lhs3 += c;
-//                         if (c < 0) lhs1 += -2*c; 
-//                     }
-//                     {
-//                         int c = pairCosts[indexPairJK];
-//                         lhs3 += c;
-//                         if (c < 0) lhs2 += -2*c; 
-//                     }
-//                     {
-//                         int c = pairCosts[indexPairIK];
-//                         lhs3 += c;
-//                         if (c < 0) {
-//                             lhs1 += -2*c;
-//                             lhs2 += -2*c;
-//                         }
-//                     }
-//                     for (auto [p, q] : relevantTriples[i]) {
-//                         if (p == j || p == k || q == j || q == k) {
-//                             int c = tripleCosts[UnorderedTriple<>(i, p, q)];
-//                             if (c < 0) lhs1 += -c;
-//                         }
-//                     }
-//                     for (auto [p, q] : relevantTriples[k]) {
-//                         if (p == j || p == i || q == j || q == i) {
-//                             int c = tripleCosts[UnorderedTriple<>(k, p, q)];
-//                             if (c < 0) lhs2 += -c;
-//                         }
-//                     }
-//                     // compute rhs3
-//                     int rhs3 = 0;
-//                     for (auto [p, q] : relevantTriples[i]) {
-//                         if (p == j || p == k || q == j || q == k) continue;
-//                         int c = tripleCosts[UnorderedTriple<>(i, p, q)];
-//                         rhs3 -= abs(c);
-//                     }
-//                     for (auto [p, q] : relevantTriples[j]) {
-//                         if (p == i || p == k || q == i || q == k) continue;
-//                         int c = tripleCosts[UnorderedTriple<>(j, p, q)];
-//                         rhs3 -= abs(c);
-//                     }
-//                     for (auto [p, q] : relevantTriples[k]) {
-//                         if (p == i || p == j || q == i || q == j) continue;
-//                         int c = tripleCosts[UnorderedTriple<>(k, p, q)];
-//                         rhs3 -= abs(c);
-//                     }
-//                     for (auto p : relevantPairs[i]) {
-//                         if (p == j || p == k) continue;
-//                         int c = pairCosts[UnorderedPair(i, p)];
-//                         rhs3 -= abs(c);
-//                     }
-//                     for (auto p : relevantPairs[j]) {
-//                         if (p == i || p == k) continue;
-//                         int c = pairCosts[UnorderedPair(j, p)];
-//                         rhs3 -= abs(c);
-//                     }
-//                     for (auto p : relevantPairs[k]) {
-//                         if (p == i || p == j) continue;
-//                         int c = pairCosts[UnorderedPair(k, p)];
-//                         rhs3 -= abs(c);
-//                     }
-//                     // check the 3d condition
-//                     if (!(lhs3 <= rhs3)) continue; 
-//                     // check the 1st and the 2d condition
-//                     int rhs1 = solveMinCutForIndexSubset(std::vector<bool>(sampleCount, true), true, true, false, i, {j, k});
-//                     int rhs2 = solveMinCutForIndexSubset(std::vector<bool>(sampleCount, true), true, true, false, k, {i, j});
-//                     if (lhs1 >= rhs1 && lhs2 >= rhs2) {
-//                         std::vector<bool> subsetR(sampleCount, false);
-//                         subsetR[i] = subsetR[k] = true; // join i and k
-//                         std::cout << "Applying the complex pair join (3.6)" << std::endl;
-//                         // std::cout << i << " " << j << " " << k << std::endl;
-//                         // std::cout << "(" << lhs1 << "," << lhs2 << "," << lhs3 << ") vs ";
-//                         // std:: cout << "(" << rhs1 << "," << rhs2 << "," << rhs3 << ")" << std::endl;
-//                         createSolveAccumulateJoinSubproblem(subsetR);
-//                         return true;
-//                     }
-//                 }
-//             }
-//         }
-//         return false;
-//     }
 
 //     bool applyExplicitPairJoin() {
 //         // 3.8
@@ -320,9 +220,9 @@
 
 int cost(Utuple<3,char> t) {
     // // pyramid example below (3.1 + 3.11 are not sufficient) (3.4 is sufficient)
-    if (t[0] == 'a' && t[1] == 'b' && t[2] == 'e') return -75;
+    // if (t[0] == 'a' && t[1] == 'b' && t[2] == 'e') return -75;
     // pyramid example below (3.1 + 3.11 + 3.4 are not sufficient) (3.6 is sufficient for 10) (3.5 is sufficient for 100)
-    if (t[0] == 'b' && t[1] == 'c' && t[2] == 'd') return 100; // 10 or 100
+    if (t[0] == 'b' && t[1] == 'c' && t[2] == 'd') return 10; // 10 or 100
     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c') return -50;
     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'd') return -50;
     if (t[0] == 'a' && t[1] == 'c' && t[2] == 'd') return -50;

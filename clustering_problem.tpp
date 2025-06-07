@@ -61,7 +61,7 @@ void ClusteringProblem<S>::solve(const std::vector<bool> &relevant) {
     if (applyIndependentSubproblemCut(relevant)) return;
     if (applySubsetJoin(relevant)) return;
     if (applyPairJoin(relevant)) return;
-    // if (applyComplexPairJoin(relevant))) return;
+    if (applyComplexPairJoin(relevant)) return;
     // if (applyExplicitPairJoin(relevant))) return;
     // if (applyExplicitPairJoinViaTriple(relevant))) return;
     // if (applyTripleJoin(relevant))) return;
@@ -622,6 +622,118 @@ bool ClusteringProblem<S>::applyPairJoin(const std::vector<bool> &relevant) {
                 std::cout << "\n" <<  std::endl;
                 createSolveJoinSubproblem(relevant, indexSubset);
                 return true;
+            }
+        }
+    }
+    return false;
+}
+
+
+template<typename S>
+bool ClusteringProblem<S>::applyComplexPairJoin(const std::vector<bool> &relevant) {
+    // 3.6
+    for (int i = 0; i < sampleCount; i++) {
+        if (!relevant[i]) continue;
+        for (int k = i + 1; k < sampleCount; k++) {
+            if (!relevant[k]) continue;
+            for (int j = 0; j < sampleCount; j++) {
+                if (j == i || j == k) continue;
+                if (!relevant[j]) continue; 
+                // compute lhs1, lhs2, lhs3
+                int lhs1 = 0, lhs2 = 0, lhs3 = 0;
+                Utriple indexTriple({i, j, k});
+                {
+                    int c = tripleCosts[indexTriple];
+                    lhs3 += c;
+                    if (c < 0) {
+                        lhs1 += -c;
+                        lhs2 += -c; 
+                    }
+                }
+                Upair indexPairIJ({i, j}), indexPairIK({i, k}), indexPairJK({j, k});
+                {
+                    int c = pairCosts[indexPairIJ];
+                    lhs3 += c;
+                    if (c < 0) lhs1 += -2*c; 
+                }
+                {
+                    int c = pairCosts[indexPairJK];
+                    lhs3 += c;
+                    if (c < 0) lhs2 += -2*c; 
+                }
+                {
+                    int c = pairCosts[indexPairIK];
+                    lhs3 += c;
+                    if (c < 0) {
+                        lhs1 += -2*c;
+                        lhs2 += -2*c;
+                    }
+                }
+                for (auto [p, q] : relevantTriples[i]) {
+                    if (p == j || p == k || q == j || q == k) {
+                        int c = tripleCosts[Utriple({i, p, q})];
+                        if (c < 0) lhs1 += -c;
+                    }
+                }
+                for (auto [p, q] : relevantTriples[k]) {
+                    if (p == j || p == i || q == j || q == i) {
+                        int c = tripleCosts[Utriple({k, p, q})];
+                        if (c < 0) lhs2 += -c;
+                    }
+                }
+                // compute rhs3
+                int rhs3 = 0;
+                for (auto [p, q] : relevantTriples[i]) {
+                    if (p == j || p == k || q == j || q == k) continue;
+                    int c = tripleCosts[Utriple({i, p, q})];
+                    rhs3 -= abs(c);
+                }
+                for (auto [p, q] : relevantTriples[j]) {
+                    if (p == i || p == k || q == i || q == k) continue;
+                    int c = tripleCosts[Utriple({j, p, q})];
+                    rhs3 -= abs(c);
+                }
+                for (auto [p, q] : relevantTriples[k]) {
+                    if (p == i || p == j || q == i || q == j) continue;
+                    int c = tripleCosts[Utriple({k, p, q})];
+                    rhs3 -= abs(c);
+                }
+                for (auto p : relevantPairs[i]) {
+                    if (p == j || p == k) continue;
+                    int c = pairCosts[Upair({i, p})];
+                    rhs3 -= abs(c);
+                }
+                for (auto p : relevantPairs[j]) {
+                    if (p == i || p == k) continue;
+                    int c = pairCosts[Upair({j, p})];
+                    rhs3 -= abs(c);
+                }
+                for (auto p : relevantPairs[k]) {
+                    if (p == i || p == j) continue;
+                    int c = pairCosts[Upair({k, p})];
+                    rhs3 -= abs(c);
+                }
+                // check the 3d condition
+                if (!(lhs3 <= rhs3)) continue; 
+                // check the 1st and the 2d condition
+                int rhs1 = solveMinCutForIndexSubset(relevant, true, true, false, i, {j, k});
+                int rhs2 = solveMinCutForIndexSubset(relevant, true, true, false, k, {i, j});
+                if (lhs1 >= rhs1 && lhs2 >= rhs2) {
+                    std::vector<bool> indexSubset(sampleCount, false);
+                    indexSubset[i] = indexSubset[k] = true; // join i and k
+                    std::cout << "* Applying the complex pair join (3.6)" << std::endl;
+                    std::cout << "Join: ";
+                    for (int k = 0; k < sampleCount; k++) {
+                        if (!indexSubset[k]) continue;
+                        for (int originalK : sampleMapping[k]) {
+                            std::cout << samples[originalK];
+                        }
+                        std::cout << " ";
+                    }
+                    std::cout << '\n' << std::endl;
+                    createSolveJoinSubproblem(relevant, indexSubset);
+                    return true;
+                }
             }
         }
     }
