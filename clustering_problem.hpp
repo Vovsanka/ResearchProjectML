@@ -64,6 +64,8 @@ class ClusteringProblem {
 
     bool applyTripleJoin(const std::vector<bool> &relevant);
 
+    void applyPairCuts(const std::vector<bool> &relevant);
+
 public:
 
     explicit ClusteringProblem(

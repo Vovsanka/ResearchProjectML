@@ -65,8 +65,8 @@ void ClusteringProblem<S>::solve(const std::vector<bool> &relevant) {
     if (applyExplicitPairJoin(relevant)) return;
     if (applyExplicitPairJoinViaTriple(relevant)) return;
     if (applyTripleJoin(relevant)) return;
-    // applyPairCuts(relevant));
-    // applyTripleCuts(relevant));
+    applyPairCuts(relevant);
+    // applyTripleCuts(relevant);
     return;
 }
 
@@ -879,4 +879,42 @@ bool ClusteringProblem<S>::applyTripleJoin(const std::vector<bool> &relevant) {
         }
     }
     return false;
+}
+
+template<typename S>
+void ClusteringProblem<S>::applyPairCuts(const std::vector<bool> &relevant) {
+    // 3.2
+    for (int i = 0; i < sampleCount; i++) {
+        if (!relevant[i]) continue;
+        for (int j = i + 1; j < sampleCount; j++) {
+            if (!relevant[j]) continue;
+            // check the condition
+            int lhs = 0;
+            Upair indexPair({i, j});
+            {
+                int c = pairCosts[indexPair];
+                if (c > 0) lhs += c;
+            }
+            int rhs = solveMinCutForIndexSubset(relevant, true, false, false, i, {j});
+            if (lhs >= rhs) {
+                // cut all the pairs of the original samples
+                for (int originalI : sampleMapping[i]) {
+                    for (int originalJ : sampleMapping[j]) {
+                        label[Upair({originalI, originalJ})] = 1; 
+                    }
+                } 
+                std::cout << "Applying the pair cut (3.2)" << std::endl;
+                std::cout << "Cut: ";
+                for (int originalI : sampleMapping[i]) {
+                    std::cout << samples[originalI];
+                }
+                std::cout << " ";
+                for (int originalJ : sampleMapping[j]) {
+                    std::cout << samples[originalJ];
+                }
+                std::cout << '\n' << std::endl;
+                
+            }
+        }
+    }
 }
