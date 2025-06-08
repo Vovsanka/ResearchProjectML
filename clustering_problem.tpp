@@ -128,6 +128,7 @@ void ClusteringProblem<S>::printClustering() {
         clustering.push_back(sampleMapping[i]);
     }
     int clusterCount = clustering.size();
+    std::cout << "Clustering: " << std::endl;
     for (int clusterInd = 0; clusterInd < clusterCount; clusterInd++) {
         std::cout << "Cluster " << clusterInd << ": "; 
         for (auto originalI : clustering[clusterInd]) {
@@ -136,7 +137,8 @@ void ClusteringProblem<S>::printClustering() {
         std::cout << std::endl;
     }
     std::cout << std::endl;
-    std::cout << "Clustering: " << std::endl;
+    //
+    std::cout << "Cluster labeling: " << std::endl;
     std::cout << "  ";
     for (int i = 0; i < clusterCount; i++) {
         std::cout << i << " ";
@@ -160,6 +162,23 @@ void ClusteringProblem<S>::printClustering() {
         }
         std::cout << std::endl;
     }
+    std::cout << std::endl;
+    //
+    std::cout << "Unjoinable cluster triples: " << std::endl;
+    for (int ci = 0; ci < clusterCount; ci++) {
+        int i = clustering[ci][0];
+        for (int cj = ci + 1; cj < clusterCount; cj++) {
+            int j = clustering[cj][0];
+            for (int ck = cj + 1; ck < clusterCount; ck++) {
+                int k = clustering[ck][0];
+                Utriple indexTriple({i, j, k});
+                if (cutTriples.count(indexTriple)) {
+                    std::cout << "(" << ci << "," << cj << "," << ck << ") ";
+                }
+            }
+        }
+    }
+    std::cout << std::endl;
 }
   
 template<typename S>
