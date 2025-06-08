@@ -49,6 +49,10 @@ class ClusteringProblem {
         const std::vector<int> &sinks = std::vector<int>({0})
     );
 
+    int getCost(int i, int j);
+
+    int getCost(int i, int j, int k);
+
     void createSolveJoinSubproblem(const std::vector<bool> &relevant, const std::vector<bool> &indexSubset);
 
     bool checkSubsetJoinForIndexSubset(const std::vector<bool> &indexSubset);

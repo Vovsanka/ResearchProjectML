@@ -34,7 +34,7 @@ int cost(Utuple<3,char> t) {
     // // pyramid example below (3.1 + 3.11 are not sufficient) (3.4 is sufficient)
     // if (t[0] == 'a' && t[1] == 'b' && t[2] == 'e') return -75;
     // pyramid example below (3.1 + 3.11 + 3.4 are not sufficient) (3.6 is sufficient for 10) (everything is insufficient for 70, 3.3 separates the pyramide base for 100)
-    if (t[0] == 'b' && t[1] == 'c' && t[2] == 'd') return 100; // 10 or 70 or 100
+    if (t[0] == 'b' && t[1] == 'c' && t[2] == 'd') return 10; // 10 or 70 or 100
     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c') return -50;
     if (t[0] == 'a' && t[1] == 'b' && t[2] == 'd') return -50;
     if (t[0] == 'a' && t[1] == 'c' && t[2] == 'd') return -50;
