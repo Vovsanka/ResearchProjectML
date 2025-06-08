@@ -4,12 +4,6 @@
 
 
 
-//     void applyTripleCuts() {
-//         // TODO
-//     }
-
-
-
 // int cost(Utuple<3,char> t) {
 //     // if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c')
 //     //     return -5;

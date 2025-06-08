@@ -32,6 +32,7 @@ class ClusteringProblem {
     std::map<Upair, int> pairCosts;
 
     std::map<Upair, int> label;
+    std::set<Utriple> cutTriples;
     int resultingCost;
 
     void solve(const std::vector<bool> &relevant);
@@ -66,6 +67,8 @@ class ClusteringProblem {
 
     void applyPairCuts(const std::vector<bool> &relevant);
 
+    void applyTripleCuts(const std::vector<bool> &relevant);
+
 public:
 
     explicit ClusteringProblem(
@@ -78,7 +81,7 @@ public:
 
     bool isSolvedCompletely();
 
-    int getCost();
+    int getSolutionCost();
 
     void printLabeling();
 

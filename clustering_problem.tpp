@@ -66,7 +66,7 @@ void ClusteringProblem<S>::solve(const std::vector<bool> &relevant) {
     if (applyExplicitPairJoinViaTriple(relevant)) return;
     if (applyTripleJoin(relevant)) return;
     applyPairCuts(relevant);
-    // applyTripleCuts(relevant);
+    applyTripleCuts(relevant);
     return;
 }
 
@@ -86,7 +86,7 @@ bool ClusteringProblem<S>::isSolvedCompletely() {
 }
 
 template<typename S>
-int ClusteringProblem<S>::getCost() {
+int ClusteringProblem<S>::getSolutionCost() {
     return resultingCost;
 }
 
@@ -624,11 +624,12 @@ bool ClusteringProblem<S>::applyComplexPairJoin(const std::vector<bool> &relevan
     // 3.6
     for (int i = 0; i < sampleCount; i++) {
         if (!relevant[i]) continue;
-        for (int k = i + 1; k < sampleCount; k++) {
-            if (!relevant[k]) continue;
-            for (int j = 0; j < sampleCount; j++) {
-                if (j == i || j == k) continue;
-                if (!relevant[j]) continue; 
+        for (int j = 0; j < sampleCount; j++) {
+            if (j == i) continue;
+            if (!relevant[j]) continue;
+            for (int k = 0; k < sampleCount; k++) {
+                if (k == i || k == j) continue;
+                if (!relevant[k]) continue; 
                 // compute lhs1, lhs2, lhs3
                 int lhs1 = 0, lhs2 = 0, lhs3 = 0;
                 Utriple indexTriple({i, j, k});
@@ -770,11 +771,12 @@ bool ClusteringProblem<S>::applyExplicitPairJoinViaTriple(const std::vector<bool
     // 3.9
     for (int i = 0; i < sampleCount; i++) {
         if (!relevant[i]) continue;
-        for (int k = i + 1; k < sampleCount; k++) {
-            if (!relevant[k]) continue;
-            for (int j = 0; j < sampleCount; j++) {
-                if (j == i || j == k) continue;
-                if (!relevant[j]) continue;
+        for (int j = 0; j < sampleCount; j++) {
+            if (j == i) continue;
+            if (!relevant[j]) continue;
+            for (int k = 0; k < sampleCount; k++) {
+                if (k == i || k == j) continue;
+                if (!relevant[k]) continue; 
                 // compute costs for the triple
                 Upair indexPairIJ({i, j}), indexPairIK({i, k}), indexPairJK({j, k});
                 Utriple indexTriple({i, j, k});
@@ -848,11 +850,12 @@ bool ClusteringProblem<S>::applyTripleJoin(const std::vector<bool> &relevant) {
     // iterate over all unordered triples (i, j, k)
     for (int i = 0; i < sampleCount; i++) {
         if (!relevant[i]) continue;
-        for (int j = i + 1; j < sampleCount; j++) {
+        for (int j = 0; j < sampleCount; j++) {
+            if (j == i) continue;
             if (!relevant[j]) continue;
             for (int k = 0; k < sampleCount; k++) {
-                if (i == k || j == k) continue;
-                if (!relevant[k]) continue;
+                if (k == i || k == j) continue;
+                if (!relevant[k]) continue; 
                 // compute lhs
                 int lhs = lhsBase;
                 Upair indexPairIJ({i, j}), indexPairIK({i, k}), indexPairJK({j, k});
@@ -903,8 +906,8 @@ void ClusteringProblem<S>::applyPairCuts(const std::vector<bool> &relevant) {
                         label[Upair({originalI, originalJ})] = 1; 
                     }
                 } 
-                std::cout << "Applying the pair cut (3.2)" << std::endl;
-                std::cout << "Cut: ";
+                std::cout << "* Applying the pair cut (3.2)" << std::endl;
+                std::cout << "Cut pair: ";
                 for (int originalI : sampleMapping[i]) {
                     std::cout << samples[originalI];
                 }
@@ -913,7 +916,47 @@ void ClusteringProblem<S>::applyPairCuts(const std::vector<bool> &relevant) {
                     std::cout << samples[originalJ];
                 }
                 std::cout << '\n' << std::endl;
-                
+            }
+        }
+    }
+}
+
+template<typename S>
+void ClusteringProblem<S>::applyTripleCuts(const std::vector<bool> &relevant) {
+    for (int i = 0; i < sampleCount; i++) {
+        if (!relevant[i]) continue;
+        for (int j = 0; j < sampleCount; j++) {
+            if (j == i) continue;
+            if (!relevant[j]) continue;
+            for (int k = 0; k < sampleCount; k++) {
+                if (k == i || k == j) continue;
+                if (!relevant[k]) continue; 
+                if (cutTriples.count(Utriple({i, j, k}))) continue;
+                int lhs = 0;
+                int cIJK = tripleCosts[Utriple({i, j, k})];
+                int cIJ = pairCosts[Upair({i, j})];
+                int cIK = pairCosts[Upair({i, k})];
+                if (cIJK > 0) lhs += cIJK;
+                if (cIJ > 0) lhs += cIJ;
+                if (cIK > 0) lhs += cIK;
+                int rhs = solveMinCutForIndexSubset(relevant, true, false, false, i, {j, k});
+                if (lhs >= rhs) {
+                    cutTriples.insert(Utriple{i, j, k});
+                    std::cout << "* Applying the triple cut (3.3)" << std::endl;
+                    std::cout << "Cut triple: ";
+                    for (int originalI : sampleMapping[i]) {
+                        std::cout << samples[originalI];
+                    }
+                    std::cout << " ";
+                    for (int originalJ : sampleMapping[j]) {
+                        std::cout << samples[originalJ];
+                    }
+                    std::cout << " ";
+                    for (int originalK : sampleMapping[k]) {
+                        std::cout << samples[originalK];
+                    }
+                    std::cout << '\n' << std::endl;
+                }
             }
         }
     }
