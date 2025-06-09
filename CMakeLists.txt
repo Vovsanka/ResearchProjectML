@@ -13,7 +13,8 @@ set(SOURCES
     utuple.tpp
     min_cut.hpp
     min_cut.cpp
-    clustering_instance.hpp
+    space.hpp
+    space.cpp
     instances.hpp
     instances.cpp)
 add_executable(CubicClustering ${SOURCES})
