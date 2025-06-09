@@ -4,12 +4,12 @@
 #include <initializer_list>
 
 
-template <int N, typename S = int> // domain S
+template <int64_t N, typename S = int64_t> // domain S
 class Utuple { // unordered tuple
     std::array<S, N> t;
 public:
     Utuple(std::initializer_list<S> elements);
-    S operator[](int ind) const; // only getter, not setter
+    S operator[](int64_t ind) const; // only getter, not setter
     bool operator<(const Utuple<N,S> &other) const; // comparator to be a key in std::map
 };
 

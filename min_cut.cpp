@@ -1,7 +1,7 @@
 #include "min_cut.hpp"
 
 
-int MinCut::solveMinCut(int vertices, std::vector<std::tuple<int,int,int>> edges, int s, int t) {
+int64_t MinCut::solveMinCut(int64_t vertices, std::vector<std::tuple<int64_t,int64_t,int64_t>> edges, int64_t s, int64_t t) {
     Digraph g(vertices); 
     auto capacity = get(edge_capacity, g);
     auto rev = get(edge_reverse, g);
@@ -24,11 +24,11 @@ int MinCut::solveMinCut(int vertices, std::vector<std::tuple<int,int,int>> edges
     };
 
     // Compute max flow
-    int minCut = push_relabel_max_flow(g, s, t);
+    int64_t minCut = push_relabel_max_flow(g, s, t);
 
     std::vector<bool> visited(vertices, false);
 
-    std::function<void(int)> dfs = [&](int v) -> void {
+    std::function<void(int64_t)> dfs = [&](int64_t v) -> void {
         if (visited[v]) return;
         visited[v] = true;
         for (auto [ei, e_end] = out_edges(v, g); ei != e_end; ++ei) {
@@ -44,7 +44,7 @@ int MinCut::solveMinCut(int vertices, std::vector<std::tuple<int,int,int>> edges
     return minCut;
 }
 
-int MinCut::solveGlobalMinCut(std::vector<std::tuple<int,int,int>> edges) {
+int64_t MinCut::solveGlobalMinCut(std::vector<std::tuple<int64_t,int64_t,int64_t>> edges) {
     Bigraph g;
     for (auto& e : edges) {
         auto [u, v, c] = e;
@@ -57,7 +57,7 @@ int MinCut::solveGlobalMinCut(std::vector<std::tuple<int,int,int>> edges) {
     std::vector<bool> parity(num_vertices(g));
     auto parity_map = make_iterator_property_map(parity.begin(), get(vertex_index, g));
 
-    int minCut = stoer_wagner_min_cut(g, weight_map, boost::parity_map(parity_map));
+    int64_t minCut = stoer_wagner_min_cut(g, weight_map, boost::parity_map(parity_map));
 
     return minCut;
 }

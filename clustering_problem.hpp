@@ -17,23 +17,23 @@ using Upair = Utuple<2>;
 using Utriple = Utuple<3>;
 
 
-template <typename S = int> // domain S of samples
+template <typename S = int64_t> // domain S of samples
 class ClusteringProblem {
 
     const std::vector<S> &samples;
-    int sampleCount;
+    int64_t sampleCount;
     
-    std::vector<std::vector<int>> sampleMapping; 
+    std::vector<std::vector<int64_t>> sampleMapping; 
 
-    std::vector<std::vector<std::pair<int, int>>> relevantTriples;
-    std::map<Utriple, int> tripleCosts;
+    std::vector<std::vector<std::pair<int64_t, int64_t>>> relevantTriples;
+    std::map<Utriple, int64_t> tripleCosts;
 
-    std::vector<std::vector<int>> relevantPairs;
-    std::map<Upair, int> pairCosts;
+    std::vector<std::vector<int64_t>> relevantPairs;
+    std::map<Upair, int64_t> pairCosts;
 
-    std::map<Upair, int> label;
+    std::map<Upair, int64_t> label;
     std::set<Utriple> cutTriples;
-    int resultingCost;
+    int64_t resultingCost;
 
     void solve(const std::vector<bool> &relevant);
 
@@ -41,17 +41,17 @@ class ClusteringProblem {
 
     void createSolveCutSubproblem(const std::vector<bool> &relevant, const std::vector<bool> &indexSubset);
 
-    int solveMinCutForIndexSubset(
+    int64_t solveMinCutForIndexSubset(
         const std::vector<bool> &indexSubset,
         bool takeNegativeCosts, bool takePositiveCosts,
         bool globalMinCut, 
-        int source = 0, 
-        const std::vector<int> &sinks = std::vector<int>({0})
+        int64_t source = 0, 
+        const std::vector<int64_t> &sinks = std::vector<int64_t>({0})
     );
 
-    int getCost(int i, int j);
+    int64_t getCost(int64_t i, int64_t j);
 
-    int getCost(int i, int j, int k);
+    int64_t getCost(int64_t i, int64_t j, int64_t k);
 
     void createSolveJoinSubproblem(const std::vector<bool> &relevant, const std::vector<bool> &indexSubset);
 
@@ -77,21 +77,21 @@ public:
 
     explicit ClusteringProblem(
         const std::vector<S> &samples,
-        const std::function<int(Utuple<3,S>)> &tripleCostCB,
-        const std::function<int(Utuple<2,S>)> &pairCostCB = [](Utuple<2,S> p)->int{return 0;}
+        const std::function<int64_t(Utuple<3,S>)> &tripleCostCB,
+        const std::function<int64_t(Utuple<2,S>)> &pairCostCB = [](Utuple<2,S> p)->int64_t{return 0;}
     );
 
-    std::map<Upair, int> getLabels();
+    std::map<Upair, int64_t> getLabels();
 
     bool isSolvedCompletely();
 
-    int getSolutionCost();
+    int64_t getSolutionCost();
 
-    void printLabeling();
+    void print64_tLabeling();
 
-    void printClustering();
+    void print64_tClustering();
 
-    void printResults();
+    void print64_tResults();
     
     void solve();
 };

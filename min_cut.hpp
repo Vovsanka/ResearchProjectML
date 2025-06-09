@@ -13,16 +13,16 @@ namespace MinCut {
 
     typedef adjacency_list<vecS, vecS, directedS,
         property<vertex_name_t, std::string>,
-        property<edge_capacity_t, int,
-            property<edge_residual_capacity_t, int,
+        property<edge_capacity_t, int64_t,
+            property<edge_residual_capacity_t, int64_t,
                 property<edge_reverse_t, adjacency_list<>::edge_descriptor>>>> Digraph;
 
-    typedef adjacency_list<vecS, vecS, undirectedS, no_property, property<edge_weight_t, int>> Bigraph;
+    typedef adjacency_list<vecS, vecS, undirectedS, no_property, property<edge_weight_t, int64_t>> Bigraph;
     typedef property_map<Bigraph, edge_weight_t>::type WeightMap;
 
-    int solveMinCut(int vertices, std::vector<std::tuple<int,int,int>> edges, int s, int t); // handled as bigraph!
+    int64_t solveMinCut(int64_t vertices, std::vector<std::tuple<int64_t,int64_t,int64_t>> edges, int64_t s, int64_t t); // handled as bigraph!
 
-    int solveGlobalMinCut(std::vector<std::tuple<int,int,int>> edges);
+    int64_t solveGlobalMinCut(std::vector<std::tuple<int64_t,int64_t,int64_t>> edges);
 }
 
 #endif
