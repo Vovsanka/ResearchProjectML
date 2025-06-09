@@ -1,6 +1,7 @@
 #ifndef UTUPLE_HPP
 #define UTUPLE_HPP
 
+#include <iostream>
 #include <initializer_list>
 
 

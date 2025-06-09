@@ -12,8 +12,12 @@ int main() {
     // problem.solve();
     for (int i = 0; i < 10; i++) {
         Space::Vector u = Space::Vector::generateUnitVector();
-        std::cout << sqrt(u.x*u.x + u.y*u.y + u.z*u.z) << ": ";
-        std::cout << u.x << " " << u.y << " " << u.z << std::endl;
+        Space::Vector r1 = u.generateOrthogonalVector().getNormalizedVector();
+        Space::Vector r2 = u.crossProduct(r1).getNormalizedVector();
+        std::cout << u.isOrthogonal(r1) << u.isOrthogonal(r2);
+        std::cout << r1.isOrthogonal(u) << r1.isOrthogonal(r2);
+        std::cout << r2.isOrthogonal(u) << r2.isOrthogonal(r1);
+        std::cout << std::endl;
     }
     return 0;
 }

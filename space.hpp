@@ -9,6 +9,8 @@
 
 namespace Space {
 
+    const double TOL = 1e-6;
+
     struct Vector {
         double x, y, z;
 
@@ -16,15 +18,21 @@ namespace Space {
 
         Vector operator*(double k) const;
 
-        double operator*(Vector &other) const;
+        double operator*(const Vector &other) const;
 
-        bool isOrthogonal(Vector &other) const;
+        Vector crossProduct(const Vector &other) const;
+
+        bool isOrthogonal(const Vector &other) const;
+
+        double getLength() const;
+
+        Vector getNormalizedVector() const;
 
         static Vector generateUnitVector();
+
+        Vector generateOrthogonalVector() const;
     };
 
-    
-    
 }
 
 
