@@ -198,7 +198,7 @@ void ClusteringProblem<S>::print64_tClustering() {
 template<typename S>
 void ClusteringProblem<S>::print64_tResults() {
     std::cout << "---------------------------------------" << std::endl;
-    std::cout << "(0: cut; 1: joint64_t; x: unknown)\n" << std::endl;
+    std::cout << "(0: cut; 1: joint; x: unknown)\n" << std::endl;
     print64_tLabeling();
     print64_tClustering();
     bool completeSolution = isSolvedCompletely();
@@ -426,16 +426,16 @@ void ClusteringProblem<S>::createSolveJoinSubproblem(const std::vector<bool> &re
         }
     }
     // update the sample mapping (modify the problem state)
-    int64_t joint64_tIndex = joinSamples[0];
-    std::vector<int64_t> originalJoint64_t;
+    int64_t jointIndex = joinSamples[0];
+    std::vector<int64_t> originaljoint;
     for (int64_t i : joinSamples) {
         for (auto originalI : sampleMapping[i]) {
-            originalJoint64_t.push_back(originalI);
+            originaljoint.push_back(originalI);
         }
         sampleMapping[i].clear();
     }
-    sampleMapping[joint64_tIndex] = originalJoint64_t;
-    // compute the costs to the joint64_t subset as well as the inner joining cost (modify the problem state)
+    sampleMapping[jointIndex] = originaljoint;
+    // compute the costs to the joint subset as well as the inner joining cost (modify the problem state)
     std::map<Upair, int64_t> subPairCosts; // additional variable in order not to overwrite the values before reading them
     std::map<Utriple, int64_t> subTripleCosts; // additional variable in order not tot overwrite the values before reading them
     for (int64_t i = 0; i < sampleCount; i++) {
@@ -447,9 +447,9 @@ void ClusteringProblem<S>::createSolveJoinSubproblem(const std::vector<bool> &re
             if (indexSubset[i] && indexSubset[j]) { // inner joining
                 resultingCost += c;
                 pairCosts.erase(oldIndexPair);
-            } else if (indexSubset[i] || indexSubset[j]) { // modify the costs to the samples being joint64_t
-                if (indexSubset[i]) subPairCosts[Upair({j, joint64_tIndex})] += c;
-                if (indexSubset[j]) subPairCosts[Upair({i, joint64_tIndex})] += c;
+            } else if (indexSubset[i] || indexSubset[j]) { // modify the costs to the samples being joint
+                if (indexSubset[i]) subPairCosts[Upair({j, jointIndex})] += c;
+                if (indexSubset[j]) subPairCosts[Upair({i, jointIndex})] += c;
                 pairCosts.erase(oldIndexPair);
             } // else: outer costs are left unchanged
         }
@@ -460,13 +460,13 @@ void ClusteringProblem<S>::createSolveJoinSubproblem(const std::vector<bool> &re
             if (indexSubset[i] && indexSubset[j] && indexSubset[k]) {
                 resultingCost += c;
                 tripleCosts.erase(oldIndexTriple);
-            } else if (indexSubset[i] || indexSubset[j] || indexSubset[k]) { // modify the cost to the samples being joint64_t
-                if (indexSubset[i] && indexSubset[j]) subPairCosts[Upair({k, joint64_tIndex})] += c;
-                if (indexSubset[i] && indexSubset[k]) subPairCosts[Upair({j, joint64_tIndex})] += c;
-                if (indexSubset[j] && indexSubset[k]) subPairCosts[Upair({i, joint64_tIndex})] += c;
-                if (!indexSubset[i] && !indexSubset[j]) subTripleCosts[Utriple({i, j, joint64_tIndex})] += c;
-                if (!indexSubset[i] && !indexSubset[k]) subTripleCosts[Utriple({i, k, joint64_tIndex})] += c;
-                if (!indexSubset[j] && !indexSubset[k]) subTripleCosts[Utriple({j, k, joint64_tIndex})] += c;
+            } else if (indexSubset[i] || indexSubset[j] || indexSubset[k]) { // modify the cost to the samples being joint
+                if (indexSubset[i] && indexSubset[j]) subPairCosts[Upair({k, jointIndex})] += c;
+                if (indexSubset[i] && indexSubset[k]) subPairCosts[Upair({j, jointIndex})] += c;
+                if (indexSubset[j] && indexSubset[k]) subPairCosts[Upair({i, jointIndex})] += c;
+                if (!indexSubset[i] && !indexSubset[j]) subTripleCosts[Utriple({i, j, jointIndex})] += c;
+                if (!indexSubset[i] && !indexSubset[k]) subTripleCosts[Utriple({i, k, jointIndex})] += c;
+                if (!indexSubset[j] && !indexSubset[k]) subTripleCosts[Utriple({j, k, jointIndex})] += c;
                 tripleCosts.erase(oldIndexTriple);
             } // else: outer costs are left unchanged
         }
@@ -497,12 +497,12 @@ void ClusteringProblem<S>::createSolveJoinSubproblem(const std::vector<bool> &re
             relevantTriples[k].push_back({i, j}); // i < j
         }
     }
-    // solve the subproblem only for the relevant elements with one element instead of the joint64_t samples
+    // solve the subproblem only for the relevant elements with one element instead of the joint samples
     std::vector<bool> newRelevant(sampleCount, false);
     for (int64_t i = 0; i < sampleCount; i++) {
         if (relevant[i] && ! indexSubset[i]) newRelevant[i] = true;
     }
-    newRelevant[joint64_tIndex] = true;
+    newRelevant[jointIndex] = true;
     solve(newRelevant);
     return;
 }
@@ -913,6 +913,7 @@ void ClusteringProblem<S>::applyPairCuts(const std::vector<bool> &relevant) {
         if (!relevant[i]) continue;
         for (int64_t j = i + 1; j < sampleCount; j++) {
             if (!relevant[j]) continue;
+            if (label[Upair({sampleMapping[i][0], sampleMapping[j][0]})]) continue; // clusters are already cut 
             // check the condition
             int64_t lhs = 0;
             {
@@ -949,10 +950,13 @@ void ClusteringProblem<S>::applyTripleCuts(const std::vector<bool> &relevant) {
         for (int64_t j = 0; j < sampleCount; j++) {
             if (j == i) continue;
             if (!relevant[j]) continue;
+            if (label[Upair({sampleMapping[i][0], sampleMapping[j][0]})]) continue; // clusters are already cut
             for (int64_t k = 0; k < sampleCount; k++) {
                 if (k == i || k == j) continue;
                 if (!relevant[k]) continue; 
                 if (cutTriples.count(Utriple({i, j, k}))) continue;
+                if (label[Upair({sampleMapping[i][0], sampleMapping[k][0]})]) continue; // clusters are already cut
+                if (label[Upair({sampleMapping[j][0], sampleMapping[k][0]})]) continue; // clusters are already cut
                 int64_t lhs = 0;
                 int64_t cIJK = getCost(i, j, k);
                 int64_t cIJ = getCost(i, j);
