@@ -26,7 +26,7 @@ struct ClusteringInstance {
 template <typename U>
 std::function<int64_t(U)> doubleToIntCostWrapper(
     const std::function<double(U)> &costCB,
-    int64_t multiplyBy = 10
+    int64_t multiplyBy = 1
 ) {
     return [costCB, multiplyBy](U utuple) -> int64_t {
         double c = costCB(utuple);
