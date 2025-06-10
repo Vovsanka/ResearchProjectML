@@ -87,11 +87,11 @@ public:
 
     int64_t getSolutionCost();
 
-    void print64_tLabeling();
+    void printLabeling();
 
-    void print64_tClustering();
+    void printClustering();
 
-    void print64_tResults();
+    void printResults();
     
     void solve();
 };

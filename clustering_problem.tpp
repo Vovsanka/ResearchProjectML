@@ -64,7 +64,7 @@ template<typename S>
 void ClusteringProblem<S>::solve() {
     resultingCost = 0;
     solve(std::vector<bool>(sampleCount, true));
-    print64_tResults();
+    printResults();
 }
 
 template<typename S>
@@ -105,7 +105,7 @@ int64_t ClusteringProblem<S>::getSolutionCost() {
 }
 
 template<typename S>
-void ClusteringProblem<S>::print64_tLabeling() {
+void ClusteringProblem<S>::printLabeling() {
     std::cout << "Labeling: " << std::endl;
     std::cout << "  ";
     for (auto s : samples) {
@@ -135,7 +135,7 @@ void ClusteringProblem<S>::print64_tLabeling() {
 }
 
 template<typename S>
-void ClusteringProblem<S>::print64_tClustering() {
+void ClusteringProblem<S>::printClustering() {
     std::vector<std::vector<int64_t>> clustering;
     for (int64_t i = 0; i < sampleCount; i++) {
         if (sampleMapping[i].empty()) continue;
@@ -173,6 +173,7 @@ void ClusteringProblem<S>::print64_tClustering() {
                 std::cout << "x";
             }
             std::cout << " ";
+            if (cj >= 10) std::cout << " ";
         }
         std::cout << std::endl;
     }
@@ -196,11 +197,11 @@ void ClusteringProblem<S>::print64_tClustering() {
 }
   
 template<typename S>
-void ClusteringProblem<S>::print64_tResults() {
+void ClusteringProblem<S>::printResults() {
     std::cout << "---------------------------------------" << std::endl;
     std::cout << "(0: cut; 1: joint; x: unknown)\n" << std::endl;
-    print64_tLabeling();
-    print64_tClustering();
+    printLabeling();
+    printClustering();
     bool completeSolution = isSolvedCompletely();
     std::cout << std::endl;
     std::cout << "Problem solved: " << ((completeSolution) ? "completely" : "partially") << std::endl; 
