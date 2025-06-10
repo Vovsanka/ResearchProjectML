@@ -5,6 +5,14 @@ std::mt19937 gen(std::random_device{}());
 
 Space::Vector::Vector(double x, double y, double z): x(x), y(y), z(z) {}
 
+Space::Vector Space::Vector::operator+(const Vector &other) const {
+    return Vector(
+        x + other.x,
+        y + other.y,
+        z + other.z
+    );
+}
+
 Space::Vector Space::Vector::operator*(double k) const {
     return Vector(k*x, k*y, k*z);
 }
@@ -76,15 +84,72 @@ Space::Vector Space::Vector::generateOrthogonalVector() const {
     return Vector(xo, yo, zo);
 }
 
+Space::Point::Point(double x, double y, double z, int64_t num) : x(x), y(y), z(z) {
+    std::ostringstream os;
+    int64_t letter = num%52; // 52 = 26*2
+    if (letter < 26) {
+        os << char('a' + letter);
+    } else {
+        os << char('A' + (letter - 26));
+    }
+    if (num >= 52) {
+        os << num/52;
+    }
+    name = os.str();
+}
+
+std::string Space::Point::getCoordinatesString() {
+    std::ostringstream os;
+    os << std::fixed << std::setprecision(2);
+    os << "(" << x << ", " << y << ", " << z << ")";
+    return os.str();
+}
+
+bool Space::Point::operator==(const Point &other) {
+    return (x==other.x && y==other.y && z==other.z);
+}
+
+bool Space::Point::operator<(const Point &other) {
+    if (x < other.x) return true;
+    if (x > other.x) return false;
+    if (y < other.y) return true;
+    if (y < other.y) return false;
+    return (z < other.z);
+}
+
 Space::Plane::Plane(Vector norm) {
     n = norm.getNormalizedVector();
     r1 = n.generateOrthogonalVector().getNormalizedVector();
     r2 = n.crossProduct(r1).getNormalizedVector();
 }
 
+std::vector<Space::Point> Space::Plane::generatePoints(
+    int64_t pointCount,
+    int64_t startNum,
+    double maxDistance,
+    double maxNoise
+) {
+    std::uniform_real_distribution<double> planeDist(-maxDistance, std::nextafter(maxDistance, DBL_MAX)); // [-maxDistance, +maxDistance]
+    std::normal_distribution<double> noiseDist(-maxNoise, std::nextafter(maxNoise, DBL_MAX)); // [-maxNoise, +maxNoise]
+    std::vector<Point> points;
+    for (int64_t i = 0; i < pointCount; i++) {
+        double k1 = planeDist(gen);
+        double k2 = planeDist(gen);
+        double kn = noiseDist(gen);
+        Vector positionVector = r1*k1 + r2*k2 + n*kn;
+        points.push_back(Point(
+            positionVector.x,
+            positionVector.y,
+            positionVector.z,
+            startNum + i
+        ));
+    }
+    return points;
+}
+
 std::vector<Space::Plane> Space::generateDistinctPlanes(int64_t planeCount) {
     std::vector<Vector> norms;
-    for (int i = 0; i < planeCount; i++) {
+    for (int64_t i = 0; i < planeCount; i++) {
         bool denied;
         Vector candidate;
         do {
@@ -107,10 +172,33 @@ std::vector<Space::Plane> Space::generateDistinctPlanes(int64_t planeCount) {
     return planes;
 }
 
+std::vector<Space::Point> Space::generateSamplePointsOnDistinctPlanes(int64_t planeCount, int64_t pointsPerPlane) {
+    std::vector<Space::Plane> planes = Space::generateDistinctPlanes(planeCount);
+    std::cout << "Generating cubic space clustering instance: " << std::endl;
+    std::vector<Space::Point> samples;
+    int startNum = 0;
+    for (auto &plane : planes) {
+        std::cout << plane << "\nPoints: ";
+        std::vector<Space::Point> points = plane.generatePoints(pointsPerPlane, startNum, 100, 1);
+        for (auto &p : points) {
+            samples.push_back(p);
+            std::cout << p << " ";
+        }
+        std::cout << "\n" << std::endl;
+        startNum += pointsPerPlane;
+    }
+    std::shuffle(std::begin(samples), std::end(samples), gen); // random shuffle the samples
+    return samples;
+}
+
 std::ostream& Space::operator<<(std::ostream& os, const Vector &v) {
-    os << "(" << std::round(v.x*100)/100 << ",";
-    os << std::round(v.y*100)/100 << ",";
-    os << std::round(v.z*100)/100 << ")";
+    os << std::fixed << std::setprecision(2);
+    os << "(" << v.x << ", " << v.y << ", " << v.z << ")";
+    return os;
+}
+
+std::ostream& Space::operator<<(std::ostream& os, const Point &p) {
+    os << p.name;
     return os;
 }
 

@@ -5,7 +5,7 @@
 #include <initializer_list>
 
 
-template <int64_t N, typename S = int64_t> // domain S
+template <int64_t N, typename S> // domain S
 class Utuple { // unordered tuple
     std::array<S, N> t;
 public:

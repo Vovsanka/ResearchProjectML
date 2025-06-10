@@ -3,8 +3,12 @@
 
 #include <iostream>
 #include <random>
+#include <algorithm>
 #include <cfloat>
 #include <cmath>
+#include <string>
+#include <sstream>
+#include <iomanip>
 
 
 namespace Space {
@@ -17,6 +21,8 @@ namespace Space {
         Vector() = default;
 
         Vector(double x, double y, double z);
+
+        Vector operator+(const Vector &other) const;
 
         Vector operator*(double k) const;
 
@@ -35,17 +41,38 @@ namespace Space {
         Vector generateOrthogonalVector() const;
     };
 
+    struct Point {
+        double x, y, z;
+        std::string name;
+
+        Point() = default;
+
+        Point(double x, double y, double z, int64_t num);
+
+        std::string getCoordinatesString();
+
+        bool operator==(const Point &other);
+
+        bool operator<(const Point &other);
+    };
+
     struct Plane {
         Vector n, r1, r2;
+
+        Plane() = default;
         
         Plane(Vector norm);
         
-        // Point generatePoints(int64_t pointCount, noise)
+        std::vector<Point> generatePoints(int64_t pointCount, int64_t startNum, double maxDistance, double maxNoise);
     };
 
-    std::vector<Plane> generateDistinctPlanes(int64_t planeCount = 3);
+    std::vector<Plane> generateDistinctPlanes(int64_t planeCount);
+
+    std::vector<Point> generateSamplePointsOnDistinctPlanes(int64_t planeCount, int64_t pointsPerPlane);
 
     std::ostream& operator<<(std::ostream& os, const Vector &v);
+
+    std::ostream& operator<<(std::ostream& os, const Point &p);
 
     std::ostream& operator<<(std::ostream& os, const Space::Plane &p);
 

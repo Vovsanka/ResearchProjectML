@@ -13,11 +13,11 @@
 #include "utuple.hpp"
 #include "min_cut.hpp"
 
-using Upair = Utuple<2>;
-using Utriple = Utuple<3>;
+using Upair = Utuple<2,int64_t>;
+using Utriple = Utuple<3,int64_t>;
 
 
-template <typename S = int64_t> // domain S of samples
+template <typename S> // domain S of samples
 class ClusteringProblem {
 
     const std::vector<S> &samples;

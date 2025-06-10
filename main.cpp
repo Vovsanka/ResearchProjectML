@@ -5,16 +5,10 @@
 
 
 int main() {
-    // ClusteringProblem<char> problem(
-    //     MULTICLUSTER_INSTANCE.samples,
-    //     MULTICLUSTER_INSTANCE.cost
-    // );
-    // problem.solve();
-
-    std::vector<Space::Plane> planes = Space::generateDistinctPlanes(3);
-    for (auto &p : planes) {
-        std::cout << p << std::endl;
-    }
-
+    ClusteringProblem<Space::Point> problem(
+        CUBIC_SPACE_INSTANCE.samples,
+        CUBIC_SPACE_INSTANCE.cost
+    );
+    problem.solve();
     return 0;
 }
