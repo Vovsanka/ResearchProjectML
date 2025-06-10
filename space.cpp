@@ -1,20 +1,19 @@
 #include "space.hpp"
 
-using namespace Space;
 
 std::mt19937 gen(std::random_device{}());
 
-Vector::Vector(double x, double y, double z): x(x), y(y), z(z) {}
+Space::Vector::Vector(double x, double y, double z): x(x), y(y), z(z) {}
 
-Vector Vector::operator*(double k) const {
+Space::Vector Space::Vector::operator*(double k) const {
     return Vector(k*x, k*y, k*z);
 }
 
-double Vector::operator*(const Vector &other) const {
+double Space::Vector::operator*(const Vector &other) const {
     return x*other.x + y*other.y + z*other.z;
 }
 
-Vector Vector::crossProduct(const Vector &other) const {
+Space::Vector Space::Vector::crossProduct(const Vector &other) const {
     return Vector(
         y*other.z - z*other.y,
         z*other.x - x*other.z,
@@ -22,15 +21,15 @@ Vector Vector::crossProduct(const Vector &other) const {
     );
 }
 
-bool Vector::isOrthogonal(const Vector &other) const {
+bool Space::Vector::isOrthogonal(const Vector &other) const {
     return std::fabs((*this) * other) <= TOL;
 }
 
-double Vector::getLength() const {
+double Space::Vector::getLength() const {
     return sqrt(x*x + y*y + z*z);
 }
 
-Vector Vector::getNormalizedVector() const {
+Space::Vector Space::Vector::getNormalizedVector() const {
     double len = getLength();
     return Vector(
         x/len,
@@ -39,7 +38,7 @@ Vector Vector::getNormalizedVector() const {
     );
 }
 
-Vector Vector::generateUnitVector() {
+Space::Vector Space::Vector::generateUnitVector() {
     std::uniform_real_distribution<double> thetaDist(0.0, 2.0 * M_PI); // [0, 2*PI)
     std::uniform_real_distribution<double> phiDist(-M_PI_2, std::nextafter(1.0, DBL_MAX)); // [-PI/2, +PI/2]
     double theta = thetaDist(gen);
@@ -51,7 +50,7 @@ Vector Vector::generateUnitVector() {
     );
 }
 
-Vector Vector::generateOrthogonalVector() const {
+Space::Vector Space::Vector::generateOrthogonalVector() const {
     double xo, yo, zo; // x*xo + y*yo + z*zo = 0
     // set the coordinates of all no[i] to 1 if n[i] = 0;
     std::vector<std::pair<double, double*>> allCoordinates = {
@@ -77,3 +76,46 @@ Vector Vector::generateOrthogonalVector() const {
     return Vector(xo, yo, zo);
 }
 
+Space::Plane::Plane(Vector norm) {
+    n = norm.getNormalizedVector();
+    r1 = n.generateOrthogonalVector().getNormalizedVector();
+    r2 = n.crossProduct(r1).getNormalizedVector();
+}
+
+std::vector<Space::Plane> Space::generateDistinctPlanes(int64_t planeCount) {
+    std::vector<Vector> norms;
+    for (int i = 0; i < planeCount; i++) {
+        bool denied;
+        Vector candidate;
+        do {
+            denied = false;
+            candidate = Vector::generateUnitVector();
+            for (Vector &n : norms) {
+                if (candidate.isOrthogonal(n)) {
+                    denied = true;
+                    break;
+                }
+            }
+        } while (denied);
+        norms.push_back(candidate);
+    }
+    // build the planes
+    std::vector<Plane> planes;
+    for (auto &n : norms) {
+        planes.push_back(Plane(n));
+    }
+    return planes;
+}
+
+std::ostream& Space::operator<<(std::ostream& os, const Vector &v) {
+    os << "(" << v.x << "," << v.y << "," << v.z << ")";
+    return os;
+}
+
+std::ostream& Space::operator<<(std::ostream& os, const Space::Plane &p) {
+    os << "Plane defined by:\n";
+    os << "n=" << p.n << "\n";
+    os << "r1=" << p.r1 << "\n";
+    os << "r2=" << p.r2 << "\n";
+    return os;
+}

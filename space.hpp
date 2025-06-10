@@ -14,6 +14,8 @@ namespace Space {
     struct Vector {
         double x, y, z;
 
+        Vector() = default;
+
         Vector(double x, double y, double z);
 
         Vector operator*(double k) const;
@@ -33,8 +35,20 @@ namespace Space {
         Vector generateOrthogonalVector() const;
     };
 
+    struct Plane {
+        Vector n, r1, r2;
+        
+        Plane(Vector norm);
+        
+        // Point generatePoints(int64_t pointCount, noise)
+    };
+
+    std::vector<Plane> generateDistinctPlanes(int64_t planeCount = 3);
+
+    std::ostream& operator<<(std::ostream& os, const Vector &v);
+
+    std::ostream& operator<<(std::ostream& os, const Space::Plane &p);
+
 }
-
-
 
 #endif 

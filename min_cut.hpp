@@ -1,6 +1,7 @@
 #ifndef MIN_CUT_HPP
 #define MIN_CUT_HPP
 
+#include <iostream>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/push_relabel_max_flow.hpp>
 #include <boost/graph/stoer_wagner_min_cut.hpp>

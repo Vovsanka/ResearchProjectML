@@ -10,14 +10,16 @@ int main() {
     //     MULTICLUSTER_INSTANCE.cost
     // );
     // problem.solve();
-    for (int i = 0; i < 10; i++) {
-        Space::Vector u = Space::Vector::generateUnitVector();
-        Space::Vector r1 = u.generateOrthogonalVector().getNormalizedVector();
-        Space::Vector r2 = u.crossProduct(r1).getNormalizedVector();
-        std::cout << u.isOrthogonal(r1) << u.isOrthogonal(r2);
-        std::cout << r1.isOrthogonal(u) << r1.isOrthogonal(r2);
-        std::cout << r2.isOrthogonal(u) << r2.isOrthogonal(r1);
-        std::cout << std::endl;
+
+    std::vector<Space::Plane> planes = Space::generateDistinctPlanes(3);
+    for (auto &plane : planes) {
+        std::cout << plane;
+        std::cout << plane.n.getLength() << plane.r1.getLength() << plane.r2.getLength();
+        std::cout << plane.n.isOrthogonal(plane.r1);
+        std::cout << plane.n.isOrthogonal(plane.r2);
+        std::cout << plane.r1.isOrthogonal(plane.r2);
+        std::cout << "\n" << std::endl;
     }
+
     return 0;
 }
