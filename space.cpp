@@ -108,7 +108,9 @@ std::vector<Space::Plane> Space::generateDistinctPlanes(int64_t planeCount) {
 }
 
 std::ostream& Space::operator<<(std::ostream& os, const Vector &v) {
-    os << "(" << v.x << "," << v.y << "," << v.z << ")";
+    os << "(" << std::round(v.x*100)/100 << ",";
+    os << std::round(v.y*100)/100 << ",";
+    os << std::round(v.z*100)/100 << ")";
     return os;
 }
 
