@@ -80,17 +80,16 @@ double cubicSpaceCost(Utuple<3,Space::Point> t) {
     double a = t[0].getDistance(t[1]);
     double b = t[1].getDistance(t[2]);
     double c = t[2].getDistance(t[0]);
-    // no cost if one 2 triangle points are too close to each other
+    // sort the sides by length
     std::array<double, 3> sides = {a, b, c};
     std::sort(std::begin(sides), std::end(sides)); 
+    // no cost if one 2 triangle points are too close to each other
     if (sides[0] * 5 < sides[1]) return 0;
-    // compute the triangle angles [0, PI]
-    double alpha = std::acos((b*b + c*c - a*a)/(2*b*c));
-    double beta = std::acos((a*a + c*c - b*b)/(2*a*c));
-    double gamma = std::acos((a*a + b*b - c*c)/(2*a*b));
-    // inspect the largest angle
-    double largestAngleDegree = std::max(alpha, std::max(beta, gamma)) * 180.0 / M_PI;
-    const double REWARD_BOUND = 150;
-    if (largestAngleDegree > REWARD_BOUND) return -(largestAngleDegree - REWARD_BOUND)*sides[2];
-    return 0;
+    // compute the area with Heron's formula
+    double p = (a + b + c) / 2.0;
+    double area = sqrt(p*(p-a)*(p-b)*(p-c));
+    // compute the area of the longest side the opposite 90 degree value
+    int d = sqrt(sides[2]*sides[2]/2.0);
+    int areaBound = d*d/2.0;
+    return area - areaBound;
 }
