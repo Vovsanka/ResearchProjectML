@@ -49,11 +49,13 @@ namespace Space {
 
         Point(double x, double y, double z, int64_t num);
 
-        std::string getCoordinatesString();
+        std::string getCoordinatesString() const;
 
-        bool operator==(const Point &other);
+        double getDistance(const Point &other) const;
 
-        bool operator<(const Point &other);
+        bool operator==(const Point &other) const;
+
+        bool operator<(const Point &other) const;
     };
 
     struct Plane {
@@ -68,7 +70,12 @@ namespace Space {
 
     std::vector<Plane> generateDistinctPlanes(int64_t planeCount);
 
-    std::vector<Point> generateSamplePointsOnDistinctPlanes(int64_t planeCount, int64_t pointsPerPlane);
+    std::vector<Point> generateSamplePointsOnDistinctPlanes(
+        int64_t planeCount,
+        int64_t pointsPerPlane,
+        double maxDistance,
+        double maxNoise
+    );
 
     std::ostream& operator<<(std::ostream& os, const Vector &v);
 

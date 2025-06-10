@@ -20,7 +20,7 @@ const ClusteringInstance<char> PYRAMID_INSTANCE1(PYRAMID_SAMPLES, pyramidCost1);
 const ClusteringInstance<char> PYRAMID_INSTANCE2(PYRAMID_SAMPLES, pyramidCost2);
 const ClusteringInstance<char> PYRAMID_INSTANCE_UNSOLVABLE(PYRAMID_SAMPLES, pyramidCostUnsolvable);
 const ClusteringInstance<Space::Point> CUBIC_SPACE_INSTANCE(
-    Space::generateSamplePointsOnDistinctPlanes(3, 10),
+    Space::generateSamplePointsOnDistinctPlanes(2, 30, 10, 0),
     doubleToIntCostWrapper<Utuple<3,Space::Point>>(cubicSpaceCost)
 );
 
@@ -76,5 +76,24 @@ int64_t pyramidCostUnsolvable(Utuple<3,char> t) {
 }
 
 double cubicSpaceCost(Utuple<3,Space::Point> t) {
+    // compute the triangle sides and perimeter
+    double a = t[0].getDistance(t[1]);
+    double b = t[1].getDistance(t[2]);
+    double c = t[2].getDistance(t[0]);
+    double p = a + b + c;
+    // no cost if one 2 triangle points are too close to each other
+    std::array<double, 3> sides = {a, b, c};
+    std::sort(std::begin(sides), std::end(sides)); 
+    if (sides[0] < (p/3)/2 ) return 0;
+    // compute the triangle angles [0, PI]
+    double alpha = std::acos((b*b + c*c - a*a)/(2*b*c));
+    double beta = std::acos((a*a + c*c - b*b)/(2*a*c));
+    double gamma = std::acos((a*a + b*b - c*c)/(2*a*b));
+    // inspect the largest angle
+    double largestAngle = std::max(alpha, std::max(beta, gamma));
+    const double REWARD_BOUND = (175/180.0)*M_PI;
+    const double PENALTY_BOUND = (65/180.0)*M_PI;
+    if (largestAngle > REWARD_BOUND) return -(largestAngle - REWARD_BOUND)*(largestAngle - REWARD_BOUND) * p;
+    if (largestAngle < PENALTY_BOUND) return sqrt((PENALTY_BOUND - largestAngle) * p);
     return 0;
 }

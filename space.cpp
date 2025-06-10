@@ -98,18 +98,25 @@ Space::Point::Point(double x, double y, double z, int64_t num) : x(x), y(y), z(z
     name = os.str();
 }
 
-std::string Space::Point::getCoordinatesString() {
+std::string Space::Point::getCoordinatesString() const {
     std::ostringstream os;
     os << std::fixed << std::setprecision(2);
     os << "(" << x << ", " << y << ", " << z << ")";
     return os.str();
 }
 
-bool Space::Point::operator==(const Point &other) {
+double Space::Point::getDistance(const Point &other) const {
+    double dx = x - other.x;
+    double dy = y - other.y;
+    double dz = z - other.z;
+    return sqrt(dx*dx + dy*dy + dz*dz);
+}
+
+bool Space::Point::operator==(const Point &other) const {
     return (x==other.x && y==other.y && z==other.z);
 }
 
-bool Space::Point::operator<(const Point &other) {
+bool Space::Point::operator<(const Point &other) const {
     if (x < other.x) return true;
     if (x > other.x) return false;
     if (y < other.y) return true;
@@ -172,14 +179,19 @@ std::vector<Space::Plane> Space::generateDistinctPlanes(int64_t planeCount) {
     return planes;
 }
 
-std::vector<Space::Point> Space::generateSamplePointsOnDistinctPlanes(int64_t planeCount, int64_t pointsPerPlane) {
+std::vector<Space::Point> Space::generateSamplePointsOnDistinctPlanes(
+    int64_t planeCount,
+    int64_t pointsPerPlane,
+    double maxDistance,
+    double maxNoise
+) {
     std::vector<Space::Plane> planes = Space::generateDistinctPlanes(planeCount);
     std::cout << "Generating cubic space clustering instance: " << std::endl;
     std::vector<Space::Point> samples;
     int startNum = 0;
     for (auto &plane : planes) {
         std::cout << plane << "\nPoints: ";
-        std::vector<Space::Point> points = plane.generatePoints(pointsPerPlane, startNum, 100, 1);
+        std::vector<Space::Point> points = plane.generatePoints(pointsPerPlane, startNum, maxDistance, maxNoise);
         for (auto &p : points) {
             samples.push_back(p);
             std::cout << p << " ";

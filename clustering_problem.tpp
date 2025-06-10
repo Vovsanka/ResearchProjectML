@@ -44,6 +44,8 @@ ClusteringProblem<S>::ClusteringProblem(
             }
         }
     }
+    std::cout << "------------------------------------\n";
+    std::cout << "Clustering problem has been inited with " << tripleCosts.size() << " relevant triples" << std::endl;
 }
 
 template<typename S>
@@ -211,6 +213,8 @@ void ClusteringProblem<S>::printResults() {
 
 template<typename S>
 bool ClusteringProblem<S>::applyIndependentSubproblemCut(const std::vector<bool> &relevant) {
+    // 3.1
+    std::cout << "Trying independent subproblem cut (3.1)..." << std::endl;;
     std::vector<std::vector<int64_t>> partition;
     std::vector<bool> processed(sampleCount, false);
     for (int64_t i = 0; i < sampleCount; i++) {
@@ -546,7 +550,8 @@ bool ClusteringProblem<S>::checkSubsetJoinForIndexSubset(const std::vector<bool>
 template<typename S>
 bool ClusteringProblem<S>::applySubsetJoin(const std::vector<bool> &relevant) {
     // subset join condition 3.11
-    // heuristically construct and check the candidate sets R for possible joining
+    // heuristically construct and check the candidate sets R for possible joining'
+    std::cout << "Trying subset join (3.11)..." << std::endl;
     for (int64_t i = 0; i < sampleCount; i++) {
         if (!relevant[i]) continue;
         for (int64_t j = i + 1; j < sampleCount; j++) {
@@ -623,6 +628,7 @@ bool ClusteringProblem<S>::applySubsetJoin(const std::vector<bool> &relevant) {
 template<typename S>
 bool ClusteringProblem<S>::applyPairJoin(const std::vector<bool> &relevant) {
     // 3.4
+    std::cout << "Trying pair join (3.4)..." << std::endl;
     for (int64_t i = 0; i < sampleCount; i++) {
         if (!relevant[i]) continue;
         for (int64_t j = i + 1; j < sampleCount; j++) {
@@ -653,6 +659,7 @@ bool ClusteringProblem<S>::applyPairJoin(const std::vector<bool> &relevant) {
 template<typename S>
 bool ClusteringProblem<S>::applyComplexPairJoin(const std::vector<bool> &relevant) {
     // 3.6
+    std::cout << "Trying complex pair join (3.6)..." << std::endl;
     for (int64_t i = 0; i < sampleCount; i++) {
         if (!relevant[i]) continue;
         for (int64_t j = 0; j < sampleCount; j++) {
@@ -754,6 +761,7 @@ bool ClusteringProblem<S>::applyComplexPairJoin(const std::vector<bool> &relevan
 template<typename S>
 bool ClusteringProblem<S>::applyExplicitPairJoin(const std::vector<bool> &relevant) {
     // 3.8
+    std::cout << "Trying explicit pair join (3.8)..." << std::endl;
     for (int64_t i = 0; i < sampleCount; i++) {
         if (!relevant[i]) continue;
         for (int64_t j = i + 1; j < sampleCount; j++) {
@@ -796,6 +804,7 @@ bool ClusteringProblem<S>::applyExplicitPairJoin(const std::vector<bool> &releva
 template<typename S>
 bool ClusteringProblem<S>::applyExplicitPairJoinViaTriple(const std::vector<bool> &relevant) {
     // 3.9
+    std::cout << "Trying explicit pair join via triple (3.9)..." << std::endl;
     for (int64_t i = 0; i < sampleCount; i++) {
         if (!relevant[i]) continue;
         for (int64_t j = 0; j < sampleCount; j++) {
@@ -857,6 +866,7 @@ bool ClusteringProblem<S>::applyExplicitPairJoinViaTriple(const std::vector<bool
 template<typename S>
 bool ClusteringProblem<S>::applyTripleJoin(const std::vector<bool> &relevant) {
     // 3.5
+    std::cout << "Trying triple join (3.5)..." << std::endl;
     // compute lhs base value
     int64_t lhsBase = 0;
     for (int64_t i = 0; i < sampleCount; i++) {
@@ -892,6 +902,7 @@ bool ClusteringProblem<S>::applyTripleJoin(const std::vector<bool> &relevant) {
                 int64_t cIJK = getCost(i, j, k);
                 if (cIJK < 0) lhs += -2*cIJK;
                 lhs += std::min(std::min(int64_t(0), cIJ), std::min(cIK, cJK)); // min for 4 cases
+                if (lhs < 0) continue; // because rhs >= 0
                 // compute rhs
                 int64_t rhs = solveMinCutForIndexSubset(relevant, true, false, false, i, {j, k});
                 if (lhs >= rhs) {
@@ -910,6 +921,7 @@ bool ClusteringProblem<S>::applyTripleJoin(const std::vector<bool> &relevant) {
 template<typename S>
 void ClusteringProblem<S>::applyPairCuts(const std::vector<bool> &relevant) {
     // 3.2
+    std::cout << "Trying pair cuts (3.2)..." << std::endl;
     for (int64_t i = 0; i < sampleCount; i++) {
         if (!relevant[i]) continue;
         for (int64_t j = i + 1; j < sampleCount; j++) {
@@ -946,6 +958,8 @@ void ClusteringProblem<S>::applyPairCuts(const std::vector<bool> &relevant) {
 
 template<typename S>
 void ClusteringProblem<S>::applyTripleCuts(const std::vector<bool> &relevant) {
+    // 3.3
+    std::cout << "Trying triple cuts (3.3)..." << std::endl;
     for (int64_t i = 0; i < sampleCount; i++) {
         if (!relevant[i]) continue;
         for (int64_t j = 0; j < sampleCount; j++) {
