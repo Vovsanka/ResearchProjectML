@@ -20,7 +20,7 @@ const ClusteringInstance<char> PYRAMID_INSTANCE1(PYRAMID_SAMPLES, pyramidCost1);
 const ClusteringInstance<char> PYRAMID_INSTANCE2(PYRAMID_SAMPLES, pyramidCost2);
 const ClusteringInstance<char> PYRAMID_INSTANCE_UNSOLVABLE(PYRAMID_SAMPLES, pyramidCostUnsolvable);
 const ClusteringInstance<Space::Point> CUBIC_SPACE_INSTANCE(
-    Space::generateSamplePointsOnDistinctPlanes(2, 10, 10, 0),
+    Space::generateSamplePointsOnDistinctPlanes(2, 30, 100, 0.5),
     doubleToIntCostWrapper<Utuple<3,Space::Point>>(cubicSpaceCost)
 );
 
@@ -75,21 +75,34 @@ int64_t pyramidCostUnsolvable(Utuple<3,char> t) {
     return 0;
 }
 
+double computeTriangleArea(double a, double b, double c) {
+    // use the Heron's area formula
+    int p = (a + b + c) / 2;
+    return sqrt(p*(p - a)*(p - b)*(p - c));
+}
+
 double cubicSpaceCost(Utuple<3,Space::Point> t) {
-    // compute the triangle sides and perimeter
+    // cost parameters
+    const double K = 100;
+    const double P = 1.5;
+    // compute the sides
     double a = t[0].getDistance(t[1]);
     double b = t[1].getDistance(t[2]);
     double c = t[2].getDistance(t[0]);
-    // sort the sides by length
-    std::array<double, 3> sides = {a, b, c};
-    std::sort(std::begin(sides), std::end(sides)); 
-    // no cost if one 2 triangle points are too close to each other
-    if (sides[0] * 5 < sides[1]) return 0;
-    // compute the area with Heron's formula
-    double p = (a + b + c) / 2.0;
-    double area = sqrt(p*(p-a)*(p-b)*(p-c));
-    // compute the area of the longest side the opposite 90 degree value
-    int d = sqrt(sides[2]*sides[2]/2.0);
-    int areaBound = d*d/2.0;
-    return area - areaBound;
+    double smallestSide = std::min(a, std::min(b, c));
+    // compute the location vectors
+    Space::Vector oa(t[0].x, t[0].y, t[0].z);
+    Space::Vector ob(t[1].x, t[1].y, t[1].z);
+    Space::Vector oc(t[2].x, t[2].y, t[2].z);
+    // compute the distance from the origin to the plane defined by these 3 points
+    Space::Vector ab = ob - oa;
+    Space::Vector ac = oc - oa;
+    if (ab.isParallel(ac)) return 0; // these 3 points do not define a plane 
+    Space::Vector n = ab.crossProduct(ac).getNormalizedVector();
+    double h = std::fabs(oa*(n));
+    // skip the small triangles with the plane far away from the origin
+    
+    if (K*h > smallestSide) return 0;
+    // assign a reward or penalty if the distance is relatively small
+    return (K + P*K)*h - smallestSide;
 }

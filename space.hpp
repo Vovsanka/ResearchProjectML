@@ -24,6 +24,8 @@ namespace Space {
 
         Vector operator+(const Vector &other) const;
 
+        Vector operator-(const Vector &other) const;
+
         Vector operator*(double k) const;
 
         double operator*(const Vector &other) const;
@@ -31,6 +33,8 @@ namespace Space {
         Vector crossProduct(const Vector &other) const;
 
         bool isOrthogonal(const Vector &other) const;
+
+        bool isParallel(const Vector &other) const;
 
         double getLength() const;
 

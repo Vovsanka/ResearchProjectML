@@ -13,6 +13,14 @@ Space::Vector Space::Vector::operator+(const Vector &other) const {
     );
 }
 
+Space::Vector Space::Vector::operator-(const Vector &other) const {
+    return Vector(
+        x - other.x,
+        y - other.y,
+        z - other.z
+    );
+}
+
 Space::Vector Space::Vector::operator*(double k) const {
     return Vector(k*x, k*y, k*z);
 }
@@ -30,7 +38,12 @@ Space::Vector Space::Vector::crossProduct(const Vector &other) const {
 }
 
 bool Space::Vector::isOrthogonal(const Vector &other) const {
-    return std::fabs((*this) * other) <= TOL;
+    return std::fabs((*this) * other) <= TOL; // scalar product is 0
+}
+
+bool Space::Vector::isParallel(const Vector &other) const {
+    Vector cross = (*this).crossProduct(other); // cross product is 0 
+    return std::fabs(cross.x) <= TOL && std::fabs(cross.y) <= TOL && std::fabs(cross.z) <= TOL;
 }
 
 double Space::Vector::getLength() const {
@@ -163,7 +176,7 @@ std::vector<Space::Plane> Space::generateDistinctPlanes(int64_t planeCount) {
             denied = false;
             candidate = Vector::generateUnitVector();
             for (Vector &n : norms) {
-                if (candidate.isOrthogonal(n)) {
+                if (candidate.isParallel(n)) {
                     denied = true;
                     break;
                 }
