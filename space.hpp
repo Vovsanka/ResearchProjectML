@@ -15,12 +15,27 @@ namespace Space {
 
     const double TOL = 1e-6;
 
+    struct Point {
+        double x, y, z;
+        std::string name;
+
+        Point() = default;
+
+        Point(double x, double y, double z, int64_t num);
+
+        bool operator==(const Point &other) const;
+
+        bool operator<(const Point &other) const;
+    };
+
     struct Vector {
         double x, y, z;
 
         Vector() = default;
 
         Vector(double x, double y, double z);
+
+        Vector(const Point &p);
 
         Vector operator+(const Vector &other) const;
 
@@ -43,23 +58,6 @@ namespace Space {
         static Vector generateUnitVector();
 
         Vector generateOrthogonalVector() const;
-    };
-
-    struct Point {
-        double x, y, z;
-        std::string name;
-
-        Point() = default;
-
-        Point(double x, double y, double z, int64_t num);
-
-        std::string getCoordinatesString() const;
-
-        double getDistance(const Point &other) const;
-
-        bool operator==(const Point &other) const;
-
-        bool operator<(const Point &other) const;
     };
 
     struct Plane {

@@ -20,7 +20,7 @@ const ClusteringInstance<char> PYRAMID_INSTANCE1(PYRAMID_SAMPLES, pyramidCost1);
 const ClusteringInstance<char> PYRAMID_INSTANCE2(PYRAMID_SAMPLES, pyramidCost2);
 const ClusteringInstance<char> PYRAMID_INSTANCE_UNSOLVABLE(PYRAMID_SAMPLES, pyramidCostUnsolvable);
 const ClusteringInstance<Space::Point> CUBIC_SPACE_INSTANCE(
-    Space::generateSamplePointsOnDistinctPlanes(2, 30, 100, 0.5),
+    Space::generateSamplePointsOnDistinctPlanes(2, 10, 100, 1),
     doubleToIntCostWrapper<Utuple<3,Space::Point>>(cubicSpaceCost)
 );
 
@@ -81,28 +81,43 @@ double computeTriangleArea(double a, double b, double c) {
     return sqrt(p*(p - a)*(p - b)*(p - c));
 }
 
+bool triangleIsLineLike(double a, double b, double c) {
+    // compute the triangle angles [0, PI]
+    double alpha = std::acos((b*b + c*c - a*a)/(2*b*c));
+    double beta = std::acos((a*a + c*c - b*b)/(2*a*c));
+    double gamma = std::acos((a*a + b*b - c*c)/(2*a*b));
+    // inspect the largest angle
+    double largestAngle = std::max(alpha, std::max(beta, gamma));
+    return largestAngle > (150/180.0)*M_PI;
+}
+
 double cubicSpaceCost(Utuple<3,Space::Point> t) {
-    // cost parameters
-    const double K = 100;
-    const double P = 1.5;
-    // compute the sides
-    double a = t[0].getDistance(t[1]);
-    double b = t[1].getDistance(t[2]);
-    double c = t[2].getDistance(t[0]);
-    double smallestSide = std::min(a, std::min(b, c));
     // compute the location vectors
-    Space::Vector oa(t[0].x, t[0].y, t[0].z);
-    Space::Vector ob(t[1].x, t[1].y, t[1].z);
-    Space::Vector oc(t[2].x, t[2].y, t[2].z);
-    // compute the distance from the origin to the plane defined by these 3 points
+    Space::Vector oa(t[0]);
+    Space::Vector ob(t[1]);
+    Space::Vector oc(t[2]);
+    // compute the vectors of the triangle sides
     Space::Vector ab = ob - oa;
     Space::Vector ac = oc - oa;
-    if (ab.isParallel(ac)) return 0; // these 3 points do not define a plane 
+    Space::Vector bc = oc - ob;
+    // sort the sides
+    std::array<double,3> sides = {ab.getLength(), ac.getLength(), bc.getLength()};
+    std::sort(std::begin(sides), std::end(sides));
+    // skip if 2 points are too close to each other
+    if (sides[0] * 10 < sides[1]) return 0; 
+    // assign reward if the triangle points together with the origin build up a line
+    if (
+        triangleIsLineLike(sides[0], sides[1], sides[2]) &&
+        triangleIsLineLike(oa.getLength(), ob.getLength(), ab.getLength()) &&
+        triangleIsLineLike(ob.getLength(), oc.getLength(), bc.getLength()) && 
+        triangleIsLineLike(oc.getLength(), oa.getLength(), ac.getLength())
+    ) return -sides[2];
+    // compute the distance from the origin to the plane defined by these 3 points
+    if (ab.isParallel(ac)) return 0; // these 3 points do not define a plane
     Space::Vector n = ab.crossProduct(ac).getNormalizedVector();
     double h = std::fabs(oa*(n));
-    // skip the small triangles with the plane far away from the origin
-    
-    if (K*h > smallestSide) return 0;
-    // assign a reward or penalty if the distance is relatively small
-    return (K + P*K)*h - smallestSide;
+    // skip small triangles relatively to the distance
+    if (h * 10 < sides[2]) return 0;
+    // assign penalty 
+    return h;
 }

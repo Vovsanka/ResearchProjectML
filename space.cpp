@@ -5,6 +5,12 @@ std::mt19937 gen(std::random_device{}());
 
 Space::Vector::Vector(double x, double y, double z): x(x), y(y), z(z) {}
 
+Space::Vector::Vector(const Point &p) {
+    x = p.x;
+    y = p.y;
+    z = p.z;
+}
+
 Space::Vector Space::Vector::operator+(const Vector &other) const {
     return Vector(
         x + other.x,
@@ -111,19 +117,6 @@ Space::Point::Point(double x, double y, double z, int64_t num) : x(x), y(y), z(z
     name = os.str();
 }
 
-std::string Space::Point::getCoordinatesString() const {
-    std::ostringstream os;
-    os << std::fixed << std::setprecision(2);
-    os << "(" << x << ", " << y << ", " << z << ")";
-    return os.str();
-}
-
-double Space::Point::getDistance(const Point &other) const {
-    double dx = x - other.x;
-    double dy = y - other.y;
-    double dz = z - other.z;
-    return sqrt(dx*dx + dy*dy + dz*dz);
-}
 
 bool Space::Point::operator==(const Point &other) const {
     return (x==other.x && y==other.y && z==other.z);
