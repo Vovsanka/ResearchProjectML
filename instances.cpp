@@ -20,7 +20,7 @@ const ClusteringInstance<char> PYRAMID_INSTANCE1(PYRAMID_SAMPLES, pyramidCost1);
 const ClusteringInstance<char> PYRAMID_INSTANCE2(PYRAMID_SAMPLES, pyramidCost2);
 const ClusteringInstance<char> PYRAMID_INSTANCE_UNSOLVABLE(PYRAMID_SAMPLES, pyramidCostUnsolvable);
 const ClusteringInstance<Space::Point> CUBIC_SPACE_INSTANCE(
-    Space::generateSamplePointsOnDistinctPlanes(2, 26, 10, 0),
+    Space::generateSamplePointsOnDistinctPlanes(2, 26, 100, 0),
     doubleToIntCostWrapper<Utuple<3,Space::Point>>(cubicSpaceCost, 1000)
 );
 
@@ -82,7 +82,7 @@ bool triangleIsLineLike(double a, double b, double c) {
     double gamma = std::acos((a*a + b*b - c*c)/(2*a*b));
     // inspect the largest angle
     double largestAngle = std::max(alpha, std::max(beta, gamma));
-    return largestAngle > (170/180.0)*M_PI;
+    return largestAngle > (150/180.0)*M_PI;
 }
 
 double cubicSpaceCost(Utuple<3,Space::Point> t) {
@@ -99,6 +99,7 @@ double cubicSpaceCost(Utuple<3,Space::Point> t) {
     double triangleQuality = p / (oa.getLength() + ob.getLength() + oc.getLength()); // 0 -> 2
     // skip small triangles far away from the origin
     if (triangleQuality < 1.5) return 0;
+    double standardCost = (triangleQuality - 1.0) * 100;
     // sort the sides
     std::array<double,3> sides = {ab.getLength(), ac.getLength(), bc.getLength()};
     std::sort(std::begin(sides), std::end(sides));
@@ -110,14 +111,14 @@ double cubicSpaceCost(Utuple<3,Space::Point> t) {
         triangleIsLineLike(oa.getLength(), ob.getLength(), ab.getLength()) &&
         triangleIsLineLike(ob.getLength(), oc.getLength(), bc.getLength()) && 
         triangleIsLineLike(oc.getLength(), oa.getLength(), ac.getLength())
-    ) return -p;
+    ) return -standardCost;
     // compute the distance from the origin to the plane defined by these 3 points
     if (ab.isParallel(ac)) return 0; // these 3 points do not define a plane
     Space::Vector n = ab.crossProduct(ac).getNormalizedVector();
     double h = std::fabs(oa*(n));
     // assign reward if the distance is small enough
-    if (h < 1e-6) return -10*p;
+    if (h/p < 1e-4) return -10*standardCost;
     // assign a penalty if the distance is large enough
-    if (p < 20*h) return 20*h - p;
+    if (p < 20*h) return standardCost;
     return 0;
 }
