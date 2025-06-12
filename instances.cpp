@@ -20,7 +20,7 @@ const ClusteringInstance<char> PYRAMID_INSTANCE1(PYRAMID_SAMPLES, pyramidCost1);
 const ClusteringInstance<char> PYRAMID_INSTANCE2(PYRAMID_SAMPLES, pyramidCost2);
 const ClusteringInstance<char> PYRAMID_INSTANCE_UNSOLVABLE(PYRAMID_SAMPLES, pyramidCostUnsolvable);
 const ClusteringInstance<Space::Point> CUBIC_SPACE_INSTANCE(
-    Space::generateSamplePointsOnDistinctPlanes(2, 10, 100, 0),
+    Space::generateSamplePointsOnDistinctPlanes(3, 26, 100, 0),
     doubleToIntCostWrapper<Utuple<3,Space::Point>>(cubicSpaceCost, 1000)
 );
 
