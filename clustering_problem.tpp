@@ -389,6 +389,7 @@ int64_t ClusteringProblem<S>::solveMinCutForIndexSubset(
         }
     } 
     // solve the MinCut problem
+    if (edges.empty()) return 0;
     int64_t minCut;
     if (globalMinCut) {
         minCut = MinCut::solveGlobalMinCut(edges);

@@ -194,7 +194,7 @@ std::vector<Space::Point> Space::generateSamplePointsOnDistinctPlanes(
     std::vector<Space::Plane> planes = Space::generateDistinctPlanes(planeCount);
     std::cout << "Generating cubic space clustering instance: " << std::endl;
     std::vector<Space::Point> samples;
-    int startNum = 0;
+    int64_t startNum = 0;
     for (auto &plane : planes) {
         std::cout << plane << "\nPoints: ";
         std::vector<Space::Point> points = plane.generatePoints(pointsPerPlane, startNum, maxDistance, maxNoise);
