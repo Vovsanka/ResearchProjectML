@@ -20,7 +20,7 @@ const ClusteringInstance<char> PYRAMID_INSTANCE1(PYRAMID_SAMPLES, pyramidCost1);
 const ClusteringInstance<char> PYRAMID_INSTANCE2(PYRAMID_SAMPLES, pyramidCost2);
 const ClusteringInstance<char> PYRAMID_INSTANCE_UNSOLVABLE(PYRAMID_SAMPLES, pyramidCostUnsolvable);
 const ClusteringInstance<Space::Point> CUBIC_SPACE_INSTANCE(
-    Space::generateSamplePointsOnDistinctPlanes(3, 26, 100, 0),
+    Space::generateSamplePointsOnDistinctPlanes(3, 26, 10, 0),
     doubleToIntCostWrapper<Utuple<3,Space::Point>>(cubicSpaceCost, 1000)
 );
 
@@ -111,16 +111,18 @@ double cubicSpaceCost(Utuple<3,Space::Point> t) {
         triangleIsLineLike(ob.getLength(), oc.getLength(), bc.getLength()) && 
         triangleIsLineLike(oc.getLength(), oa.getLength(), ac.getLength())
     ) return -1;
+    // skip the triangles with an angle > 90
+    if (sides[0]*sides[0] + sides[1]*sides[1] > sides[2]*sides[2]) return 0;
     // compute the distance from the origin to the plane defined by these 3 points
     if (ab.isParallel(ac)) return 0; // these 3 points do not define a plane
     Space::Vector n = ab.crossProduct(ac).getNormalizedVector();
     double h = std::fabs(oa*(n));
     // assign a penalty if the distance is large enough
     if (
-        h/p > 1e-2 && 
-        std::fabs(oa.getLength()/ob.getLength() - 1.0) < 0.1 &&
-        std::fabs(ob.getLength()/oc.getLength() - 1.0) < 0.1 &&
-        std::fabs(oc.getLength()/oa.getLength() - 1.0) < 0.1
+        h/p > 0.01 && 
+        std::fabs(oa.getLength()/ob.getLength() - 1.0) < 0.3 &&
+        std::fabs(ob.getLength()/oc.getLength() - 1.0) < 0.3 &&
+        std::fabs(oc.getLength()/oa.getLength() - 1.0) < 0.3
     ) return (h/p)*100;
     // assign reward if the distance is small enough
     if (h/p < 1e-4) return -10;
