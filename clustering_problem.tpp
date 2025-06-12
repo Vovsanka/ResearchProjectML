@@ -144,15 +144,6 @@ void ClusteringProblem<S>::printClustering() {
         clustering.push_back(sampleMapping[i]);
     }
     int64_t clusterCount = clustering.size();
-    std::cout << "Clustering: " << std::endl;
-    for (int64_t clusterInd = 0; clusterInd < clusterCount; clusterInd++) {
-        std::cout << "Cluster " << clusterInd << ": "; 
-        for (auto originalI : clustering[clusterInd]) {
-            std::cout << samples[originalI];
-        }
-        std::cout << std::endl;
-    }
-    std::cout << std::endl;
     //
     std::cout << "Cluster labeling: " << std::endl;
     std::cout << "  ";
@@ -194,6 +185,21 @@ void ClusteringProblem<S>::printClustering() {
                 }
             }
         }
+    }
+    std::cout << std::endl;
+    //
+    std::cout << "Clustering: " << std::endl;
+    for (int64_t clusterInd = 0; clusterInd < clusterCount; clusterInd++) {
+        std::cout << "Cluster " << clusterInd << ": "; 
+        std::vector<S> clusterSamples;
+        for (auto originalI : clustering[clusterInd]) {
+            clusterSamples.push_back(samples[originalI]);
+        }
+        std::sort(std::begin(clusterSamples), std::end(clusterSamples));
+        for (auto &s : clusterSamples) {
+            std::cout << s;
+        }
+        std::cout << std::endl;
     }
     std::cout << std::endl;
 }

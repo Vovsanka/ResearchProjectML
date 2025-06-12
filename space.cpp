@@ -119,15 +119,11 @@ Space::Point::Point(double x, double y, double z, int64_t num) : x(x), y(y), z(z
 
 
 bool Space::Point::operator==(const Point &other) const {
-    return (x==other.x && y==other.y && z==other.z);
+    return (name == other.name);
 }
 
 bool Space::Point::operator<(const Point &other) const {
-    if (x < other.x) return true;
-    if (x > other.x) return false;
-    if (y < other.y) return true;
-    if (y < other.y) return false;
-    return (z < other.z);
+    return (name < other.name);
 }
 
 Space::Plane::Plane(Vector norm) {
