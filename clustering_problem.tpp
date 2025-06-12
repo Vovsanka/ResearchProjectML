@@ -186,7 +186,7 @@ void ClusteringProblem<S>::printClustering() {
             }
         }
     }
-    std::cout << std::endl;
+    std::cout << "\n" << std::endl;
     //
     std::cout << "Clustering: " << std::endl;
     for (int64_t clusterInd = 0; clusterInd < clusterCount; clusterInd++) {

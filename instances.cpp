@@ -20,7 +20,7 @@ const ClusteringInstance<char> PYRAMID_INSTANCE1(PYRAMID_SAMPLES, pyramidCost1);
 const ClusteringInstance<char> PYRAMID_INSTANCE2(PYRAMID_SAMPLES, pyramidCost2);
 const ClusteringInstance<char> PYRAMID_INSTANCE_UNSOLVABLE(PYRAMID_SAMPLES, pyramidCostUnsolvable);
 const ClusteringInstance<Space::Point> CUBIC_SPACE_INSTANCE(
-    Space::generateSamplePointsOnDistinctPlanes(3, 26, 1000, 0),
+    Space::generateSamplePointsOnDistinctPlanes(2, 26, 10, 0),
     doubleToIntCostWrapper<Utuple<3,Space::Point>>(cubicSpaceCost, 1000)
 );
 
@@ -96,28 +96,28 @@ double cubicSpaceCost(Utuple<3,Space::Point> t) {
     Space::Vector bc = oc - ob;
     // compute perimiter and standard cost
     double p = ab.getLength() + ac.getLength() + bc.getLength();
-    double standardCost = p / (oa.getLength() + ob.getLength() + oc.getLength());
+    double triangleQuality = p / (oa.getLength() + ob.getLength() + oc.getLength()); // 0 -> 2
     // skip small triangles far away from the origin
-    if (standardCost < 1) return 0;
+    if (triangleQuality < 1.5) return 0;
     // sort the sides
     std::array<double,3> sides = {ab.getLength(), ac.getLength(), bc.getLength()};
     std::sort(std::begin(sides), std::end(sides));
     // skip if 2 points are too close to each other
-    if (sides[0] * 5 < sides[1]) return 0; 
+    if (sides[0] * 10 < sides[1]) return 0; 
     // assign reward if the triangle points together with the origin build up a line
     if (
         triangleIsLineLike(sides[0], sides[1], sides[2]) &&
         triangleIsLineLike(oa.getLength(), ob.getLength(), ab.getLength()) &&
         triangleIsLineLike(ob.getLength(), oc.getLength(), bc.getLength()) && 
         triangleIsLineLike(oc.getLength(), oa.getLength(), ac.getLength())
-    ) return -100*standardCost*standardCost;
+    ) return -p;
     // compute the distance from the origin to the plane defined by these 3 points
     if (ab.isParallel(ac)) return 0; // these 3 points do not define a plane
     Space::Vector n = ab.crossProduct(ac).getNormalizedVector();
     double h = std::fabs(oa*(n));
-    // assign a reward if the distance is small enough
-    if (1000*h < p) return -standardCost*standardCost;
-    // assign a penalty if the distance is big enough
-    if (p < 10*h) return standardCost;
+    // assign reward if the distance is small enough
+    if (h < 1e-6) return -10*p;
+    // assign a penalty if the distance is large enough
+    if (p < 20*h) return 20*h - p;
     return 0;
 }
