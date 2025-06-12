@@ -20,7 +20,7 @@ const ClusteringInstance<char> PYRAMID_INSTANCE1(PYRAMID_SAMPLES, pyramidCost1);
 const ClusteringInstance<char> PYRAMID_INSTANCE2(PYRAMID_SAMPLES, pyramidCost2);
 const ClusteringInstance<char> PYRAMID_INSTANCE_UNSOLVABLE(PYRAMID_SAMPLES, pyramidCostUnsolvable);
 const ClusteringInstance<Space::Point> CUBIC_SPACE_INSTANCE(
-    Space::generateSamplePointsOnDistinctPlanes(2, 20, 100, 0),
+    Space::generateSamplePointsOnDistinctPlanes(2, 26, 100, 0),
     doubleToIntCostWrapper<Utuple<3,Space::Point>>(cubicSpaceCost, 1000)
 );
 
@@ -96,29 +96,30 @@ double cubicSpaceCost(Utuple<3,Space::Point> t) {
     Space::Vector bc = oc - ob;
     // compute perimiter and standard cost
     double p = ab.getLength() + ac.getLength() + bc.getLength();
-    double triangleQuality = p / (oa.getLength() + ob.getLength() + oc.getLength()); // 0 -> 2
-    // skip small triangles far away from the origin
-    if (triangleQuality < 1.5) return 0;
-    double standardCost = (triangleQuality - 1.0) * 10;
     // sort the sides
     std::array<double,3> sides = {ab.getLength(), ac.getLength(), bc.getLength()};
     std::sort(std::begin(sides), std::end(sides));
     // skip if 2 points are too close to each other
-    if (sides[0] * 3 < sides[1]) return 0; 
+    if (sides[0] * 5 < sides[1]) return 0; 
     // assign reward if the triangle points together with the origin build up a line
     if (
         triangleIsLineLike(sides[0], sides[1], sides[2]) &&
         triangleIsLineLike(oa.getLength(), ob.getLength(), ab.getLength()) &&
         triangleIsLineLike(ob.getLength(), oc.getLength(), bc.getLength()) && 
         triangleIsLineLike(oc.getLength(), oa.getLength(), ac.getLength())
-    ) return -standardCost;
+    ) return -p;
     // compute the distance from the origin to the plane defined by these 3 points
     if (ab.isParallel(ac)) return 0; // these 3 points do not define a plane
     Space::Vector n = ab.crossProduct(ac).getNormalizedVector();
     double h = std::fabs(oa*(n));
     // assign reward if the distance is small enough
-    if (h/p < 1e-4) return -standardCost;
+    if (h/p < 1e-4) return -p;
     // assign a penalty if the distance is large enough
-    if (p < 10*h) return 100*standardCost;
+    if (
+        h/p > 0.1 && 
+        std::fabs(oa.getLength()/ob.getLength() - 1.0) < 0.5 &&
+        std::fabs(ob.getLength()/oc.getLength() - 1.0) < 0.5 &&
+        std::fabs(oc.getLength()/oa.getLength() - 1.0) < 0.5
+    ) return p;
     return 0;
 }
