@@ -20,7 +20,7 @@ const ClusteringInstance<char> PYRAMID_INSTANCE1(PYRAMID_SAMPLES, pyramidCost1);
 const ClusteringInstance<char> PYRAMID_INSTANCE2(PYRAMID_SAMPLES, pyramidCost2);
 const ClusteringInstance<char> PYRAMID_INSTANCE_UNSOLVABLE(PYRAMID_SAMPLES, pyramidCostUnsolvable);
 const ClusteringInstance<Space::Point> CUBIC_SPACE_INSTANCE(
-    Space::generateSamplePointsOnDistinctPlanes(2, 26, 100, 0),
+    Space::generateSamplePointsOnDistinctPlanes(2, 10, 100, 0),
     doubleToIntCostWrapper<Utuple<3,Space::Point>>(cubicSpaceCost, 1000)
 );
 
@@ -82,7 +82,7 @@ bool triangleIsLineLike(double a, double b, double c) {
     double gamma = std::acos((a*a + b*b - c*c)/(2*a*b));
     // inspect the largest angle
     double largestAngle = std::max(alpha, std::max(beta, gamma));
-    return largestAngle > (170/180.0)*M_PI;
+    return largestAngle > (150/180.0)*M_PI;
 }
 
 double cubicSpaceCost(Utuple<3,Space::Point> t) {
@@ -94,8 +94,11 @@ double cubicSpaceCost(Utuple<3,Space::Point> t) {
     Space::Vector ab = ob - oa;
     Space::Vector ac = oc - oa;
     Space::Vector bc = oc - ob;
-    // compute perimiter and standard cost
+    // compute perimiter and triangle quality
     double p = ab.getLength() + ac.getLength() + bc.getLength();
+    double triangleQuality = p / (oa.getLength() + ob.getLength() + oc.getLength()); // 0 -> 2
+    // skip small triangles far away from the origin
+    if (triangleQuality < 1) return 0;
     // sort the sides
     std::array<double,3> sides = {ab.getLength(), ac.getLength(), bc.getLength()};
     std::sort(std::begin(sides), std::end(sides));
@@ -107,19 +110,19 @@ double cubicSpaceCost(Utuple<3,Space::Point> t) {
         triangleIsLineLike(oa.getLength(), ob.getLength(), ab.getLength()) &&
         triangleIsLineLike(ob.getLength(), oc.getLength(), bc.getLength()) && 
         triangleIsLineLike(oc.getLength(), oa.getLength(), ac.getLength())
-    ) return -p;
+    ) return -1;
     // compute the distance from the origin to the plane defined by these 3 points
     if (ab.isParallel(ac)) return 0; // these 3 points do not define a plane
     Space::Vector n = ab.crossProduct(ac).getNormalizedVector();
     double h = std::fabs(oa*(n));
-    // assign reward if the distance is small enough
-    if (h/p < 1e-4) return -p;
     // assign a penalty if the distance is large enough
     if (
-        h/p > 0.1 && 
-        std::fabs(oa.getLength()/ob.getLength() - 1.0) < 0.5 &&
-        std::fabs(ob.getLength()/oc.getLength() - 1.0) < 0.5 &&
-        std::fabs(oc.getLength()/oa.getLength() - 1.0) < 0.5
-    ) return p;
+        h/p > 1e-2 && 
+        std::fabs(oa.getLength()/ob.getLength() - 1.0) < 0.1 &&
+        std::fabs(ob.getLength()/oc.getLength() - 1.0) < 0.1 &&
+        std::fabs(oc.getLength()/oa.getLength() - 1.0) < 0.1
+    ) return (h/p)*100;
+    // assign reward if the distance is small enough
+    if (h/p < 1e-4) return -10;
     return 0;
 }
