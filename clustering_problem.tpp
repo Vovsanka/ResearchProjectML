@@ -14,6 +14,7 @@ ClusteringProblem<S>::ClusteringProblem(
         sampleMapping[i].push_back(i);
     }
     // init relevant pairs
+    int64_t negativeSamples = 0, positiveSamples = 0;
     relevantPairs.resize(sampleCount, {});
     for (int64_t i = 0; i < sampleCount; i++) {
         for (int64_t j = i + 1; j < sampleCount; j++) {
@@ -24,6 +25,8 @@ ClusteringProblem<S>::ClusteringProblem(
                 pairCosts[indexPair] = c;
                 relevantPairs[i].push_back(j);
                 relevantPairs[j].push_back(i);
+                if (c > 0) positiveSamples++;
+                if (c < 0) negativeSamples++;
             }
         }
     }
@@ -40,12 +43,16 @@ ClusteringProblem<S>::ClusteringProblem(
                     relevantTriples[i].push_back(std::make_pair(j, k)); // j < k!
                     relevantTriples[j].push_back(std::make_pair(i, k)); // i < k!
                     relevantTriples[k].push_back(std::make_pair(i, j)); // j < k!
+                    if (c > 0) positiveSamples++;
+                    if (c < 0) negativeSamples++;
                 }
             }
         }
     }
     std::cout << "------------------------------------\n";
-    std::cout << "Clustering problem has been inited with " << tripleCosts.size() << " relevant triples" << std::endl;
+    std::cout << "Clustering problem has been inited with " << tripleCosts.size() << " relevant triples";
+    std::cout << ", (negative: " << negativeSamples << ", positive: " << positiveSamples << ")";
+    std::cout << std::endl;
 }
 
 template<typename S>

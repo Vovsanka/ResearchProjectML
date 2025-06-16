@@ -56,6 +56,10 @@ double Space::Vector::getLength() const {
     return sqrt(x*x + y*y + z*z);
 }
 
+double Space::Vector::getAngle(const Vector &other) const {
+    return std::acos(((*this)*other)/(getLength()*other.getLength()));
+}
+
 Space::Vector Space::Vector::getNormalizedVector() const {
     double len = getLength();
     return Vector(

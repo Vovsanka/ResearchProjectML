@@ -53,6 +53,8 @@ namespace Space {
 
         double getLength() const;
 
+        double getAngle(const Vector &other) const;
+
         Vector getNormalizedVector() const;
 
         static Vector generateUnitVector();

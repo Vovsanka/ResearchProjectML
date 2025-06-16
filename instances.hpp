@@ -23,22 +23,20 @@ struct ClusteringInstance {
     ) : samples(samples), cost(tripleCostCB), pairCost(pairCostCB) {}
 };
 
-template <typename U>
-std::function<int64_t(U)> doubleToIntCostWrapper(
-    const std::function<double(U)> &costCB,
-    int64_t multiplyBy = 1
-) {
-    return [costCB, multiplyBy](U utuple) -> int64_t {
-        double c = costCB(utuple);
-        return std::round(c*multiplyBy);
-    };
-}
+
+ClusteringInstance<Space::Point> generateSpaceInstance(
+    int64_t planeCount,
+    int64_t pointsPerPlane,
+    double maxDistance,
+    double maxNoise
+);
+
+std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(const std::vector<Space::Point> &points);
 
 extern const ClusteringInstance<char> SIMPLE_INSTANCE;
 extern const ClusteringInstance<char> MULTICLUSTER_INSTANCE;
 extern const ClusteringInstance<char> PYRAMID_INSTANCE1;
 extern const ClusteringInstance<char> PYRAMID_INSTANCE2; 
 extern const ClusteringInstance<char> PYRAMID_INSTANCE_UNSOLVABLE;
-extern const ClusteringInstance<Space::Point> CUBIC_SPACE_INSTANCE;
 
 #endif
