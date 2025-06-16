@@ -34,7 +34,7 @@ ClusteringInstance<Space::Point> generateSpaceInstance(
     );
     return ClusteringInstance<Space::Point>(
         points,
-        createSpaceCostFunction(points)
+        createSpaceCostFunction(points, maxNoise)
     );
 }
 
@@ -99,8 +99,11 @@ bool triangleIsLineLike(double a, double b, double c) {
     return largestAngle > (150/180.0)*M_PI;
 }
 
-std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(const std::vector<Space::Point> &points) {
-    // create a space cost function after point preprocessing
+std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(
+    const std::vector<Space::Point> &points,
+    double maxNoise
+) {
+    // preprocess the points
     int64_t pointCount = points.size();
     int64_t pointPairCount = pointCount * (pointCount - 1);
     double sumPointDistance = 0;
@@ -110,6 +113,9 @@ std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(const std
         }
     }
     double averagePointDistance = sumPointDistance / pointPairCount;
+    // 
+
+    // create a space cost function after point preprocessing
     return [averagePointDistance](Utuple<3,Space::Point> pointTriple) -> int64_t {
         // compute the location vectors
         Space::Vector oa(pointTriple[0]);
@@ -123,8 +129,8 @@ std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(const std
         std::array<double,3> sides = {ab.getLength(), bc.getLength(), ca.getLength()};
         std::sort(std::begin(sides), std::end(sides));
         double p = sides[0] + sides[1] + sides[2];
-        double triangleValue = std::round(p/(3*averagePointDistance) * 1000);
-        // skip if 2 triangle points are too close to each other
+        int64_t triangleValue = std::round(p/(3*averagePointDistance) * 1000);
+        // skip if 2 triangle points are too close to each other (because of noise sensitivity)
         if (sides[0] < averagePointDistance/2) return 0;
         // handle line like triangle
         if (triangleIsLineLike(sides[0], sides[1], sides[2])) {
@@ -135,12 +141,11 @@ std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(const std
             ) return -triangleValue;
             return 0;
         }
-        // skip if 2 triangle points are too close to each other
-        if (sides[0] < averagePointDistance) return 0;
         // compute the distance from the origin to the plane defined by these 3 points
         Space::Vector n = ab.crossProduct(ca*(-1)).getNormalizedVector();
         double h = std::fabs(oa*(n));
-        if (h/averagePointDistance >= 0.01) return triangleValue;
+        if (h/averagePointDistance >= 0.1) return triangleValue;
+        if (h/averagePointDistance < 1e-4) return -triangleValue*1000;
         return 0;
     };
 }

@@ -161,6 +161,8 @@ std::vector<Space::Point> Space::Plane::generatePoints(
 }
 
 std::vector<Space::Plane> Space::generateDistinctPlanes(int64_t planeCount) {
+    const double LOWER_ANGLE_ALMOST_PARALLEL = 30;
+    const double UPPER_ANGLE_ALMOST_PARALLEL = 180 - LOWER_ANGLE_ALMOST_PARALLEL;
     std::vector<Vector> norms;
     for (int64_t i = 0; i < planeCount; i++) {
         bool denied;
@@ -169,7 +171,8 @@ std::vector<Space::Plane> Space::generateDistinctPlanes(int64_t planeCount) {
             denied = false;
             candidate = Vector::generateUnitVector();
             for (Vector &n : norms) {
-                if (candidate.isParallel(n)) {
+                double angle = candidate.getAngle(n)/M_PI * 180.0;
+                if (angle < LOWER_ANGLE_ALMOST_PARALLEL || UPPER_ANGLE_ALMOST_PARALLEL < angle) {
                     denied = true;
                     break;
                 }
@@ -184,6 +187,7 @@ std::vector<Space::Plane> Space::generateDistinctPlanes(int64_t planeCount) {
     }
     return planes;
 }
+
 
 std::vector<Space::Point> Space::generateSamplePointsOnDistinctPlanes(
     int64_t planeCount,
