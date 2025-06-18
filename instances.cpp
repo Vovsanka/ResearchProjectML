@@ -139,9 +139,10 @@ std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(
 ) {
     return [points, maxNoise](Utuple<3,Space::Point> pointTriple) -> int64_t {
         const double K = 5;
+        const double R = 1;
         const double G = 2;
         const double TOL = 1e-6;
-        const int64_t INF = 1e6;
+        const double INF = 1e6;
         //
         const int64_t pointCount = points.size();
         // compute the location vectors
@@ -158,22 +159,26 @@ std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(
         // skip if 2 triangle points are too close to each other (because of noise sensitivity)
         if (sides[0] < K*maxNoise) return 0;
         // assign a penalty if the points cannot belong to the same plane
-        Space::Vector n = computeBestFittingPlaneNormalVector({oa, ob, oc});
-        double ha = std::fabs(oa*n);
-        double hb = std::fabs(ob*n);
-        double hc = std::fabs(oc*n);
+        Space::Vector nBest = computeBestFittingPlaneNormalVector({oa, ob, oc});
+        double ha = std::fabs(oa*nBest);
+        double hb = std::fabs(ob*nBest);
+        double hc = std::fabs(oc*nBest);
         if (ha + hb + hc > 3*maxNoise + TOL) {
             return INF; // TOL is important if there is no noise
         }
         // skip line like triangles
         if (triangleIsLineLike(sides[0], sides[1], sides[2])) return 0;
+        // skip bad triangles with too much noise and unclear plane
+        Space::Vector nTriangle = ab.crossProduct(ca*(-1)).getNormalizedVector();
+        double ho = std::fabs(oa*nTriangle);
+        if (ho > R*maxNoise + TOL) return 0;
         // compute the amount of points that are likely in the same plane as the triangle points
         int64_t samePlanePointCount = 0;
         for (auto &p : points) {
             if (p == pointTriple[0] || p == pointTriple[1] || p == pointTriple[2]) continue;
-            double hp = std::fabs(Space::Vector(p)*n);
+            double hp = std::fabs(Space::Vector(p)*nBest);
             if (hp < G*maxNoise + TOL) samePlanePointCount++;
         }
-        return -samePlanePointCount;
+        return -samePlanePointCount*samePlanePointCount*samePlanePointCount;
     };
 }
