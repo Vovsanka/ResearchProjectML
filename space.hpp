@@ -37,6 +37,10 @@ namespace Space {
 
         Vector(const Point &p);
 
+        double operator[](int64_t i) const;
+
+        bool operator==(const Vector &other) const;
+
         Vector operator+(const Vector &other) const;
 
         Vector operator-(const Vector &other) const;

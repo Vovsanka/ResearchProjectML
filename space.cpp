@@ -11,6 +11,16 @@ Space::Vector::Vector(const Point &p) {
     z = p.z;
 }
 
+double Space::Vector::operator[](int64_t i) const {
+    if (i == 0) return x;
+    if (i == 1) return y;
+    if (i == 2) return z;
+}
+
+bool Space::Vector::operator==(const Vector &other) const {
+    return std::fabs(x - other.x) <= TOL && std::fabs(y - other.y) <= TOL && std::fabs(z - other.z) <= TOL;
+}
+
 Space::Vector Space::Vector::operator+(const Vector &other) const {
     return Vector(
         x + other.x,

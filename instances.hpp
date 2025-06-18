@@ -3,7 +3,10 @@
 
 #include <iostream>
 #include <vector>
+#include <array>
 #include <functional>
+
+#include <Eigen/Dense>
 
 #include "utuple.hpp"
 #include "space.hpp"
