@@ -139,8 +139,8 @@ std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(
 ) {
     return [points, maxNoise](Utuple<3,Space::Point> pointTriple) -> int64_t {
         const double K = 5;
-        const double R = 1;
-        const double G = 2;
+        const double R = 0.5;
+        const double G = 1 + R;
         const double TOL = 1e-6;
         const double INF = 1e6;
         //
@@ -176,7 +176,7 @@ std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(
         int64_t samePlanePointCount = 0;
         for (auto &p : points) {
             if (p == pointTriple[0] || p == pointTriple[1] || p == pointTriple[2]) continue;
-            double hp = std::fabs(Space::Vector(p)*nBest);
+            double hp = std::fabs((oa - Space::Vector(p))*nTriangle);
             if (hp < G*maxNoise + TOL) samePlanePointCount++;
         }
         return -samePlanePointCount*samePlanePointCount*samePlanePointCount;
