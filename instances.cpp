@@ -96,7 +96,7 @@ bool triangleIsLineLike(double a, double b, double c) {
     double gamma = std::acos((a*a + b*b - c*c)/(2*a*b));
     // inspect the largest angle
     double largestAngle = std::max(alpha, std::max(beta, gamma));
-    return largestAngle > (150/180.0)*M_PI;
+    return largestAngle > (90/180.0)*M_PI;
 }
 
 Space::Vector computeBestFittingPlaneNormalVector(std::vector<Space::Vector> locationVectors) {
@@ -174,7 +174,7 @@ std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(
 ) {
     return [points, maxDistance, maxNoise](Utuple<3,Space::Point> pointTriple) -> int64_t {
         const double K = 10;
-        const double L = 10;
+        const double L = 0.1;
         const double R = 1;
         const double TOL = 1e-6;
         const double INF = 1e6;
@@ -198,8 +198,8 @@ std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(
         double ha = std::fabs(oa*nBest);
         double hb = std::fabs(ob*nBest);
         double hc = std::fabs(oc*nBest);
-        if (ha + hb + hc > 3*maxNoise + TOL) {
-            return INF; // TOL is important if there is no noise
+        if (ha + hb + hc > L*maxDistance) { // TOL is important if there is no noise
+            return INF; 
         }
         // skip bad triangles with too much noise and unclear plane
         Space::Vector nTriangle = ab.crossProduct(ca*(-1)).getNormalizedVector();
@@ -214,7 +214,6 @@ std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(
             if (ha + hb + hc < L*maxNoise + TOL) return -pointCount;
             return 0; // skip otherwise
         }
-        
         // compute the amount of points that are likely in the same plane as the triangle points
         int64_t samePlanePointCount = 0;
         for (auto &p : points) {
