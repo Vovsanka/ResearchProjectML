@@ -36,6 +36,7 @@ ClusteringInstance<Space::Point> generateSpaceInstance(
 
 std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(
     const std::vector<Space::Point> &points,
+    double maxDistance,
     double maxNoise
 );
 
