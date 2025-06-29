@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <array>
+#include <map>
 #include <functional>
 
 #include <Eigen/Dense>
@@ -14,16 +15,24 @@
 
 template <typename S>
 struct ClusteringInstance {
-    std::vector<S> samples;
+    std::vector<S> unlabeledSamples;
+    std::vector<int64_t> actualClustering;
     std::function<int64_t(Utuple<3,S>)> cost;
     std::function<int64_t(Utuple<2,S>)> pairCost;
-    // TODO: save correct labels to compare with!!!
+    std::map<Utuple<2,int64_t>,int64_t> label;
 
     ClusteringInstance(
-        std::vector<S> samples,
+        std::vector<std::pair<S,int64_t>> labeledSamples,
         std::function<int64_t(Utuple<3,S>)> tripleCostCB,
         std::function<int64_t(Utuple<2,S>)> pairCostCB= [](Utuple<2,S> p)->int64_t{return 0;}
-    ) : samples(samples), cost(tripleCostCB), pairCost(pairCostCB) {}
+    ) : cost(tripleCostCB), pairCost(pairCostCB) {
+        this->actualClustering = std::vector<int64_t>(labeledSamples.size());
+        for (int64_t i = 0; i < labeledSamples.size(); i++) {
+            this->unlabeledSamples.push_back(labeledSamples[i].first);
+            this->actualClustering[i] = labeledSamples[i].second;
+        }
+    }
+
 };
 
 

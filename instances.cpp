@@ -13,11 +13,11 @@ int64_t pyramidCost2(Utuple<3,char> t);
 int64_t pyramidCostUnsolvable(Utuple<3,char> t);
 
 // define the clustering instances
-const ClusteringInstance<char> SIMPLE_INSTANCE(SIMPLE_SAMPLES, simpleCost);
-const ClusteringInstance<char> MULTICLUSTER_INSTANCE(MULTICLUSTER_SAMPLES, multiclusterCost);
-const ClusteringInstance<char> PYRAMID_INSTANCE1(PYRAMID_SAMPLES, pyramidCost1);
-const ClusteringInstance<char> PYRAMID_INSTANCE2(PYRAMID_SAMPLES, pyramidCost2);
-const ClusteringInstance<char> PYRAMID_INSTANCE_UNSOLVABLE(PYRAMID_SAMPLES, pyramidCostUnsolvable);
+// const ClusteringInstance<char> SIMPLE_INSTANCE(SIMPLE_SAMPLES, simpleCost);
+// const ClusteringInstance<char> MULTICLUSTER_INSTANCE(MULTICLUSTER_SAMPLES, multiclusterCost);
+// const ClusteringInstance<char> PYRAMID_INSTANCE1(PYRAMID_SAMPLES, pyramidCost1);
+// const ClusteringInstance<char> PYRAMID_INSTANCE2(PYRAMID_SAMPLES, pyramidCost2);
+// const ClusteringInstance<char> PYRAMID_INSTANCE_UNSOLVABLE(PYRAMID_SAMPLES, pyramidCostUnsolvable);
 
 
 ClusteringInstance<Space::Point> generateSpaceInstance(
@@ -26,14 +26,18 @@ ClusteringInstance<Space::Point> generateSpaceInstance(
     double maxDistance,
     double maxNoise
 ) {
-    std::vector<Space::Point> points = Space::generateSamplePointsOnDistinctPlanes(
+    std::vector<std::pair<Space::Point,int64_t>> labeledSamples = Space::generateSamplePointsOnDistinctPlanes(
         planeCount,
         pointsPerPlane,
         maxDistance,
         maxNoise
     );
+    std::vector<Space::Point> points;
+    for (auto [point, label] : labeledSamples) {
+        points.push_back(point);
+    }
     return ClusteringInstance<Space::Point>(
-        points,
+        labeledSamples,
         createSpaceCostFunction(points, maxDistance, maxNoise)
     );
 }
@@ -198,14 +202,14 @@ std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(
         double ha = std::fabs(oa*nBest);
         double hb = std::fabs(ob*nBest);
         double hc = std::fabs(oc*nBest);
-        if (ha + hb + hc > L*maxDistance) { // TOL is important if there is no noise
+        if (ha + hb + hc > 3*maxNoise) { // TOL is important if there is no noise
             return INF; 
         }
         // skip bad triangles with too much noise and unclear plane
         Space::Vector nTriangle = ab.crossProduct(ca*(-1)).getNormalizedVector();
         double ho = std::fabs(oa*nTriangle);
         if (ho > R*maxNoise + TOL) return 0;
-        // handle line like triangles
+        // handle line like triangles (xxx)
         if (triangleIsLineLike(sides[0], sides[1], sides[2])) {
             Space::Vector lBest = computeBestFittingLineDirectionVector({oa, ob, oc});
             double ha = oa.crossProduct(lBest).getLength();

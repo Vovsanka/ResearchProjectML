@@ -31,7 +31,7 @@ class ClusteringProblem {
     std::vector<std::vector<int64_t>> relevantPairs;
     std::map<Upair, int64_t> pairCosts;
 
-    std::map<Upair, int64_t> label;
+    std::map<Upair,int64_t> label;
     std::set<Utriple> cutTriples;
     int64_t resultingCost;
 
@@ -81,7 +81,7 @@ public:
         const std::function<int64_t(Utuple<2,S>)> &pairCostCB = [](Utuple<2,S> p)->int64_t{return 0;}
     );
 
-    std::map<Upair, int64_t> getLabels();
+    std::map<Upair,int64_t> getLabels();
 
     bool isSolvedCompletely();
 

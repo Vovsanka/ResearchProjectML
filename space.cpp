@@ -1,7 +1,8 @@
 #include "space.hpp"
 
 
-std::mt19937 gen(std::random_device{}());
+// std::mt19937 gen(std::random_device{}());
+std::mt19937 gen(42);
 
 Space::Vector::Vector(double x, double y, double z): x(x), y(y), z(z) {}
 
@@ -15,6 +16,7 @@ double Space::Vector::operator[](int64_t i) const {
     if (i == 0) return x;
     if (i == 1) return y;
     if (i == 2) return z;
+    throw std::runtime_error("Vector component index out of range! ");
 }
 
 bool Space::Vector::operator==(const Vector &other) const {
@@ -199,7 +201,7 @@ std::vector<Space::Plane> Space::generateDistinctPlanes(int64_t planeCount) {
 }
 
 
-std::vector<Space::Point> Space::generateSamplePointsOnDistinctPlanes(
+std::vector<std::pair<Space::Point,int64_t>> Space::generateSamplePointsOnDistinctPlanes(
     int64_t planeCount,
     int64_t pointsPerPlane,
     double maxDistance,
@@ -207,13 +209,13 @@ std::vector<Space::Point> Space::generateSamplePointsOnDistinctPlanes(
 ) {
     std::vector<Space::Plane> planes = Space::generateDistinctPlanes(planeCount);
     std::cout << "Generating cubic space clustering instance: " << std::endl;
-    std::vector<Space::Point> samples;
+    std::vector<std::pair<Space::Point,int64_t>> samples;
     int64_t startNum = 0;
-    for (auto &plane : planes) {
-        std::cout << plane << "\nPoints: ";
-        std::vector<Space::Point> points = plane.generatePoints(pointsPerPlane, startNum, maxDistance, maxNoise);
+    for (int64_t i = 0; i < planeCount; i++) {
+        std::cout << planes[i] << "\nPoints: ";
+        std::vector<Space::Point> points = planes[i].generatePoints(pointsPerPlane, startNum, maxDistance, maxNoise);
         for (auto &p : points) {
-            samples.push_back(p);
+            samples.push_back(std::make_pair(p, i));
             std::cout << p << " ";
         }
         std::cout << "\n" << std::endl;

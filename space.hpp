@@ -78,7 +78,7 @@ namespace Space {
 
     std::vector<Plane> generateDistinctPlanes(int64_t planeCount);
 
-    std::vector<Point> generateSamplePointsOnDistinctPlanes(
+    std::vector<std::pair<Space::Point,int64_t>> generateSamplePointsOnDistinctPlanes(
         int64_t planeCount,
         int64_t pointsPerPlane,
         double maxDistance,
