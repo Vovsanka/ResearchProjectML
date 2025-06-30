@@ -207,6 +207,8 @@ std::vector<std::pair<Space::Point,int64_t>> Space::generateSamplePointsOnDistin
     double maxDistance,
     double maxNoise
 ) {
+    std::ofstream csvFile("points.csv");
+    csvFile << "p,x,y,z" << std::endl;
     std::vector<Space::Plane> planes = Space::generateDistinctPlanes(planeCount);
     std::cout << "Generating cubic space clustering instance: " << std::endl;
     std::vector<std::pair<Space::Point,int64_t>> samples;
@@ -217,10 +219,12 @@ std::vector<std::pair<Space::Point,int64_t>> Space::generateSamplePointsOnDistin
         for (auto &p : points) {
             samples.push_back(std::make_pair(p, i));
             std::cout << p << " ";
+            csvFile << i << "," << p.x << "," << p.y << "," << p.z << std::endl;
         }
         std::cout << "\n" << std::endl;
         startNum += pointsPerPlane;
     }
+    csvFile.close();
     std::shuffle(std::begin(samples), std::end(samples), gen); // random shuffle the samples
     return samples;
 }

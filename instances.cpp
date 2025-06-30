@@ -100,7 +100,7 @@ bool triangleIsLineLike(double a, double b, double c) {
     double gamma = std::acos((a*a + b*b - c*c)/(2*a*b));
     // inspect the largest angle
     double largestAngle = std::max(alpha, std::max(beta, gamma));
-    return largestAngle > (90/180.0)*M_PI;
+    return largestAngle > (150/180.0)*M_PI;
 }
 
 Space::Vector computeBestFittingPlaneNormalVector(std::vector<Space::Vector> locationVectors) {
@@ -137,51 +137,17 @@ Space::Vector computeBestFittingPlaneNormalVector(std::vector<Space::Vector> loc
     throw std::runtime_error("Eigen decomposition failed! ");
 }
 
-Space::Vector computeBestFittingLineDirectionVector(std::vector<Space::Vector> locationVectors) {
-    // the fitting plane contains the origin (no need to compute centroid)
-    const int64_t N = locationVectors.size();
-    // compute the scatter matrix
-    std::array<std::array<double,3>,3> cov;
-    for (int64_t i = 0; i < 3; i++) {
-        for (int64_t j = 0; j < 3; j++) {
-            cov[i][j] = 0;
-            for (int64_t k = 0; k < N; k++) {
-                cov[i][j] += locationVectors[k][i] * locationVectors[k][j];
-            }
-        }
-    }
-    // compute the eigenvector for the greatest eigenvalue (normalized direction vector of the best fitting line)
-    Eigen::Matrix3d A;
-    A << cov[0][0], cov[0][1], cov[0][2],
-         cov[1][0], cov[1][1], cov[1][2],
-         cov[2][0], cov[2][1], cov[2][2];
-    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> solver(A);
-    if (solver.info() == Eigen::Success) {
-        Eigen::Vector3d eigenvalues = solver.eigenvalues();
-        Eigen::Matrix3d eigenvectors = solver.eigenvectors();
-        int64_t maxIndex;
-        eigenvalues.maxCoeff(&maxIndex);
-        Eigen::Vector3d smallestEigenvector = eigenvectors.col(maxIndex);
-        return Space::Vector(
-            smallestEigenvector[0],
-            smallestEigenvector[1],
-            smallestEigenvector[2]
-        ).getNormalizedVector();
-    } 
-    throw std::runtime_error("Eigen decomposition failed! ");
-}
-
 std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(
     const std::vector<Space::Point> &points,
     double maxDistance,
     double maxNoise
 ) {
-    return [points, maxDistance, maxNoise](Utuple<3,Space::Point> pointTriple) -> int64_t {
+    std::function<double(Utuple<3,Space::Point>)> doubleCost = [points, maxDistance, maxNoise](Utuple<3,Space::Point> pointTriple) -> double {
         const double K = 10;
         const double L = 0.1;
         const double R = 1;
         const double TOL = 1e-6;
-        const double INF = 1e6;
+        const double INF = 1e3;
         //
         const int64_t pointCount = points.size();
         // compute the location vectors
@@ -196,39 +162,43 @@ std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(
         std::array<double,3> sides = {ab.getLength(), bc.getLength(), ca.getLength()};
         std::sort(std::begin(sides), std::end(sides));
         // skip if 2 triangle points are too close to each other (because of noise sensitivity)
-        if (sides[0] < K*maxNoise) return 0;
+        if (sides[0] < K*maxNoise + TOL) return 0;
         // assign a penalty if the points cannot belong to the same plane
         Space::Vector nBest = computeBestFittingPlaneNormalVector({oa, ob, oc});
         double ha = std::fabs(oa*nBest);
         double hb = std::fabs(ob*nBest);
         double hc = std::fabs(oc*nBest);
-        if (ha + hb + hc > 3*maxNoise) { // TOL is important if there is no noise
+        if (ha + hb + hc > 3*maxNoise + TOL) { // TOL is important if there is no noise
             return INF; 
         }
         // skip bad triangles with too much noise and unclear plane
         Space::Vector nTriangle = ab.crossProduct(ca*(-1)).getNormalizedVector();
         double ho = std::fabs(oa*nTriangle);
         if (ho > R*maxNoise + TOL) return 0;
-        // handle line like triangles (xxx)
-        if (triangleIsLineLike(sides[0], sides[1], sides[2])) {
-            Space::Vector lBest = computeBestFittingLineDirectionVector({oa, ob, oc});
-            double ha = oa.crossProduct(lBest).getLength();
-            double hb = ob.crossProduct(lBest).getLength();
-            double hc = oc.crossProduct(lBest).getLength();
-            if (ha + hb + hc < L*maxNoise + TOL) return -pointCount;
-            return 0; // skip otherwise
-        }
+        // skip line like triangles
+        if (triangleIsLineLike(sides[0], sides[1], sides[2])) return 0;
         // compute the amount of points that are likely in the same plane as the triangle points
-        int64_t samePlanePointCount = 0;
+        std::vector<Space::Vector> samePlaneVectors;
         for (auto &p : points) {
-            if (p == pointTriple[0] || p == pointTriple[1] || p == pointTriple[2]) continue;
             Space::Vector npBest = computeBestFittingPlaneNormalVector({oa, ob, oc, Space::Vector(p)});
             double ha = std::fabs(oa*npBest);
             double hb = std::fabs(ob*npBest);
             double hc = std::fabs(oc*npBest);
             double hp = std::fabs(Space::Vector(p)*npBest);
-            if (ha + hb + hc + hp < 4*maxNoise + TOL) samePlanePointCount++;
+            if (ha + hb + hc + hp < 4*maxNoise + TOL) {
+                samePlaneVectors.push_back(Space::Vector(p));
+            }
         }
-        return -samePlanePointCount*samePlanePointCount*samePlanePointCount;
+        Space::Vector nPlane = computeBestFittingPlaneNormalVector(samePlaneVectors);
+        double c = 0;
+        for (auto &ov : samePlaneVectors) {
+            double hv = std::fabs(ov*nPlane);
+            if (hv <= maxNoise) c += -1;
+        }
+        return c;
+    };
+    // double to int adapter
+    return [doubleCost](Utuple<3,Space::Point> pointTriple) -> int64_t {
+        return std::round(doubleCost(pointTriple) * 1000);
     };
 }

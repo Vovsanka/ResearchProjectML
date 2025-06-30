@@ -1,3 +1,7 @@
+# csv and txt files
+.csv
+.txt
+
 # === CMake build files ===
 build/
 CMakeFiles/
