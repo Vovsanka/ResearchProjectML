@@ -9,6 +9,7 @@
 #include <functional>
 #include <stdexcept>
 #include <algorithm>
+#include <chrono>
 
 #include "utuple.hpp"
 #include "min_cut.hpp"

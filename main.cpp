@@ -10,7 +10,11 @@ int main() {
         spaceInstance.unlabeledSamples,
         spaceInstance.cost
     );
+    auto startTime = std::chrono::high_resolution_clock::now();
     problem.solve();
+    auto endTime = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> solvingDuration = endTime - startTime;
+    std::cout << "Solving duration: " << std::fixed << std::setprecision(3) << solvingDuration.count() / 1e3 << " s" << std::endl;
     spaceInstance.printLabelEvaluation(problem.getLabels());
     return 0;
 }
