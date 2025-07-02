@@ -16,5 +16,6 @@ int main() {
     std::chrono::duration<double, std::milli> solvingDuration = endTime - startTime;
     std::cout << "Solving duration: " << std::fixed << std::setprecision(3) << solvingDuration.count() / 1e3 << " s" << std::endl;
     spaceInstance.printLabelEvaluation(problem.getLabels());
+    spaceInstance.evaluateCosts();
     return 0;
 }

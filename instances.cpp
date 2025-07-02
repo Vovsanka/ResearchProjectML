@@ -100,7 +100,7 @@ bool triangleIsLineLike(double a, double b, double c) {
     double gamma = std::acos((a*a + b*b - c*c)/(2*a*b));
     // inspect the largest angle
     double largestAngle = std::max(alpha, std::max(beta, gamma));
-    return largestAngle > (150/180.0)*M_PI;
+    return largestAngle > (90/180.0)*M_PI;
 }
 
 Space::Vector computeBestFittingPlaneNormalVector(std::vector<Space::Vector> locationVectors) {
@@ -143,12 +143,11 @@ std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(
     double maxNoise
 ) {
     std::function<double(Utuple<3,Space::Point>)> doubleCost = [points, maxDistance, maxNoise](Utuple<3,Space::Point> pointTriple) -> double {
-        const double K = 10;
-        const double L = 0.1;
-        const double R = 1;
+        // treshold
         const double TOL = 1e-6;
-        const double INF = 1e3;
-        //
+        const double BIAS = 2*maxNoise/maxDistance + TOL;
+        const double INF = 1;
+        // 0: compute triangle vectors and sides
         const int64_t pointCount = points.size();
         // compute the location vectors
         Space::Vector oa(pointTriple[0]);
@@ -161,44 +160,45 @@ std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(
         // sort the sides
         std::array<double,3> sides = {ab.getLength(), bc.getLength(), ca.getLength()};
         std::sort(std::begin(sides), std::end(sides));
-        // skip if 2 triangle points are too close to each other (because of noise sensitivity)
-        if (sides[0] < K*maxNoise + TOL) return 0;
+        // 1: skips
+        // 1.1: skip if 2 triangle points are too close to each other (because of noise sensitivity)
+        if (sides[0] < 10*maxNoise + TOL) return 0; // TOL is importaint if maxNoise == 0
+        // 1.2: skip line like triangles
+        if (triangleIsLineLike(sides[0], sides[1], sides[2])) return 0;
+        // 2: assign a large penalty if the triangle is obviously not from the same plane
         // assign a penalty if the points cannot belong to the same plane
         Space::Vector nBest = computeBestFittingPlaneNormalVector({oa, ob, oc});
         double ha = std::fabs(oa*nBest);
         double hb = std::fabs(ob*nBest);
         double hc = std::fabs(oc*nBest);
-        if (ha + hb + hc > 3*maxNoise + TOL) { // TOL is important if there is no noise
+        if (ha > maxNoise + TOL && hb > maxNoise + TOL && hc > maxNoise + TOL) {
             return INF; 
         }
-        // skip bad triangles with too much noise and unclear plane
+        // 3 find the cost
+        // 3.1: skip triangles with too much noise and unclear plane
         Space::Vector nTriangle = ab.crossProduct(ca*(-1)).getNormalizedVector();
         double ho = std::fabs(oa*nTriangle);
-        if (ho > R*maxNoise + TOL) return 0;
-        // skip line like triangles
-        if (triangleIsLineLike(sides[0], sides[1], sides[2])) return 0;
-        // compute the amount of points that are likely in the same plane as the triangle points
+        if (ho > 3*maxNoise + TOL) return 0;
+        // 3.2: compute the points that are likely in the same plane as the triangle points
         std::vector<Space::Vector> samePlaneVectors;
         for (auto &p : points) {
-            Space::Vector npBest = computeBestFittingPlaneNormalVector({oa, ob, oc, Space::Vector(p)});
-            double ha = std::fabs(oa*npBest);
-            double hb = std::fabs(ob*npBest);
-            double hc = std::fabs(oc*npBest);
-            double hp = std::fabs(Space::Vector(p)*npBest);
-            if (ha + hb + hc + hp < 4*maxNoise + TOL) {
+            double hp = std::fabs(Space::Vector(p)*nBest);
+            if (hp < 2*maxNoise + TOL) {
                 samePlaneVectors.push_back(Space::Vector(p));
             }
         }
         Space::Vector nPlane = computeBestFittingPlaneNormalVector(samePlaneVectors);
+        int64_t sameCount = samePlaneVectors.size() - 3;
         double c = 0;
         for (auto &ov : samePlaneVectors) {
             double hv = std::fabs(ov*nPlane);
-            if (hv <= maxNoise) c += -1;
+            c += hv/maxDistance - BIAS;
         }
+        c *= std::pow(1.0*sameCount, 3);
         return c;
     };
     // double to int adapter
     return [doubleCost](Utuple<3,Space::Point> pointTriple) -> int64_t {
-        return std::round(doubleCost(pointTriple) * 1000);
+        return std::round(doubleCost(pointTriple) * 1e6);
     };
 }

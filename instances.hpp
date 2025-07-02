@@ -71,6 +71,45 @@ struct ClusteringInstance {
         std::cout << std::endl;
     }
 
+    void evaluateCosts() {
+        std::vector<int64_t> same, diff;
+        int64_t sampleCount = unlabeledSamples.size();
+        for (int64_t i = 0; i < sampleCount; i++) {
+            for (int64_t j = i + 1; j < sampleCount; j++) {
+                int64_t c = pairCost(Utuple<2,S>({unlabeledSamples[i], unlabeledSamples[j]}));
+                if (actualClustering[i] == actualClustering[j]) {
+                    same.push_back(c);
+                } else {
+                    diff.push_back(c);
+                }
+            }
+        }
+        for (int64_t i = 0; i < sampleCount; i++) {
+            for (int64_t j = i + 1; j < sampleCount; j++) {
+                for (int64_t k = j + 1; k < sampleCount; k++) {
+                    int64_t c = cost(Utuple<3,S>({unlabeledSamples[i], unlabeledSamples[j], unlabeledSamples[k]}));
+                    if (!c) continue;
+                    if (actualClustering[i] == actualClustering[j] && actualClustering[i] == actualClustering[k]) {
+                        same.push_back(c);
+                    } else {
+                        diff.push_back(c);
+                    }
+                }
+            }
+        }
+        std::sort(std::begin(same), std::end(same));
+        std::sort(std::begin(diff), std::end(diff));
+        std::ofstream sameFile("same.txt"), diffFile("diff.txt");
+        for (auto c : same) {
+            sameFile << c << std::endl;
+        }
+        for (auto c : diff) {
+            diffFile << c << std::endl;
+        }
+        sameFile.close();
+        diffFile.close();
+    }
+
 };
 
 
