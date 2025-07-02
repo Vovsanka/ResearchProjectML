@@ -35,7 +35,7 @@ struct ClusteringInstance {
     std::pair<double,double> evaluateLabels(const std::map<Upair,int64_t> &labels) const {
         // computes partial optimality percentage and accuracy
         int64_t sampleCount = unlabeledSamples.size();
-        int64_t labelCount = sampleCount*(sampleCount - 1);
+        int64_t labelCount = sampleCount*(sampleCount - 1)/2;
         int64_t fixedLabelCount = 0;
         int64_t tp = 0, tn = 0, fp = 0, fn = 0;
         for (int64_t i = 0; i < sampleCount; i++) {

@@ -142,10 +142,9 @@ std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(
     double maxDistance,
     double maxNoise
 ) {
-    std::function<double(Utuple<3,Space::Point>)> doubleCost = [points, maxDistance, maxNoise](Utuple<3,Space::Point> pointTriple) -> double {
-        // treshold
-        const double TOL = 1e-6;
-        const double BIAS = 2*maxNoise/maxDistance + TOL;
+    const double TOL = 1e-6;
+    std::function<double(Utuple<3,Space::Point>)> doubleCost = [TOL, points, maxDistance, maxNoise](Utuple<3,Space::Point> pointTriple) -> double {
+        const double BIAS = maxNoise/maxDistance + TOL;
         const double INF = 1;
         // 0: compute triangle vectors and sides
         const int64_t pointCount = points.size();
@@ -175,30 +174,33 @@ std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(
             return INF; 
         }
         // 3 find the cost
-        // 3.1: skip triangles with too much noise and unclear plane
+        // 3.1: skip the triangles with too much noise and unclear plane
         Space::Vector nTriangle = ab.crossProduct(ca*(-1)).getNormalizedVector();
         double ho = std::fabs(oa*nTriangle);
-        if (ho > 3*maxNoise + TOL) return 0;
+        if (ho > 3*maxNoise + TOL) {
+            // return ho/maxDistance - BIAS;
+            return 0;
+        } 
         // 3.2: compute the points that are likely in the same plane as the triangle points
         std::vector<Space::Vector> samePlaneVectors;
         for (auto &p : points) {
             double hp = std::fabs(Space::Vector(p)*nBest);
-            if (hp < 2*maxNoise + TOL) {
+            if (hp < maxNoise + TOL) {
                 samePlaneVectors.push_back(Space::Vector(p));
             }
         }
         Space::Vector nPlane = computeBestFittingPlaneNormalVector(samePlaneVectors);
-        int64_t sameCount = samePlaneVectors.size() - 3;
+        int64_t sameCount = samePlaneVectors.size();
         double c = 0;
         for (auto &ov : samePlaneVectors) {
             double hv = std::fabs(ov*nPlane);
             c += hv/maxDistance - BIAS;
         }
-        c *= std::pow(1.0*sameCount, 3);
+        c *= std::pow(sameCount - 3.0, 5);
         return c;
     };
     // double to int adapter
-    return [doubleCost](Utuple<3,Space::Point> pointTriple) -> int64_t {
-        return std::round(doubleCost(pointTriple) * 1e6);
+    return [TOL, doubleCost](Utuple<3,Space::Point> pointTriple) -> int64_t {
+        return std::round(doubleCost(pointTriple) * 1/TOL);
     };
 }
