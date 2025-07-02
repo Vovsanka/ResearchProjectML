@@ -40,7 +40,6 @@ struct ClusteringInstance {
         int64_t tp = 0, tn = 0, fp = 0, fn = 0;
         for (int64_t i = 0; i < sampleCount; i++) {
             for (int64_t j = i + 1; j < sampleCount; j++) {
-                labelCount++;
                 int64_t l = labels.at(Upair({i, j}));
                 if (l > 0) {
                     fixedLabelCount++;
