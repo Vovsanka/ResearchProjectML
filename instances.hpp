@@ -57,7 +57,9 @@ struct ClusteringInstance {
             }
         }
         double partialOptimality = (1.0 * fixedLabelCount) / labelCount;
-        double accuracy = (1.0 * (tp + tn)) / (tp + tn + fp + fn);
+        double accuracy;
+        if (fixedLabelCount) accuracy = (1.0 * (tp + tn)) / (tp + tn + fp + fn);
+        else accuracy = 1;
         return std::make_pair(partialOptimality, accuracy);
     }
 
@@ -76,6 +78,7 @@ struct ClusteringInstance {
         for (int64_t i = 0; i < sampleCount; i++) {
             for (int64_t j = i + 1; j < sampleCount; j++) {
                 int64_t c = pairCost(Utuple<2,S>({unlabeledSamples[i], unlabeledSamples[j]}));
+                if (!c) continue;
                 if (actualClustering[i] == actualClustering[j]) {
                     same.push_back(c);
                 } else {
@@ -96,7 +99,7 @@ struct ClusteringInstance {
                 }
             }
         }
-        std::sort(std::begin(same), std::end(same));
+        std::sort(std::begin(same), std::end(same), std::greater<int>());
         std::sort(std::begin(diff), std::end(diff));
         std::ofstream sameFile("same.txt"), diffFile("diff.txt");
         for (auto c : same) {

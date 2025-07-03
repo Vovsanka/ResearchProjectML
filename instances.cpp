@@ -203,7 +203,7 @@ std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(
             double hv = std::fabs(ov*nPlane);
             c += (hv - 3*maxNoise)/maxDistance - TOL;
         }
-        c *= std::pow(sameCount - 3.0, 2);
+        c *= sameCount;
         return c;
     };
     // double to int adapter

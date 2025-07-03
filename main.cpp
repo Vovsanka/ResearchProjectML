@@ -5,7 +5,7 @@
 
 
 int main() {
-    ClusteringInstance<Space::Point> spaceInstance = generateSpaceInstance(2, 10, 100, 1);
+    ClusteringInstance<Space::Point> spaceInstance = generateSpaceInstance(2, 10, 100, 3);
     ClusteringProblem<Space::Point> problem(
         spaceInstance.unlabeledSamples,
         spaceInstance.cost
