@@ -100,7 +100,7 @@ bool triangleIsLineLike(double a, double b, double c) {
     double gamma = std::acos((a*a + b*b - c*c)/(2*a*b));
     // inspect the largest angle
     double largestAngle = std::max(alpha, std::max(beta, gamma));
-    return largestAngle > (90/180.0)*M_PI;
+    return largestAngle > (150/180.0)*M_PI;
 }
 
 Space::Vector computeBestFittingPlaneNormalVector(std::vector<Space::Vector> locationVectors) {
@@ -144,7 +144,6 @@ std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(
 ) {
     const double TOL = 1e-6;
     std::function<double(Utuple<3,Space::Point>)> doubleCost = [TOL, points, maxDistance, maxNoise](Utuple<3,Space::Point> pointTriple) -> double {
-        const double BIAS = maxNoise/maxDistance + TOL;
         const double INF = 1;
         // 0: compute triangle vectors and sides
         const int64_t pointCount = points.size();
@@ -177,15 +176,23 @@ std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(
         // 3.1: skip the triangles with too much noise and unclear plane
         Space::Vector nTriangle = ab.crossProduct(ca*(-1)).getNormalizedVector();
         double ho = std::fabs(oa*nTriangle);
-        if (ho > 3*maxNoise + TOL) {
+        if (ho > maxNoise + TOL) {
             // return ho/maxDistance - BIAS;
             return 0;
         } 
         // 3.2: compute the points that are likely in the same plane as the triangle points
+        // double c = 0;
+        // for (auto &p : points) {
+        //     double hp = std::fabs(Space::Vector(p)*nBest);
+        //     if (hp > 10*maxNoise + TOL) continue;
+        //     c += (hp - *maxNoise)/maxDistance - TOL;
+        // }
+        // return c;
+
         std::vector<Space::Vector> samePlaneVectors;
         for (auto &p : points) {
             double hp = std::fabs(Space::Vector(p)*nBest);
-            if (hp < maxNoise + TOL) {
+            if (hp < 10*maxNoise + TOL) {
                 samePlaneVectors.push_back(Space::Vector(p));
             }
         }
@@ -194,9 +201,9 @@ std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(
         double c = 0;
         for (auto &ov : samePlaneVectors) {
             double hv = std::fabs(ov*nPlane);
-            c += hv/maxDistance - BIAS;
+            c += (hv - 3*maxNoise)/maxDistance - TOL;
         }
-        c *= std::pow(sameCount - 3.0, 5);
+        c *= std::pow(sameCount - 3.0, 2);
         return c;
     };
     // double to int adapter
