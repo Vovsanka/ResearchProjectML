@@ -74,7 +74,7 @@ namespace Space {
         
         Plane(Vector norm);
         
-        std::vector<Point> generatePoints(int64_t pointCount, int64_t startNum, double maxDistance, double maxNoise);
+        std::vector<Point> generatePoints(int64_t pointCount, int64_t startNum, double maxDistance, double noise);
     };
 
     std::vector<Plane> generateDistinctPlanes(int64_t planeCount);
@@ -83,7 +83,7 @@ namespace Space {
         int64_t planeCount,
         int64_t pointsPerPlane,
         double maxDistance,
-        double maxNoise
+        double noise
     );
 
     std::ostream& operator<<(std::ostream& os, const Vector &v);

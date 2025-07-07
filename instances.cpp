@@ -24,13 +24,13 @@ ClusteringInstance<Space::Point> generateSpaceInstance(
     int64_t planeCount,
     int64_t pointsPerPlane,
     double maxDistance,
-    double maxNoise
+    double noise
 ) {
     std::vector<std::pair<Space::Point,int64_t>> labeledSamples = Space::generateSamplePointsOnDistinctPlanes(
         planeCount,
         pointsPerPlane,
         maxDistance,
-        maxNoise
+        noise
     );
     std::vector<Space::Point> points;
     for (auto [point, label] : labeledSamples) {
@@ -38,7 +38,7 @@ ClusteringInstance<Space::Point> generateSpaceInstance(
     }
     return ClusteringInstance<Space::Point>(
         labeledSamples,
-        createSpaceCostFunction(points, maxDistance, maxNoise)
+        createSpaceCostFunction(points, maxDistance, noise)
     );
 }
 
@@ -100,7 +100,7 @@ bool triangleIsLineLike(double a, double b, double c) {
     double gamma = std::acos((a*a + b*b - c*c)/(2*a*b));
     // inspect the largest angle
     double largestAngle = std::max(alpha, std::max(beta, gamma));
-    return largestAngle > (150/180.0)*M_PI;
+    return largestAngle > (120/180.0)*M_PI;
 }
 
 Space::Vector computeBestFittingPlaneNormalVector(std::vector<Space::Vector> locationVectors) {
@@ -140,11 +140,10 @@ Space::Vector computeBestFittingPlaneNormalVector(std::vector<Space::Vector> loc
 std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(
     const std::vector<Space::Point> &points,
     double maxDistance,
-    double maxNoise
+    double noise
 ) {
     const double TOL = 1e-6;
-    std::function<double(Utuple<3,Space::Point>)> doubleCost = [TOL, points, maxDistance, maxNoise](Utuple<3,Space::Point> pointTriple) -> double {
-        const double INF = 1;
+    std::function<double(Utuple<3,Space::Point>)> doubleCost = [TOL, points, maxDistance, noise](Utuple<3,Space::Point> pointTriple) -> double {
         // 0: compute triangle vectors and sides
         const int64_t pointCount = points.size();
         // compute the location vectors
@@ -158,41 +157,24 @@ std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(
         // sort the sides
         std::array<double,3> sides = {ab.getLength(), bc.getLength(), ca.getLength()};
         std::sort(std::begin(sides), std::end(sides));
-        // 1: skips
-        // 1.1: skip if 2 triangle points are too close to each other (because of noise sensitivity)
-        if (sides[0] < 10*maxNoise + TOL) return 0; // TOL is importaint if maxNoise == 0
-        // 1.2: skip line like triangles
+        // 1: skip if 2 triangle points are too close to each other (because of noise sensitivity)
+        if (sides[0] < 0.5*maxDistance) return 0;
+        // 2: skip line like triangles
         if (triangleIsLineLike(sides[0], sides[1], sides[2])) return 0;
-        // 2: assign a large penalty if the triangle is obviously not from the same plane
-        // assign a penalty if the points cannot belong to the same plane
-        Space::Vector nBest = computeBestFittingPlaneNormalVector({oa, ob, oc});
-        double ha = std::fabs(oa*nBest);
-        double hb = std::fabs(ob*nBest);
-        double hc = std::fabs(oc*nBest);
-        if (ha > maxNoise + TOL && hb > maxNoise + TOL && hc > maxNoise + TOL) {
-            return INF; 
-        }
-        // 3 find the cost
-        // 3.1: skip the triangles with too much noise and unclear plane
+        // 3: assign a penalty if the triangle is obviously not from the same plane
         Space::Vector nTriangle = ab.crossProduct(ca*(-1)).getNormalizedVector();
         double ho = std::fabs(oa*nTriangle);
-        if (ho > maxNoise + TOL) {
-            // return ho/maxDistance - BIAS;
-            return 0;
+        if (ho > 0.1*maxDistance) {
+            return ho/maxDistance;
         } 
-        // 3.2: compute the points that are likely in the same plane as the triangle points
-        // double c = 0;
-        // for (auto &p : points) {
-        //     double hp = std::fabs(Space::Vector(p)*nBest);
-        //     if (hp > 10*maxNoise + TOL) continue;
-        //     c += (hp - *maxNoise)/maxDistance - TOL;
-        // }
-        // return c;
-
+        // 4: skip triangles with too much noise because they span an unclear plane
+        if (ho > noise + TOL) return 0;
+        // 5: compute the points that are likely in the same plane as the triangle points
+        Space::Vector nBest = computeBestFittingPlaneNormalVector({oa, ob, oc});
         std::vector<Space::Vector> samePlaneVectors;
         for (auto &p : points) {
             double hp = std::fabs(Space::Vector(p)*nBest);
-            if (hp < 10*maxNoise + TOL) {
+            if (hp < 3*noise + TOL) {
                 samePlaneVectors.push_back(Space::Vector(p));
             }
         }
@@ -201,13 +183,15 @@ std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(
         double c = 0;
         for (auto &ov : samePlaneVectors) {
             double hv = std::fabs(ov*nPlane);
-            c += (hv - 3*maxNoise)/maxDistance - TOL;
+            c += (hv - (3*noise + TOL))/maxDistance;
         }
         c *= sameCount;
         return c;
     };
     // double to int adapter
     return [TOL, doubleCost](Utuple<3,Space::Point> pointTriple) -> int64_t {
-        return std::round(doubleCost(pointTriple) * 1/TOL);
+        int64_t c = std::round(doubleCost(pointTriple) * 1/TOL);
+        if (!c) return 0;
+        return c;
     };
 }

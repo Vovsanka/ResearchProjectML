@@ -152,10 +152,10 @@ std::vector<Space::Point> Space::Plane::generatePoints(
     int64_t pointCount,
     int64_t startNum,
     double maxDistance,
-    double maxNoise
+    double noise
 ) {
     std::uniform_real_distribution<double> planeDist(-maxDistance, std::nextafter(maxDistance, DBL_MAX)); // [-maxDistance, +maxDistance]
-    std::normal_distribution<double> noiseDist(-maxNoise, std::nextafter(maxNoise, DBL_MAX)); // [-maxNoise, +maxNoise]
+    std::normal_distribution<double> noiseDist(0.0, noise); // [-noise, +noise]
     std::vector<Point> points;
     for (int64_t i = 0; i < pointCount; i++) {
         double k1 = planeDist(gen);
@@ -205,26 +205,34 @@ std::vector<std::pair<Space::Point,int64_t>> Space::generateSamplePointsOnDistin
     int64_t planeCount,
     int64_t pointsPerPlane,
     double maxDistance,
-    double maxNoise
+    double noise
 ) {
-    std::ofstream csvFile("points.csv");
-    csvFile << "p,x,y,z" << std::endl;
+    std::ofstream csvPoints("points.csv");
+    std::ofstream csvPlanes("planes.csv");
+    csvPoints << "p,x,y,z" << std::endl;
+    csvPlanes << "p,x,y,z" << std::endl;
     std::vector<Space::Plane> planes = Space::generateDistinctPlanes(planeCount);
     std::cout << "Generating cubic space clustering instance: " << std::endl;
     std::vector<std::pair<Space::Point,int64_t>> samples;
     int64_t startNum = 0;
     for (int64_t i = 0; i < planeCount; i++) {
         std::cout << planes[i] << "\nPoints: ";
-        std::vector<Space::Point> points = planes[i].generatePoints(pointsPerPlane, startNum, maxDistance, maxNoise);
+        std::vector<Space::Point> points = planes[i].generatePoints(pointsPerPlane, startNum, maxDistance, noise);
+        csvPlanes << i << "," << planes[i].n.x << "," << planes[i].n.y << "," << planes[i].n.z << std::endl; 
         for (auto &p : points) {
             samples.push_back(std::make_pair(p, i));
             std::cout << p << " ";
-            csvFile << i << "," << p.x << "," << p.y << "," << p.z << std::endl;
+            csvPoints << i << "," << p.x << "," << p.y << "," << p.z << std::endl;
+            if (p.name == "j" || p.name == "g" || p.name == "a") {
+                double h = std::fabs(Space::Vector(p)*planes[i].n);
+                std::cout << h << std::endl;
+            }
         }
         std::cout << "\n" << std::endl;
         startNum += pointsPerPlane;
     }
-    csvFile.close();
+    csvPoints.close();
+    csvPlanes.close();
     std::shuffle(std::begin(samples), std::end(samples), gen); // random shuffle the samples
     return samples;
 }
