@@ -223,10 +223,6 @@ std::vector<std::pair<Space::Point,int64_t>> Space::generateSamplePointsOnDistin
             samples.push_back(std::make_pair(p, i));
             std::cout << p << " ";
             csvPoints << i << "," << p.x << "," << p.y << "," << p.z << std::endl;
-            if (p.name == "j" || p.name == "g" || p.name == "a") {
-                double h = std::fabs(Space::Vector(p)*planes[i].n);
-                std::cout << h << std::endl;
-            }
         }
         std::cout << "\n" << std::endl;
         startNum += pointsPerPlane;

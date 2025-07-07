@@ -5,7 +5,8 @@
 
 
 int main() {
-    ClusteringInstance<Space::Point> spaceInstance = generateSpaceInstance(2, 10, 100, 1);
+    ClusteringInstance<Space::Point> spaceInstance = generateSpaceInstance(3, 10, 100, 1);
+    spaceInstance.evaluateCosts();
     ClusteringProblem<Space::Point> problem(
         spaceInstance.unlabeledSamples,
         spaceInstance.cost
@@ -16,6 +17,6 @@ int main() {
     std::chrono::duration<double, std::milli> solvingDuration = endTime - startTime;
     std::cout << "Solving duration: " << std::fixed << std::setprecision(3) << solvingDuration.count() / 1e3 << " s" << std::endl;
     spaceInstance.printLabelEvaluation(problem.getLabels());
-    spaceInstance.evaluateCosts();
+    
     return 0;
 }

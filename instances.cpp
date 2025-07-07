@@ -161,36 +161,47 @@ std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(
         if (sides[0] < 0.5*maxDistance) return 0;
         // 2: skip line like triangles
         if (triangleIsLineLike(sides[0], sides[1], sides[2])) return 0;
-        // 3: assign a penalty if the triangle is obviously not from the same plane
+        // 3: assign a penalty if the triangle is likely not from the same plane
+        Space::Vector nBest = computeBestFittingPlaneNormalVector({oa, ob, oc});
+        double ha = std::fabs(oa*nBest);
+        double hb = std::fabs(ob*nBest);
+        double hc = std::fabs(oc*nBest);
+        if (ha + hb + hc > 3*noise + TOL) {
+            return ((ha + hb + hc) - (3*noise + TOL))/(3*maxDistance);
+        }
+        // 4: skip triangles with too much noise because they span an unclear plane
         Space::Vector nTriangle = ab.crossProduct(ca*(-1)).getNormalizedVector();
         double ho = std::fabs(oa*nTriangle);
-        if (ho > 0.1*maxDistance) {
-            return ho/maxDistance;
-        } 
-        // 4: skip triangles with too much noise because they span an unclear plane
-        if (ho > noise + TOL) return 0;
+        if (ho > 10.0/pointCount*noise + TOL) return 0;
         // 5: compute the points that are likely in the same plane as the triangle points
-        Space::Vector nBest = computeBestFittingPlaneNormalVector({oa, ob, oc});
         std::vector<Space::Vector> samePlaneVectors;
         for (auto &p : points) {
             double hp = std::fabs(Space::Vector(p)*nBest);
-            if (hp < 3*noise + TOL) {
+            if (hp < noise + TOL && Space::Vector(p).getLength() > 0.3*maxDistance) {
                 samePlaneVectors.push_back(Space::Vector(p));
             }
         }
         Space::Vector nPlane = computeBestFittingPlaneNormalVector(samePlaneVectors);
-        int64_t sameCount = samePlaneVectors.size();
-        double c = 0;
+        int64_t sameCount = 0;
+        double reward = 0, penalty = 0;
         for (auto &ov : samePlaneVectors) {
             double hv = std::fabs(ov*nPlane);
-            c += (hv - (3*noise + TOL))/maxDistance;
+            double delta = (hv - (noise + TOL))/maxDistance;
+            if (delta > 0) {
+                penalty += delta;
+            } else {
+                reward += delta;
+                sameCount++;
+            }
         }
-        c *= sameCount;
-        return c;
+        if (sameCount <= 3) return penalty;
+        reward *= std::pow(1.5, sameCount - 3.0);
+        return reward;
     };
     // double to int adapter
     return [TOL, doubleCost](Utuple<3,Space::Point> pointTriple) -> int64_t {
-        int64_t c = std::round(doubleCost(pointTriple) * 1/TOL);
+        double unroundedC = doubleCost(pointTriple);
+        int64_t c = std::round(unroundedC/TOL);
         if (!c) return 0;
         return c;
     };
