@@ -142,7 +142,7 @@ std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(
     double maxDistance,
     double noise
 ) {
-    const double TOL = 1e-6;
+    const double TOL = maxDistance/1e4;
     std::function<double(Utuple<3,Space::Point>)> doubleCost = [TOL, points, maxDistance, noise](Utuple<3,Space::Point> pointTriple) -> double {
         // 0: compute triangle vectors and sides
         const int64_t pointCount = points.size();
@@ -183,19 +183,17 @@ std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(
         }
         Space::Vector nPlane = computeBestFittingPlaneNormalVector(samePlaneVectors);
         int64_t sameCount = 0;
-        double reward = 0, penalty = 0;
+        double reward = 0;
         for (auto &ov : samePlaneVectors) {
             double hv = std::fabs(ov*nPlane);
             double delta = (hv - (noise + TOL))/maxDistance;
-            if (delta > 0) {
-                penalty += delta;
-            } else {
+            if (delta < 0) {
                 reward += delta;
                 sameCount++;
             }
         }
-        if (sameCount <= 3) return penalty;
-        reward *= std::pow(1.5, sameCount - 3.0);
+        if (sameCount <= 3) return 0;
+        reward *= std::pow(2.0, sameCount - 4.0);
         return reward;
     };
     // double to int adapter

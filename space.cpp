@@ -155,7 +155,7 @@ std::vector<Space::Point> Space::Plane::generatePoints(
     double noise
 ) {
     std::uniform_real_distribution<double> planeDist(-maxDistance, std::nextafter(maxDistance, DBL_MAX)); // [-maxDistance, +maxDistance]
-    std::normal_distribution<double> noiseDist(0.0, noise); // [-noise, +noise]
+    std::normal_distribution<double> noiseDist(0.0, noise);
     std::vector<Point> points;
     for (int64_t i = 0; i < pointCount; i++) {
         double k1 = planeDist(gen);
@@ -173,7 +173,7 @@ std::vector<Space::Point> Space::Plane::generatePoints(
 }
 
 std::vector<Space::Plane> Space::generateDistinctPlanes(int64_t planeCount) {
-    const double LOWER_ANGLE_ALMOST_PARALLEL = 30;
+    const double LOWER_ANGLE_ALMOST_PARALLEL = 45;
     const double UPPER_ANGLE_ALMOST_PARALLEL = 180 - LOWER_ANGLE_ALMOST_PARALLEL;
     std::vector<Vector> norms;
     for (int64_t i = 0; i < planeCount; i++) {
