@@ -1,0 +1,45 @@
+*.nav
+*.snm
+
+# Core LaTeX auxiliary files
+*.aux
+*.lof
+*.log
+*.lot
+*.fls
+*.out
+*.toc
+*.fmt
+*.fot
+*.cb
+*.cb2
+.*.lb
+
+# Intermediate documents
+*.dvi
+*.xdv
+*-converted-to.*
+
+# Bibliography files
+*.bbl
+*.bcf
+*.blg
+*-blx.aux
+*-blx.bib
+*.run.xml
+
+# SyncTeX and LaTeXmk
+*.fdb_latexmk
+*.synctex*
+*.pdfsync
+
+# Editors and backup files
+*~
+*.bak
+*.sav
+*.swp
+*.backup
+*.tmp
+*.temp
+
+# Build

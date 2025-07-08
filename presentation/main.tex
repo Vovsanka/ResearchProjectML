@@ -1,0 +1,38 @@
+\documentclass[t]{beamer}
+
+\usepackage[english]{babel}
+
+
+\usetheme{Copenhagen}
+\setbeamertemplate{footline}{}
+\setbeamertemplate{headline}{}
+\setbeamertemplate{navigation symbols}{}
+\addtobeamertemplate{navigation symbols}{}{%
+    \usebeamerfont{footline}%
+    \setbeamercolor{footline}{fg=blue}
+    \usebeamercolor[fg]{footline}%
+    \hspace{3em}%
+    \begin{large}
+        \insertframenumber
+    \end{large}   
+}
+
+
+\title{\Large Partially Optimal Cubic Subspace Clustering}
+\subtitle{\small Research Project Machine Learning}
+\author{Volodymyr Drobitko}
+\institute{Technische Universität Dresden}
+\date{21.07.2025}
+
+
+% \input{macros}
+% \includeonly{intro}
+
+\begin{document}
+
+\frame{\titlepage}
+%%% contents
+\include{intro}
+\frame{\tableofcontents}
+
+\end{document}
