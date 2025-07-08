@@ -1,8 +1,8 @@
 #include "space.hpp"
 
 
-// std::mt19937 gen(std::random_device{}());
-std::mt19937 gen(42);
+std::mt19937 gen(std::random_device{}());
+// std::mt19937 gen(42);
 
 Space::Vector::Vector(double x, double y, double z): x(x), y(y), z(z) {}
 
@@ -209,22 +209,18 @@ std::vector<std::pair<Space::Point,int64_t>> Space::generateSamplePointsOnDistin
 ) {
     std::ofstream csvPoints("points.csv");
     std::ofstream csvPlanes("planes.csv");
-    csvPoints << "p,x,y,z" << std::endl;
+    csvPoints << "n,p,x,y,z" << std::endl;
     csvPlanes << "p,x,y,z" << std::endl;
     std::vector<Space::Plane> planes = Space::generateDistinctPlanes(planeCount);
-    std::cout << "Generating cubic space clustering instance: " << std::endl;
     std::vector<std::pair<Space::Point,int64_t>> samples;
     int64_t startNum = 0;
     for (int64_t i = 0; i < planeCount; i++) {
-        std::cout << planes[i] << "\nPoints: ";
         std::vector<Space::Point> points = planes[i].generatePoints(pointsPerPlane, startNum, maxDistance, noise);
         csvPlanes << i << "," << planes[i].n.x << "," << planes[i].n.y << "," << planes[i].n.z << std::endl; 
         for (auto &p : points) {
             samples.push_back(std::make_pair(p, i));
-            std::cout << p << " ";
-            csvPoints << i << "," << p.x << "," << p.y << "," << p.z << std::endl;
+            csvPoints << p << "," << i << "," << p.x << "," << p.y << "," << p.z << std::endl;
         }
-        std::cout << "\n" << std::endl;
         startNum += pointsPerPlane;
     }
     csvPoints.close();

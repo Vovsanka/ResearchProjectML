@@ -26,6 +26,7 @@ df_points = pd.read_csv('./build/points.csv')
 df_planes = pd.read_csv('./build/planes.csv')
 
 # Extract x, y, z columns
+n = df_points['n']
 p = df_points['p']
 x = df_points['x']
 y = df_points['y']
@@ -61,7 +62,7 @@ for i in range(len(df_planes)):
     else:
         X, Y = np.meshgrid(x_vals, y_vals)
         Z = -(x_plane[i] * X + y_plane[i] * Y) / z_plane[i]
-    ax.plot_surface(X, Y, Z, alpha=0.5, color=cmap(norm(p_plane[i])))
+    ax.plot_surface(X, Y, Z, alpha=0.2, color=cmap(norm(p_plane[i])))
 
 # Plot the points
 ax.scatter(0, 0, 0, color='black', s=100, label='Origin')

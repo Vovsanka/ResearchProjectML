@@ -4,8 +4,11 @@ template<typename S>
 ClusteringProblem<S>::ClusteringProblem(
     const std::vector<S> &samples,
     const std::function<int64_t(Utuple<3,S>)> &tripleCostCB,
-    const std::function<int64_t(Utuple<2,S>)> &pairCostCB
+    const std::function<int64_t(Utuple<2,S>)> &pairCostCB,
+    std::string logFile
 ) : samples(samples) {
+    // init the log file
+    logs = std::ofstream(logFile);
     // init sample count
     sampleCount = samples.size();
     // init sample mapping
@@ -49,10 +52,10 @@ ClusteringProblem<S>::ClusteringProblem(
             }
         }
     }
-    std::cout << "------------------------------------\n";
-    std::cout << "Clustering problem has been inited with " << tripleCosts.size() << " relevant triples";
-    std::cout << ", (negative: " << negativeSamples << ", positive: " << positiveSamples << ")";
-    std::cout << std::endl;
+    logs<< "------------------------------------\n";
+    logs<< "Clustering problem has been inited with " << tripleCosts.size() << " relevant triples";
+    logs<< ", (negative: " << negativeSamples << ", positive: " << positiveSamples << ")";
+    logs<< std::endl;
 }
 
 template<typename S>
@@ -115,32 +118,32 @@ int64_t ClusteringProblem<S>::getSolutionCost() {
 
 template<typename S>
 void ClusteringProblem<S>::printLabeling() {
-    std::cout << "Labeling: " << std::endl;
-    std::cout << "  ";
+    logs<< "Labeling: " << std::endl;
+    logs<< "  ";
     for (auto s : samples) {
-        std::cout << s << " ";
+        logs<< s << " ";
     }
-    std::cout << std::endl;
+    logs<< std::endl;
     for (int64_t i = 0; i < samples.size(); i++) {
-        std::cout << samples[i] << " ";
+        logs<< samples[i] << " ";
         for (int64_t j = 0; j < samples.size(); j++) {
             if (i == j) {
-                std::cout << "- ";
+                logs<< "- ";
                 continue;
             }
             int64_t l = label[Upair({i, j})];
             if (l == 2) {
-                std::cout << 1;
+                logs<< 1;
             } else if (l == 1) {
-                std::cout << 0;
+                logs<< 0;
             } else {
-                std::cout << "x";
+                logs<< "x";
             }
-            std::cout << " ";
+            logs<< " ";
         }
-        std::cout << std::endl;
+        logs<< std::endl;
     }
-    std::cout << std::endl;
+    logs<< std::endl;
 }
 
 template<typename S>
@@ -152,34 +155,34 @@ void ClusteringProblem<S>::printClustering() {
     }
     int64_t clusterCount = clustering.size();
     //
-    std::cout << "Cluster labeling: " << std::endl;
-    std::cout << "  ";
+    logs<< "Cluster labeling: " << std::endl;
+    logs<< "  ";
     for (int64_t i = 0; i < clusterCount; i++) {
-        std::cout << i << " ";
+        logs<< i << " ";
     }
-    std::cout << std::endl;
+    logs<< std::endl;
     for (int64_t ci = 0; ci < clusterCount; ci++) {
-        std::cout << ci << " ";
+        logs<< ci << " ";
         int64_t i = clustering[ci][0];
         for (int64_t cj = 0; cj < clusterCount; cj++) {
             if (ci == cj) {
-                std::cout << "- ";
+                logs<< "- ";
                 continue;
             }
             int64_t j = clustering[cj][0];
             if (label[Upair({i, j})] == 1) { // cut clusters
-                std::cout << "0";
+                logs<< "0";
             } else { // label[i][j] == 0 unknown 
-                std::cout << "x";
+                logs<< "x";
             }
-            std::cout << " ";
-            if (cj >= 10) std::cout << " ";
+            logs<< " ";
+            if (cj >= 10) logs<< " ";
         }
-        std::cout << std::endl;
+        logs<< std::endl;
     }
-    std::cout << std::endl;
+    logs<< std::endl;
     //
-    std::cout << "Unjoinable cluster triples: " << std::endl;
+    logs<< "Unjoinable cluster triples: " << std::endl;
     for (int64_t ci = 0; ci < clusterCount; ci++) {
         int64_t i = clustering[ci][0];
         for (int64_t cj = ci + 1; cj < clusterCount; cj++) {
@@ -188,46 +191,46 @@ void ClusteringProblem<S>::printClustering() {
                 int64_t k = clustering[ck][0];
                 Utriple indexTriple({i, j, k});
                 if (cutTriples.count(indexTriple)) {
-                    std::cout << "(" << ci << "," << cj << "," << ck << ") ";
+                    logs<< "(" << ci << "," << cj << "," << ck << ") ";
                 }
             }
         }
     }
-    std::cout << "\n" << std::endl;
+    logs<< "\n" << std::endl;
     //
-    std::cout << "Clustering: " << std::endl;
+    logs<< "Clustering: " << std::endl;
     for (int64_t clusterInd = 0; clusterInd < clusterCount; clusterInd++) {
-        std::cout << "Cluster " << clusterInd << ": "; 
+        logs<< "Cluster " << clusterInd << ": "; 
         std::vector<S> clusterSamples;
         for (auto originalI : clustering[clusterInd]) {
             clusterSamples.push_back(samples[originalI]);
         }
         std::sort(std::begin(clusterSamples), std::end(clusterSamples));
         for (auto &s : clusterSamples) {
-            std::cout << s;
+            logs<< s;
         }
-        std::cout << std::endl;
+        logs<< std::endl;
     }
-    std::cout << std::endl;
+    logs<< std::endl;
 }
   
 template<typename S>
 void ClusteringProblem<S>::printResults() {
-    std::cout << "---------------------------------------" << std::endl;
-    std::cout << "(0: cut; 1: joint; x: unknown)\n" << std::endl;
+    logs<< "---------------------------------------" << std::endl;
+    logs<< "(0: cut; 1: joint; x: unknown)\n" << std::endl;
     printLabeling();
     printClustering();
     bool completeSolution = isSolvedCompletely();
-    std::cout << std::endl;
-    std::cout << "Problem solved: " << ((completeSolution) ? "completely" : "partially") << std::endl; 
-    std::cout << "Cost: " << resultingCost << std::endl;
-    std::cout << "---------------------------------------" << std::endl;
+    logs<< std::endl;
+    logs<< "Problem solved: " << ((completeSolution) ? "completely" : "partially") << std::endl; 
+    logs<< "Cost: " << resultingCost << std::endl;
+    logs<< "---------------------------------------" << std::endl;
 }
 
 template<typename S>
 bool ClusteringProblem<S>::applyIndependentSubproblemCut(const std::vector<bool> &relevant) {
     // 3.1
-    std::cout << "Trying independent subproblem cut (3.1)..." << std::endl;;
+    logs<< "Trying independent subproblem cut (3.1)..." << std::endl;;
     std::vector<std::vector<int64_t>> partition;
     std::vector<bool> processed(sampleCount, false);
     for (int64_t i = 0; i < sampleCount; i++) {
@@ -268,18 +271,18 @@ bool ClusteringProblem<S>::applyIndependentSubproblemCut(const std::vector<bool>
         partition.push_back(chosen);
     }
     if (partition.size() == 1) return false; // no cuts => no smaller subproblems
-    std::cout << "* Applying the independent subproblem cut (3.1)" << std::endl;
+    logs<< "* Applying the independent subproblem cut (3.1)" << std::endl;
     for (const auto &subproblemIndices : partition) {
-        std::cout << "Subproblem: ";
+        logs<< "Subproblem: ";
         for (int64_t i : subproblemIndices) {
             for (int64_t originalI : sampleMapping[i]) {
-                std::cout << samples[originalI];
+                logs<< samples[originalI];
             }
-            std::cout << " ";
+            logs<< " ";
         }
-        std::cout << std::endl;
+        logs<< std::endl;
     }
-    std::cout << std::endl;
+    logs<< std::endl;
     // create, solve the independent subproblems
     for (auto subproblemIndices : partition) {
         std::vector<bool> indexSubset(sampleCount, false);
@@ -419,15 +422,15 @@ int64_t ClusteringProblem<S>::solveMinCutForIndexSubset(
 
 template<typename S>
 void ClusteringProblem<S>::createSolveJoinSubproblem(const std::vector<bool> &relevant, const std::vector<bool> &indexSubset) {
-    std::cout << "Join: ";
+    logs<< "Join: ";
     for (int64_t k = 0; k < sampleCount; k++) {
         if (!indexSubset[k]) continue;
         for (int64_t originalK : sampleMapping[k]) {
-            std::cout << samples[originalK];
+            logs<< samples[originalK];
         }
-        std::cout << " ";
+        logs<< " ";
     }
-    std::cout << '\n' << std::endl;
+    logs<< '\n' << std::endl;
     // aplying 5.1
     std::vector<int64_t> joinSamples;
     for (int64_t i = 0; i < sampleCount; i++) {
@@ -565,7 +568,7 @@ template<typename S>
 bool ClusteringProblem<S>::applySubsetJoin(const std::vector<bool> &relevant) {
     // subset join condition 3.11
     // heuristically construct and check the candidate sets R for possible joining'
-    std::cout << "Trying subset join (3.11)..." << std::endl;
+    logs<< "Trying subset join (3.11)..." << std::endl;
     for (int64_t i = 0; i < sampleCount; i++) {
         if (!relevant[i]) continue;
         for (int64_t j = i + 1; j < sampleCount; j++) {
@@ -630,7 +633,7 @@ bool ClusteringProblem<S>::applySubsetJoin(const std::vector<bool> &relevant) {
                 }
             }
             if (!joinIndexSubset.empty()) {
-                std::cout << "* Applying the subset join (3.11)" << std::endl;
+                logs<< "* Applying the subset join (3.11)" << std::endl;
                 createSolveJoinSubproblem(relevant, joinIndexSubset);
                 return true;
             }
@@ -642,7 +645,7 @@ bool ClusteringProblem<S>::applySubsetJoin(const std::vector<bool> &relevant) {
 template<typename S>
 bool ClusteringProblem<S>::applyPairJoin(const std::vector<bool> &relevant) {
     // 3.4
-    std::cout << "Trying pair join (3.4)..." << std::endl;
+    logs<< "Trying pair join (3.4)..." << std::endl;
     for (int64_t i = 0; i < sampleCount; i++) {
         if (!relevant[i]) continue;
         for (int64_t j = i + 1; j < sampleCount; j++) {
@@ -661,7 +664,7 @@ bool ClusteringProblem<S>::applyPairJoin(const std::vector<bool> &relevant) {
             if (lhs >= rhs) {
                 std::vector<bool> indexSubset(sampleCount, false);
                 indexSubset[i] = indexSubset[j] = true;
-                std::cout << "* Applying the pair join (3.4)" << std::endl;
+                logs<< "* Applying the pair join (3.4)" << std::endl;
                 createSolveJoinSubproblem(relevant, indexSubset);
                 return true;
             }
@@ -673,7 +676,7 @@ bool ClusteringProblem<S>::applyPairJoin(const std::vector<bool> &relevant) {
 template<typename S>
 bool ClusteringProblem<S>::applyComplexPairJoin(const std::vector<bool> &relevant) {
     // 3.6
-    std::cout << "Trying complex pair join (3.6)..." << std::endl;
+    logs<< "Trying complex pair join (3.6)..." << std::endl;
     for (int64_t i = 0; i < sampleCount; i++) {
         if (!relevant[i]) continue;
         for (int64_t j = 0; j < sampleCount; j++) {
@@ -762,7 +765,7 @@ bool ClusteringProblem<S>::applyComplexPairJoin(const std::vector<bool> &relevan
                 if (lhs1 >= rhs1 && lhs2 >= rhs2) {
                     std::vector<bool> indexSubset(sampleCount, false);
                     indexSubset[i] = indexSubset[k] = true; // join i and k
-                    std::cout << "* Applying the complex pair join (3.6)" << std::endl;
+                    logs<< "* Applying the complex pair join (3.6)" << std::endl;
                     createSolveJoinSubproblem(relevant, indexSubset);
                     return true;
                 }
@@ -775,7 +778,7 @@ bool ClusteringProblem<S>::applyComplexPairJoin(const std::vector<bool> &relevan
 template<typename S>
 bool ClusteringProblem<S>::applyExplicitPairJoin(const std::vector<bool> &relevant) {
     // 3.8
-    std::cout << "Trying explicit pair join (3.8)..." << std::endl;
+    logs<< "Trying explicit pair join (3.8)..." << std::endl;
     for (int64_t i = 0; i < sampleCount; i++) {
         if (!relevant[i]) continue;
         for (int64_t j = i + 1; j < sampleCount; j++) {
@@ -806,7 +809,7 @@ bool ClusteringProblem<S>::applyExplicitPairJoin(const std::vector<bool> &releva
             if (lhs <= rhs) {
                 std::vector<bool> indexSubset(sampleCount, false);
                 indexSubset[i] = indexSubset[j] = true;
-                std::cout << "* Applying the explicit pair join (3.8)" << std::endl;
+                logs<< "* Applying the explicit pair join (3.8)" << std::endl;
                 createSolveJoinSubproblem(relevant, indexSubset);
                 return true;
             }
@@ -818,7 +821,7 @@ bool ClusteringProblem<S>::applyExplicitPairJoin(const std::vector<bool> &releva
 template<typename S>
 bool ClusteringProblem<S>::applyExplicitPairJoinViaTriple(const std::vector<bool> &relevant) {
     // 3.9
-    std::cout << "Trying explicit pair join via triple (3.9)..." << std::endl;
+    logs<< "Trying explicit pair join via triple (3.9)..." << std::endl;
     for (int64_t i = 0; i < sampleCount; i++) {
         if (!relevant[i]) continue;
         for (int64_t j = 0; j < sampleCount; j++) {
@@ -867,7 +870,7 @@ bool ClusteringProblem<S>::applyExplicitPairJoinViaTriple(const std::vector<bool
                 ) {
                     std::vector<bool> indexSubset(sampleCount, false);
                     indexSubset[i] = indexSubset[k] = true; // join i and k
-                    std::cout << "* Applying the complex pair join (3.9)" << std::endl;
+                    logs<< "* Applying the complex pair join (3.9)" << std::endl;
                     createSolveJoinSubproblem(relevant, indexSubset);
                     return true;
                 }
@@ -880,7 +883,7 @@ bool ClusteringProblem<S>::applyExplicitPairJoinViaTriple(const std::vector<bool
 template<typename S>
 bool ClusteringProblem<S>::applyTripleJoin(const std::vector<bool> &relevant) {
     // 3.5
-    std::cout << "Trying triple join (3.5)..." << std::endl;
+    logs<< "Trying triple join (3.5)..." << std::endl;
     // compute lhs base value
     int64_t lhsBase = 0;
     for (int64_t i = 0; i < sampleCount; i++) {
@@ -922,7 +925,7 @@ bool ClusteringProblem<S>::applyTripleJoin(const std::vector<bool> &relevant) {
                 if (lhs >= rhs) {
                     std::vector<bool> indexSubset(sampleCount, false);
                     indexSubset[i] = indexSubset[j] = indexSubset[k] = true; // join ijk
-                    std::cout << "* Applying the triple join (3.5)" << std::endl;
+                    logs<< "* Applying the triple join (3.5)" << std::endl;
                     createSolveJoinSubproblem(relevant, indexSubset);
                     return true;
                 }
@@ -935,7 +938,7 @@ bool ClusteringProblem<S>::applyTripleJoin(const std::vector<bool> &relevant) {
 template<typename S>
 void ClusteringProblem<S>::applyPairCuts(const std::vector<bool> &relevant) {
     // 3.2
-    std::cout << "Trying pair cuts (3.2)..." << std::endl;
+    logs<< "Trying pair cuts (3.2)..." << std::endl;
     for (int64_t i = 0; i < sampleCount; i++) {
         if (!relevant[i]) continue;
         for (int64_t j = i + 1; j < sampleCount; j++) {
@@ -955,16 +958,16 @@ void ClusteringProblem<S>::applyPairCuts(const std::vector<bool> &relevant) {
                         label[Upair({originalI, originalJ})] = 1; 
                     }
                 } 
-                std::cout << "* Applying the pair cut (3.2)" << std::endl;
-                std::cout << "Cut pair: ";
+                logs<< "* Applying the pair cut (3.2)" << std::endl;
+                logs<< "Cut pair: ";
                 for (int64_t originalI : sampleMapping[i]) {
-                    std::cout << samples[originalI];
+                    logs<< samples[originalI];
                 }
-                std::cout << " ";
+                logs<< " ";
                 for (int64_t originalJ : sampleMapping[j]) {
-                    std::cout << samples[originalJ];
+                    logs<< samples[originalJ];
                 }
-                std::cout << '\n' << std::endl;
+                logs<< '\n' << std::endl;
             }
         }
     }
@@ -973,7 +976,7 @@ void ClusteringProblem<S>::applyPairCuts(const std::vector<bool> &relevant) {
 template<typename S>
 void ClusteringProblem<S>::applyTripleCuts(const std::vector<bool> &relevant) {
     // 3.3
-    std::cout << "Trying triple cuts (3.3)..." << std::endl;
+    logs<< "Trying triple cuts (3.3)..." << std::endl;
     for (int64_t i = 0; i < sampleCount; i++) {
         if (!relevant[i]) continue;
         for (int64_t j = 0; j < sampleCount; j++) {
@@ -996,20 +999,20 @@ void ClusteringProblem<S>::applyTripleCuts(const std::vector<bool> &relevant) {
                 int64_t rhs = solveMinCutForIndexSubset(relevant, true, false, false, i, {j, k});
                 if (lhs >= rhs) {
                     cutTriples.insert(Utriple{i, j, k});
-                    std::cout << "* Applying the triple cut (3.3)" << std::endl;
-                    std::cout << "Cut triple: ";
+                    logs<< "* Applying the triple cut (3.3)" << std::endl;
+                    logs<< "Cut triple: ";
                     for (int64_t originalI : sampleMapping[i]) {
-                        std::cout << samples[originalI];
+                        logs<< samples[originalI];
                     }
-                    std::cout << " ";
+                    logs<< " ";
                     for (int64_t originalJ : sampleMapping[j]) {
-                        std::cout << samples[originalJ];
+                        logs<< samples[originalJ];
                     }
-                    std::cout << " ";
+                    logs<< " ";
                     for (int64_t originalK : sampleMapping[k]) {
-                        std::cout << samples[originalK];
+                        logs<< samples[originalK];
                     }
-                    std::cout << '\n' << std::endl;
+                    logs<< '\n' << std::endl;
                 }
             }
         }

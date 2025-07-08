@@ -5,11 +5,13 @@
 #include <map>
 #include <vector>
 #include <array>
+#include <string>
 #include <queue>
 #include <functional>
 #include <stdexcept>
 #include <algorithm>
 #include <chrono>
+#include <fstream>
 
 #include "utuple.hpp"
 #include "min_cut.hpp"
@@ -20,6 +22,8 @@ using Utriple = Utuple<3,int64_t>;
 
 template <typename S> // domain S of samples
 class ClusteringProblem {
+
+    std::ofstream logs;
 
     const std::vector<S> &samples;
     int64_t sampleCount;
@@ -79,7 +83,8 @@ public:
     explicit ClusteringProblem(
         const std::vector<S> &samples,
         const std::function<int64_t(Utuple<3,S>)> &tripleCostCB,
-        const std::function<int64_t(Utuple<2,S>)> &pairCostCB = [](Utuple<2,S> p)->int64_t{return 0;}
+        const std::function<int64_t(Utuple<2,S>)> &pairCostCB = [](Utuple<2,S> p)->int64_t{return 0;}, 
+        std::string logFile = "logs.txt"
     );
 
     std::map<Upair,int64_t> getLabels();
