@@ -5,16 +5,17 @@
 
 
 int main() {
+    auto instance = PYRAMID_INSTANCE_UNSOLVABLE;
     ClusteringProblem<char> problem(
-        MULTICLUSTER_INSTANCE.unlabeledSamples,
-        MULTICLUSTER_INSTANCE.cost
+        instance.unlabeledSamples,
+        instance.cost
     );
     auto startTime = std::chrono::high_resolution_clock::now();
     problem.solve();
     auto endTime = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> solvingDuration = endTime - startTime;
     std::cout << "Solving duration: " << std::fixed << std::setprecision(3) << solvingDuration.count() / 1e3 << " s" << std::endl;
-    MULTICLUSTER_INSTANCE.printLabelEvaluation(problem.getLabels());
+    instance.printLabelEvaluation(problem.getLabels());
     std::cout << "----------------------------------------------" << std::endl;
     // for (int64_t i = 0; i < 10; i++) {
     //     ClusteringInstance<Space::Point> spaceInstance = generateSpaceInstance(3, 7, 100, 1);

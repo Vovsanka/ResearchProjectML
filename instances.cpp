@@ -6,7 +6,9 @@ const std::vector<std::pair<char,int64_t>> MULTICLUSTER_SAMPLES = {
     {'a',0}, {'b',0}, {'c',0}, {'d',0},
     {'e',1}, {'f',1}, {'g',1}, {'h',1}, {'i',1}
 };
-// const std::vector<std::pair<char,int64_t>> PYRAMID_SAMPLES = {'a', 'b', 'c', 'd', 'e'};
+const std::vector<std::pair<char,int64_t>> PYRAMID_SAMPLES1 = {{'a',0}, {'b',0}, {'c',0}, {'d',0}, {'e',0}};
+const std::vector<std::pair<char,int64_t>> PYRAMID_SAMPLES2 = {{'a',0}, {'b',0}, {'c',0}, {'d',0}};
+const std::vector<std::pair<char,int64_t>> PYRAMID_SAMPLES_UNSOLVABLE = {{'a',0}, {'b',0}, {'c',0}, {'d',0}};
 
 // predefine the cost functions
 int64_t simpleCost(Utuple<3,char> t);
@@ -18,9 +20,9 @@ int64_t pyramidCostUnsolvable(Utuple<3,char> t);
 // define the clustering instances
 const ClusteringInstance<char> SIMPLE_INSTANCE(SIMPLE_SAMPLES, simpleCost);
 const ClusteringInstance<char> MULTICLUSTER_INSTANCE(MULTICLUSTER_SAMPLES, multiclusterCost);
-// const ClusteringInstance<char> PYRAMID_INSTANCE1(PYRAMID_SAMPLES, pyramidCost1);
-// const ClusteringInstance<char> PYRAMID_INSTANCE2(PYRAMID_SAMPLES, pyramidCost2);
-// const ClusteringInstance<char> PYRAMID_INSTANCE_UNSOLVABLE(PYRAMID_SAMPLES, pyramidCostUnsolvable);
+const ClusteringInstance<char> PYRAMID_INSTANCE1(PYRAMID_SAMPLES1, pyramidCost1);
+const ClusteringInstance<char> PYRAMID_INSTANCE2(PYRAMID_SAMPLES2, pyramidCost2);
+const ClusteringInstance<char> PYRAMID_INSTANCE_UNSOLVABLE(PYRAMID_SAMPLES_UNSOLVABLE, pyramidCostUnsolvable);
 
 
 ClusteringInstance<Space::Point> generateSpaceInstance(
