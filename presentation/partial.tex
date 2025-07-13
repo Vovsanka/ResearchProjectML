@@ -87,7 +87,6 @@
     }
 \end{frame}
 
-
 \begin{frame}
     \frametitle{Subproblem-CUT and JOIN-Subset}
     % A couple of words about the split and the implementation
@@ -103,6 +102,7 @@
     \textbf{JOIN-Subset:} join sample subset $\subR$ with only non-positive costs
     if its worst bipartition joining cost is less than or equal to
     the reward of joining $\subR$ with $\overline{\subR}$ (applied if $|\subR| > 1$)\\
+    (Finding the worst bipartition joining cost can be reduced to the Min-Cut-Problem and solved as its dual Max-Flow-Problem)\\
     }
     \vspace{15px}
     \onslide<3->{
@@ -201,14 +201,10 @@
 
 
 \begin{frame}
-    \frametitle{JOIN-conditions}
+    \frametitle{Other JOIN-conditions and CUT-conditions}
     Overview of the other join-conditions (with pictures)
-\end{frame}
-
-
-\begin{frame}
-    \frametitle{CUT-conditions}
     Overview of the cut-conditions (with pictures)
+    Pyramid example (solvable and unsolvable)
 \end{frame}
 
 \begin{frame}
@@ -221,6 +217,8 @@
         cost function + sparse costs!, label computation, cut triples,
         logs joins and cuts! (add screenshots)
 \end{frame}
+
+
 
 
 
