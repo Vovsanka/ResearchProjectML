@@ -10,31 +10,55 @@
     % reformulate the problem
     % 2 correct join conditions cannot be combined in the optimal solution
     % so when applied simultaneously they result into a suboptimal solution. 
-
     \onslide<1->{
-        Construct \textbf{Improving Maps} for the clustering $\labels$
-        in the cubic clique partition problem} \onslide<2->{
-    $\to$
-    \textbf{Partial Optimality Conditions:}
+        Extended cost function
+        $\cost \colon \binom{\fSet}{3} \cup \binom{\fSet}{2} \cup {\emptyset} \to \real$\\
+    }
+    \vspace{5px}
+    \onslide<2->{
+        Instance of the extended cubic clique partition problem:
+        \[
+            \min\limits_{\labels \colon \binom{\fSet}{2} \to \bSet}
+            \sum\limits_{\{a,b,c\} \in \binom{\fSet}{3}}
+            \cost_{\{a,b,c\}}\labels_{\{a,b\}}\labels_{\{b,c\}}\labels_{\{a,c\}} 
+            + \cost_{\{a,b\}}\labels_{\{a,b\}}
+            + \cost_{\emptyset}
+        \]\\
+    }
+    \vspace{5px}
+    \onslide<3->{
+        Construct \textbf{Improving Maps} for the clustering $\labels$\\
+    }
+    \vspace{5px}
+    \onslide<4->{ 
+    $\to$ \textbf{Partial Optimality Conditions:}
+    \vspace{5px}
     \begin{enumerate}
-        \onslide<3->{
+        \onslide<5->{
         \item Subproblem-CUT-condition (cut subset from its complement)
         }
-        \onslide<4->{
+        \onslide<6->{
         \item CUT-conditions (cut pairs and triples)
         }
-        \onslide<5->{
+        \onslide<7->{
         \item JOIN-conditions (join subsets, pairs and triples)\\
         }
     \end{enumerate}
     }
     \vspace{5px}
-    \onslide<6->{
+    \onslide<8->{
     CUT-conditions can be applied simultaneously\\
     JOIN-conditions cannot be applied simultaneously!\\
     }
     \vspace{5px}
-    \onslide<7->{
+    \onslide<9->{
+    Apply partial optimality connditions $\to$ solve subproblems\\    
+    }
+\end{frame}
+
+\begin{frame}
+    \frametitle{Partial Optimality Algorithm}
+    \onslide<1->{
     \textbf{Partial Optimality Algorithm:\\}
     \hspace{10px}\textbf{Input:} clustering $\labels$ without fixed labels
     \begin{algorithmic}
@@ -46,11 +70,27 @@
     \end{algorithmic}
     \hspace{10px}\textbf{Output:} partially optimal clustering $\labels$ with some fixed labels
     }
+    \vspace{10px}
+    \onslide<2->{
+    \textbf{Reduction to subproblems:}
+    \begin{enumerate}
+        \item Subproblem-CUT-condition:
+        fix CUT labels for element pairs from different sample subsets; 
+        solve each subset as an independent problem and accumulate the results in $\cost_{\emptyset}$;
+        \onslide<3->{
+        \item JOIN-Conditions: 
+        fix JOIN labels for elements of the sample subset; 
+        add the join-cost to $\cost_{\emptyset}$;
+        solve the problem where the subset is considered as one sample;
+        }
+    \end{enumerate}
+    }
 \end{frame}
-
 
 \begin{frame}
     \frametitle{Program Structure}
+    % tested on the examples i have shown you before
+    TODO\\
     Class Diagram
     Algorithm implementation in ClusteringProblem
     Features: ClusteringProblem is generally defined for all types of Cubic Clique Partition Problem (not necessarily points),
@@ -60,16 +100,21 @@
 
 
 \begin{frame}
-    \frametitle{Subproblem-CUT}
-    A couple of words about the split and the implementation
-    (with picture of splitting)
-\end{frame}
-
-
-\begin{frame}
-    \frametitle{JOIN-conditions}
-    Special attention to 3.11 (+ my adjustment)
-    Mention reduction to Min-Cut problem and the complexity!!!
+    \frametitle{Subproblem-CUT and JOIN-Subset}
+    % A couple of words about the split and the implementation
+    % apply exhaustively
+    % intuition 3.1 and 3.11!!!
+    % 3.11 adjustment
+    \onslide<1->{
+    \textbf{Subproblem-CUT:} cut sample subsets $\subR_1, \subR_2, \dots, \subR_k$
+    that are only connected via non-negative costs (applied if $k > 1$)\\
+    }
+    \vspace{5px}
+    \onslide<2->{
+    \textbf{JOIN-Subset:} join sample subset $\subR$ with only non-positive costs
+    if its worst bipartition joining cost is less than or equal to
+    the reward of joining $\subR$ with $\overline{\subR}$ (applied if $|\subR| > 1$)
+    }
 \end{frame}
 
 
@@ -78,12 +123,11 @@
     Overview of the other join-conditions (with pictures)
 \end{frame}
 
+
 \begin{frame}
     \frametitle{CUT-conditions}
     Overview of the cut-conditions (with pictures)
 \end{frame}
 
-\begin{frame}
-    \frametitle{Example}
-    Pyramid example for my algorithm
-\end{frame}
+
+
