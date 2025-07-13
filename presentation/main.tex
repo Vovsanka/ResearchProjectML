@@ -6,9 +6,25 @@
 \usepackage{tabularx}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+\usepackage{tikz}
 
 
 \graphicspath{{./images/}}
+
+
+\usetikzlibrary{arrows.meta}
+\usetikzlibrary{automata}
+\tikzset{
+  every state/.style={
+    draw,
+    minimum size=0.3cm, 
+    inner sep=0.5pt,  
+    align=center,
+    font=\footnotesize
+  }
+}
+\tikzset{>={Latex[width=1.5mm,length=2.5mm]}}
+\tikzset{every picture/.style=thick}
 
 
 \usetheme{Copenhagen}

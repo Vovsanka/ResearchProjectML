@@ -4,7 +4,7 @@
 const std::vector<std::pair<char,int64_t>> SIMPLE_SAMPLES = {{'a',0}, {'b',1}, {'c',1}, {'d',1}};
 const std::vector<std::pair<char,int64_t>> MULTICLUSTER_SAMPLES = {
     {'a',0}, {'b',0}, {'c',0}, {'d',0},
-    {'e',1}, {'f',1}, {'g',1}, {'h',1}
+    {'e',1}, {'f',1}, {'g',1}, {'h',1}, {'i',1}
 };
 // const std::vector<std::pair<char,int64_t>> PYRAMID_SAMPLES = {'a', 'b', 'c', 'd', 'e'};
 
@@ -62,7 +62,7 @@ int64_t multiclusterCost(Utuple<3,char> t) {
     if (t[0] == 'd' && t[1] == 'e' && t[2] == 'h') return 50;
     if (t[0] == 'e' && t[1] == 'f' && t[2] == 'h') return -50;
     if (t[0] == 'd' && t[1] == 'f' && t[2] == 'g') return -2;
-    if (t[0] == 'f' && t[1] == 'g' && t[2] == 'h') return -10;
+    if (t[0] == 'f' && t[1] == 'g' && t[2] == 'i') return -10;
     return 0;
 }
 
