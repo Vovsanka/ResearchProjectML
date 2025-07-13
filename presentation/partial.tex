@@ -4,8 +4,48 @@
 
 \begin{frame}
     \frametitle{Partial Optimality for Cubic Clique Partition Problem}
-    Algorithm (Poster!!!)
-    (Subproblem-CUT, JOIN-conditions, CUT-conditions)
+    % mention triple, pairs and constant!!!
+    % fix labels if something holds
+    % improving map
+    % reformulate the problem
+    % 2 correct join conditions cannot be combined in the optimal solution
+    % so when applied simultaneously they result into a suboptimal solution. 
+
+    \onslide<1->{
+        Construct \textbf{Improving Maps} for the clustering $\labels$
+        in the cubic clique partition problem} \onslide<2->{
+    $\to$
+    \textbf{Partial Optimality Conditions:}
+    \begin{enumerate}
+        \onslide<3->{
+        \item Subproblem-CUT-condition (cut subset from its complement)
+        }
+        \onslide<4->{
+        \item CUT-conditions (cut pairs and triples)
+        }
+        \onslide<5->{
+        \item JOIN-conditions (join subsets, pairs and triples)\\
+        }
+    \end{enumerate}
+    }
+    \vspace{5px}
+    \onslide<6->{
+    CUT-conditions can be applied simultaneously\\
+    JOIN-conditions cannot be applied simultaneously!\\
+    }
+    \vspace{5px}
+    \onslide<7->{
+    \textbf{Partial Optimality Algorithm:\\}
+    \hspace{10px}\textbf{Input:} clustering $\labels$ without fixed labels
+    \begin{algorithmic}
+        \While{condition applied}
+            \State apply subproblem-CUT-condition exhaustively
+            \State apply one of JOIN-conditions (in effective order)
+        \EndWhile
+        \State apply CUT-conditions exhaustively
+    \end{algorithmic}
+    \hspace{10px}\textbf{Output:} partially optimal clustering $\labels$ with some fixed labels
+    }
 \end{frame}
 
 
@@ -38,14 +78,12 @@
     Overview of the other join-conditions (with pictures)
 \end{frame}
 
+\begin{frame}
+    \frametitle{CUT-conditions}
+    Overview of the cut-conditions (with pictures)
+\end{frame}
 
 \begin{frame}
     \frametitle{Example}
     Pyramid example for my algorithm
-\end{frame}
-
-
-\begin{frame}
-    \frametitle{CUT-conditions}
-    Overview of the cut-conditions (with pictures)
 \end{frame}
