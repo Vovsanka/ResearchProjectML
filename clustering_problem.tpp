@@ -600,7 +600,7 @@ bool ClusteringProblem<S>::applySubsetJoin(const std::vector<bool> &relevant) {
                     }
                 }
                 for (auto [j, k] : relevantTriples[i]) {
-                    if (!indexSubset[j] || !indexSubset[k]) continue; // 2 of 3 triple elements are already in R
+                    if (!indexSubset[j] || !indexSubset[k]) continue; // 2 of 3 triple elements must already be in R
                     int64_t c = getCost(i, j, k);
                     if (c > 0) {
                         return int64_t(1);

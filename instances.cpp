@@ -4,7 +4,7 @@
 const std::vector<std::pair<char,int64_t>> SIMPLE_SAMPLES = {{'a',0}, {'b',1}, {'c',1}, {'d',1}};
 const std::vector<std::pair<char,int64_t>> MULTICLUSTER_SAMPLES = {
     {'a',0}, {'b',0}, {'c',0}, {'d',0},
-    {'e',1}, {'f',1}, {'g',1}, {'h',1}, {'i',1}, {'j',1}, {'k',1}, {'l',1}, {'m',1}
+    {'e',1}, {'f',1}, {'g',1}, {'h',1}
 };
 // const std::vector<std::pair<char,int64_t>> PYRAMID_SAMPLES = {'a', 'b', 'c', 'd', 'e'};
 
@@ -61,10 +61,8 @@ int64_t multiclusterCost(Utuple<3,char> t) {
     if (t[0] == 'a' && t[1] == 'c' && t[2] == 'd') return -15;
     if (t[0] == 'd' && t[1] == 'e' && t[2] == 'h') return 50;
     if (t[0] == 'e' && t[1] == 'f' && t[2] == 'h') return -50;
-    if (t[0] == 'f' && t[1] == 'g' && t[2] == 'i') return -30;
-    if (t[0] == 'd' && t[1] == 'h' && t[2] == 'k') return -2;
-    if (t[0] == 'i' && t[1] == 'k' && t[2] == 'l') return -4;
-    if (t[0] == 'j' && t[1] == 'l' && t[2] == 'm') return -10;
+    if (t[0] == 'd' && t[1] == 'f' && t[2] == 'g') return -2;
+    if (t[0] == 'f' && t[1] == 'g' && t[2] == 'h') return -10;
     return 0;
 }
 
