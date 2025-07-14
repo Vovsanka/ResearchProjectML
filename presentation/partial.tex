@@ -201,7 +201,7 @@
 
 
 \begin{frame}
-    \frametitle{Other JOIN-conditions and CUT-conditions}
+    \frametitle{Other JOIN-conditions}
     \onslide<1->{
         \textbf{Pair-JOIN-1:} join samples $i,j$ if
         their overall joining reward $\geq$
@@ -233,7 +233,7 @@
     \vspace{10px}
     \onslide<5->{
         \textbf{Triple-JOIN:} join samples $i,j,k$ 
-        if a condition holds\\ 
+        if the condition holds\\ 
         (similar to Pair-JOIN-1)
         (rhs $\approx$ min-cut)\\
     }
@@ -242,7 +242,7 @@
 
 
 \begin{frame}
-    \frametitle{Pyramid Example and CUT-conditions}
+    \frametitle{Pyramid Instance and CUT-conditions}
     \vspace{-5px}
     $\cost_{\{b,c,d\}}=10$\\
     $\cost_{\{a,b,c\}}=\cost_{\{a,b,d\}}=\cost_{\{a,c,d\}}=-50$\\
@@ -304,14 +304,14 @@
     }
     \vspace{5px}
     \onslide<5->{
-        \textbf{Triple-CUT:}join samples $i,j,k$ 
-        if a condition holds\\ 
+        \textbf{Triple-CUT:} cutsamples $i,j,k$ 
+        if the condition holds\\ 
         (similar to Pair-CUT)
         (rhs $\approx$ min-cut)\\
     }
     \vspace{10px}
     \onslide<6->{
-        Samples in pyramid with $\cost_{\{b,c,d\}}=100$ are unjoinable!\\
+        Samples in the pyramid with $\cost_{\{b,c,d\}}=100$ are unjoinable!\\
         Triple-CUT is applied to the triple $bcd$
     }
 \end{frame}
@@ -325,7 +325,44 @@
     Algorithm implementation in ClusteringProblem
     Features: ClusteringProblem is generally defined for all types of Cubic Clique Partition Problem (not necessarily points),
         cost function + sparse costs!, label computation, cut triples,
-        logs joins and cuts! (add screenshots)
+        logs joins and cuts!
+\end{frame}
+
+\begin{frame}
+    \frametitle{Pyramid Instance: Program Logs}
+    \footnotesize
+    Clustering problem has been inited with 4 relevant triples,\\
+    (negative: 3, positive: 1)\\
+    Trying independent subproblem cut (3.1)...\\
+    Trying subset join (3.11)...\\
+    Trying pair join (3.4)...\\
+    Trying complex pair join (3.6)...\\
+    * Applying the complex pair join (3.6)\\
+    Join: a c \\
+    \vspace{5px}
+    Trying independent subproblem cut (3.1)...\\
+    Trying subset join (3.11)...\\
+    * Applying the subset join (3.11)\\
+    Join: ac b d \\
+    ---------------------------------------\\
+    \begin{minipage}{0.49\textwidth}
+        (0: cut; 1: joint; x: unknown)\\
+        Labeling:\\
+        \hspace{7px}a b c d\\ 
+        a - 1 1 1\\ 
+        b 1 - 1 1\\ 
+        c 1 1 - 1\\ 
+        d 1 1 1 -
+    \end{minipage}
+    \begin{minipage}{0.49\textwidth}
+        Unjoinable cluster triples:\\ 
+        \vspace{5px}
+        Clustering:\\ 
+        Cluster 0: abcd\\
+        \vspace{5px}
+        Problem solved: completely\\
+        Cost: -140
+    \end{minipage}
 \end{frame}
 
 

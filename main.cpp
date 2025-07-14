@@ -5,7 +5,7 @@
 
 
 int main() {
-    auto instance = PYRAMID_INSTANCE_UNSOLVABLE;
+    auto instance = PYRAMID_INSTANCE2;
     ClusteringProblem<char> problem(
         instance.unlabeledSamples,
         instance.cost
