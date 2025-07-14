@@ -107,86 +107,86 @@
     \vspace{15px}
     \onslide<3->{
         \begin{tikzpicture}[node distance=30px]
-        % nodes
-        \node[state] (a) {a};
-        \node[state] (b) [below left of=a] {b};
-        \node[state] (c) [below right of=b] {c};
-        \node[state] (d) [above right of=c] {d};
-        \node[state] (e) [below right of=d] {e};
-        \node[state] (f) [above right of=e] {f};
-        \node[state] (h) [below of=e] {h};
-        \node[state] (g) [above of=d] {g};
-        \node[state] (i) [above of=f] {i};
-        % edges
-        \path[-] (a) edge node[below right=3px, below] {\footnotesize -1} (b);
-        \path[-] (a) edge node {} (c);
-        \path[-] (b) edge node {} (c);
-        \path[-] (a) edge node[below left=3px, below] {\footnotesize -15} (d);
-        \path[-] (c) edge node {} (d);
-        \path[-] (d) edge node {} (g);
-        \path[-] (d) edge node {} (f);
-        \path[-] (g) edge node {} (i);
-        \path[-] (i) edge node[above left] {\footnotesize -10} (f);
-        \path[-] (g) edge node[below left] {\footnotesize -2} (f);
-        \path[-] (d) edge node {} (e);
-        \path[-] (e) edge node {} (f);
-        \path[-] (e) edge node {} (h);
-        \path[-] (d) edge node[right=-3px] {\tiny 50} (h);
-        \path[-] (h) edge node[left=-4px] {\tiny -50} (f);
-    \end{tikzpicture}
+            % nodes
+            \node[state] (a) {a};
+            \node[state] (b) [below left of=a] {b};
+            \node[state] (c) [below right of=b] {c};
+            \node[state] (d) [above right of=c] {d};
+            \node[state] (e) [below right of=d] {e};
+            \node[state] (f) [above right of=e] {f};
+            \node[state] (h) [below of=e] {h};
+            \node[state] (g) [above of=d] {g};
+            \node[state] (i) [above of=f] {i};
+            % edges
+            \path[-] (a) edge node[below right=3px, below] {\footnotesize -1} (b);
+            \path[-] (a) edge node {} (c);
+            \path[-] (b) edge node {} (c);
+            \path[-] (a) edge node[below left=3px, below] {\footnotesize -15} (d);
+            \path[-] (c) edge node {} (d);
+            \path[-] (d) edge node {} (g);
+            \path[-] (d) edge node {} (f);
+            \path[-] (g) edge node {} (i);
+            \path[-] (i) edge node[above left] {\footnotesize -10} (f);
+            \path[-] (g) edge node[below left] {\footnotesize -2} (f);
+            \path[-] (d) edge node {} (e);
+            \path[-] (e) edge node {} (f);
+            \path[-] (e) edge node {} (h);
+            \path[-] (d) edge node[right=-3px] {\tiny 50} (h);
+            \path[-] (h) edge node[left=-4px] {\tiny -50} (f);
+        \end{tikzpicture}
     }
     \hspace{5px}
     \onslide<4->{
         \begin{tikzpicture}[node distance=30px]
-        % nodes
-        \node[state] (acd) {acd};
-        \node[state] (b) [left of=acd] {b};
-        \node[state] (e) [below right of=acd] {e};
-        \node[state] (f) [above right of=e] {f};
-        \node[state] (h) [below of=e] {h};
-        \node[state] (g) [above of=acd] {g};
-        \node[state] (i) [above of=f] {i};
-        % edges
-        \path[-] (acd) edge node[above] {\footnotesize -1} (b);
-        \path[-] (acd) edge node {} (g);
-        \path[-] (acd) edge node {} (f);
-        \path[-] (g) edge node {} (i);
-        \path[-] (i) edge node[above left] {\footnotesize -10} (f);
-        \path[-] (g) edge node[below left] {\footnotesize -2} (f);
-        \path[-] (acd) edge node {} (e);
-        \path[-] (e) edge node {} (f);
-        \path[-] (e) edge node {} (h);
-        \path[-] (acd) edge node[right=-3px] {\tiny 50} (h);
-        \path[-] (h) edge node[left=-4px] {\tiny -50} (f);
-    \end{tikzpicture}
+            % nodes
+            \node[state] (acd) {acd};
+            \node[state] (b) [left of=acd] {b};
+            \node[state] (e) [below right of=acd] {e};
+            \node[state] (f) [above right of=e] {f};
+            \node[state] (h) [below of=e] {h};
+            \node[state] (g) [above of=acd] {g};
+            \node[state] (i) [above of=f] {i};
+            % edges
+            \path[-] (acd) edge node[above] {\footnotesize -1} (b);
+            \path[-] (acd) edge node {} (g);
+            \path[-] (acd) edge node {} (f);
+            \path[-] (g) edge node {} (i);
+            \path[-] (i) edge node[above left] {\footnotesize -10} (f);
+            \path[-] (g) edge node[below left] {\footnotesize -2} (f);
+            \path[-] (acd) edge node {} (e);
+            \path[-] (e) edge node {} (f);
+            \path[-] (e) edge node {} (h);
+            \path[-] (acd) edge node[right=-3px] {\tiny 50} (h);
+            \path[-] (h) edge node[left=-4px] {\tiny -50} (f);
+        \end{tikzpicture}
     }
     \onslide<5->{
         \begin{tikzpicture}[node distance=30px]
-        % nodes
-        \node[state] (acd) {acd};
-        \node[state] (b) [above of=acd] {b};
-        \node[state] (efghi) [below of=acd] {efghi};
-        % edges
-        \path[-] (acd) edge node[right] {\footnotesize -1} (b);
-        \path[-] (acd) edge node[right] {\footnotesize 48} (efghi);
-    \end{tikzpicture}
+            % nodes
+            \node[state] (acd) {acd};
+            \node[state] (b) [above of=acd] {b};
+            \node[state] (efghi) [below of=acd] {efghi};
+            % edges
+            \path[-] (acd) edge node[right] {\footnotesize -1} (b);
+            \path[-] (acd) edge node[right] {\footnotesize 48} (efghi);
+        \end{tikzpicture}
     }
     \onslide<6->{
         \begin{tikzpicture}[node distance=30px]
-        % nodes
-        \node[state] (acd) {acd};
-        \node[state] (b) [above of=acd] {b};
-        \node[state] (efghi) [below of=acd] {efghi};
-        % edges
-        \path[-] (acd) edge node[right] {\footnotesize -1} (b);
-    \end{tikzpicture}
+            % nodes
+            \node[state] (acd) {acd};
+            \node[state] (b) [above of=acd] {b};
+            \node[state] (efghi) [below of=acd] {efghi};
+            % edges
+            \path[-] (acd) edge node[right] {\footnotesize -1} (b);
+        \end{tikzpicture}
     }
     \onslide<7->{
         \begin{tikzpicture}[node distance=30px]
-        % nodes
-        \node[state] (abcd) {abcd};
-        \node[state] (efghi) [below of=acd] {efghi};
-    \end{tikzpicture}
+            % nodes
+            \node[state] (abcd) {abcd};
+            \node[state] (efghi) [below of=acd] {efghi};
+        \end{tikzpicture}
     }
     \\
     \hspace{20px}
@@ -202,7 +202,6 @@
 
 \begin{frame}
     \frametitle{Other JOIN-conditions and CUT-conditions}
-    \vspace{-5px}
     \onslide<1->{
         \textbf{Pair-JOIN-1:} join samples $i,j$ if
         their overall joining reward $\geq$
@@ -211,30 +210,91 @@
         and $\overline{\subR}$ with $j \in \overline{\subR}$
         (rhs $\approx$ min-cut)\\
     }
+    \vspace{10px}
     \onslide<2->{
         \textbf{Pair-JOIN-2:} join samples $i,k$ if 
         there exists a sample triple $ijk$ that fulfills 
         3 conditions
         (2 conditions $\approx$ min-cut, 1 explicit condition)\\
     }
+    \vspace{10px}
     \onslide<3->{
         \textbf{Pair-JOIN-3:} join samples $i,j$ if
         $\cost_{\{i,j\}}\leq$ 
         the sum of reward costs for joining pairs and triples 
         containing $i$ or $j$\\
     }
+    \vspace{10px}
     \onslide<4->{
         \textbf{Pair-JOIN-4:} join samples $i,k$
         if there exists a sample triple $ijk$ such that 
         7 explicit conditions hold\\
     }
+    \vspace{10px}
     \onslide<5->{
         \textbf{Triple-JOIN:} join samples $i,j,k$ 
         if a condition holds\\ 
         (similar to Pair-JOIN-1)
         (rhs $\approx$ min-cut)\\
     }
-    \onslide<6->{
+    
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{Pyramid Example and CUT-conditions}
+    \vspace{-5px}
+    $\cost_{\{b,c,d\}}=10$\\
+    $\cost_{\{a,b,c\}}=\cost_{\{a,b,d\}}=\cost_{\{a,c,d\}}=-50$\\
+    \vspace{5px}
+    \onslide<1->{    
+        \begin{tikzpicture}[node distance=30px]
+            % nodes
+            \node[state] (a) {a};
+            \node[state] (b) [below left of=a, below=5px] {b};
+            \node[state] (c) [below right of=a, right=10px] {c};
+            \node[state] (d) [below right of=b] {d};
+            % edges
+            \path[-] (a) edge node {} (b);
+            \path[-] (a) edge node {} (c);
+            \path[-] (a) edge node {} (d);
+            \path[-, dashed] (b) edge node {} (c);
+            \path[-] (c) edge node {} (d);
+            \path[-] (d) edge node {} (b);
+        \end{tikzpicture}
+    }
+    \onslide<2->{ 
+        \hspace{20px}   
+        \begin{tikzpicture}[node distance=30px]
+            % nodes
+            \node[state] (ac) {ac};
+            \node[state] (b) [below left of=a] {b};
+            \node[state] (d) [below right of=a] {d};
+            % edges
+            \path[-] (ac) edge node[above left=-3px] {\footnotesize-50} (b);
+            \path[-] (ac) edge node[above right=-3px] {\footnotesize-50} (d);
+            \path[-] (d) edge node[above] {\footnotesize-40} (b);
+        \end{tikzpicture}
+    }
+    \hspace{10px}
+    \onslide<3->{ 
+        \hspace{30px} 
+        \begin{tikzpicture}[node distance=30px]
+            % nodes
+            \node[state] (abcd) {abcd};
+        \end{tikzpicture}   
+    }\\
+    \hspace{40px}
+    \onslide<2->{Pair-JOIN-2}
+    \hspace{45px}
+    \onslide<3->{
+        Subset-JOIN
+        \hspace{10px}
+        $\cost_{\emptyset}=-140$
+    }
+    
+    \vspace{10px}
+    \onslide<4->{
         \textbf{Pair-CUT:} cut samples $i,j$ if
         the direct joing penalty $\geq$
         the sum of rewards for joining
@@ -242,31 +302,26 @@
         and $\overline{\subR}$ with $j \in \overline{\subR}$
         (rhs $\approx$ min-cut)\\
     }
-    \onslide<7->{
+    \vspace{5px}
+    \onslide<5->{
         \textbf{Triple-CUT:}join samples $i,j,k$ 
         if a condition holds\\ 
         (similar to Pair-CUT)
         (rhs $\approx$ min-cut)\\
     }
+    \vspace{10px}
+    \onslide<6->{
+        Samples in pyramid with $\cost_{\{b,c,d\}}=100$ are unjoinable!\\
+        Triple-CUT is applied to the triple $bcd$
+    }
 \end{frame}
+
 
 \begin{frame}
     \frametitle{Program Structure}
     % tested on the examples i have shown you before
     TODO: class Diagram
     TODO: features
-    Algorithm implementation in ClusteringProblem
-    Features: ClusteringProblem is generally defined for all types of Cubic Clique Partition Problem (not necessarily points),
-        cost function + sparse costs!, label computation, cut triples,
-        logs joins and cuts! (add screenshots)
-\end{frame}
-
-
-\begin{frame}
-    \frametitle{Program Example}
-    % tested on the examples i have shown you before
-    TODO\\
-    Class Diagram
     Algorithm implementation in ClusteringProblem
     Features: ClusteringProblem is generally defined for all types of Cubic Clique Partition Problem (not necessarily points),
         cost function + sparse costs!, label computation, cut triples,
