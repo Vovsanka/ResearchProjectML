@@ -1,0 +1,113 @@
+@startuml Program
+class "ClusteringProblem<S>" {
+    -logs: std::ofstream
+
+    -samples: const std::vector<S>&
+    -sampleCount: int64_t
+    
+    -sampleMapping: std::vector<std::vector<int64_t>> 
+
+    -relevantTriples: std::vector<std::vector<std::pair<int64_t, int64_t>>>
+    -tripleCosts: std::map<Utriple, int64_t>
+
+    -relevantPairs: std::vector<std::vector<int64_t>>
+    -pairCosts: std::map<Upair, int64_t>
+
+    -label: std::map<Upair,int64_t>
+    -cutTriples: std::set<Utriple>
+    -resultingCost: int64_t
+
+    -solve(const std::vector<bool> &relevant): void
+
+    -getCost(i, j): int64_t
+    -getCost(i, j, k): int64_t
+    -solveMinCutForIndexSubset(indexSubset, ...): int64_t
+    -createSolveCutSubproblem(relevant, indexSubset); void
+    -createSolveJoinSubproblem(relevant, indexSubset): void
+
+    -applyIndependentSubproblemCut(relevant): bool
+    -applySubsetJoin(relevant): bool
+    -applyPairJoin(relevant): bool
+    -applyComplexPairJoin(relevant): bool
+    -applyExplicitPairJoin(relevant): bool
+    -applyExplicitPairJoinViaTriple(relevant): bool
+    -applyTripleJoin(relevant): bool
+    -applyPairCuts(relevant): void
+    -applyTripleCuts(relevant): void
+
+    +ClusteringProblem(samples, tripleCostCB, pairCostCB, logFile)
+
+    +getLabels(): std::map<Upair,int64_t>
+    +getSolutionCost(): int64_t
+    
+    +solve(): void
+}
+
+class "ClusteringInstance<S>" {
+    +unlabeledSamples: std::vector<S>
+    +actualClustering: std::vector<int64_t>
+    +cost: std::function<int64_t(Utuple<3,S>)>
+    +pairCost: std::function<int64_t(Utuple<2,S>)>
+
+    +ClusteringInstance(labeledSamples, tripleCostCB, pairCostCB)
+
+    +evaluateLabels(labels): std::pair<double,double>
+    +evaluateCosts()
+}
+
+class MinCut <<namespace>> {
+    solveMinCut(vertices, edges, s, t): int64_t
+    solveGlobalMinCut(edges): int64_t
+}
+
+class Instances <<interface>> {
+    generateSpaceInstance(planeCount, pointsPerPlane, maxDistance, noise): ClusteringInstance<Space::Point>
+    createSpaceCostFunction(points, maxDistance, noise): std::function<int64_t(Utuple<3,Space::Point>)>
+}
+
+namespace Space {
+    
+    class Point {
+        +x: double
+        +y: double
+        +z: double
+        +name: std::string
+    }
+
+    class Vector {
+        +x: double
+        +y: double
+        +z: double
+        +Vector(const Point &p);
+        +operator+(other): Vector
+        +operator-(other): Vector
+        +operator*(other): Vector
+        +crossProduct(other): Vector
+        +getLength(): double
+        +getAngle(other): double
+        +getNormalizedVector(): Vector
+        +generateOrthogonalVector(): Vector
+    }
+
+    class Plane {
+        +n: Vector
+        +r1: Vector
+        +r2: Vector
+        +Plane(norm)
+        +generatePoints(pointCount, startNum, maxDistance, noise): std::vector<Point>
+    }
+
+    class SpaceUtility <<utility>> {
+        generateDistinctPlanes(planeCount)
+        generateSamplePointsOnDistinctPlanes(planeCount, pointsPerPlane, maxDistance, noise): std::vector<std::pair<Space::Point,int64_t>>
+    }
+}
+
+
+
+"ClusteringProblem<S>" .. "ClusteringInstance<S>"
+"ClusteringProblem<S>" --> MinCut
+Instances --> "ClusteringInstance<S>"
+Instances --> Space
+
+@enduml
