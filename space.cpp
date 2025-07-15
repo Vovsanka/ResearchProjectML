@@ -113,7 +113,7 @@ Space::Vector Space::Vector::generateOrthogonalVector() const {
         *coPtr = 1;
         rhs -= c;
     }
-    // compute the first unset coordinate sucht that the resulting vector is orthogonal
+    // compute the first unset coordinate such that the resulting vector is orthogonal
     auto [c, coPtr] = unsetCoordinates[0];
     *coPtr = rhs/c;
     return Vector(xo, yo, zo);

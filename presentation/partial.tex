@@ -19,11 +19,15 @@
         Instance of the extended cubic clique partition problem:
         \[
             \min\limits_{\labels \colon \binom{\fSet}{2} \to \bSet}
-            \sum\limits_{\{a,b,c\} \in \binom{\fSet}{3}}
-            \cost_{\{a,b,c\}}\labels_{\{a,b\}}\labels_{\{b,c\}}\labels_{\{a,c\}} 
-            + \cost_{\{a,b\}}\labels_{\{a,b\}}
+            \sum\limits_{abc \in \binom{\fSet}{3}}
+            \cost_{abc}\labels_{ab}\labels_{bc}\labels_{ac} 
+            + \sum\limits_{ab \in \binom{\fSet}{2}}
+            \cost_{ab}\labels_{ab}
             + \cost_{\emptyset}
         \]\\
+        subject to 
+        $\labels_{ab} + \labels_{bc} - 1 \leq \labels_{ac}$
+        for all distinct $a,b,c \in \fSet$.  
     }
     \vspace{5px}
     \onslide<3->{
@@ -208,14 +212,14 @@
         the sum of rewards and penalties for joining
         some subset $\subR$ with $i \in \subR$ 
         and $\overline{\subR}$ with $j \in \overline{\subR}$
-        (rhs $\approx$ s-t min-cut)\\
+        ($\approx$ i-j min-cut)\\
     }
     \vspace{10px}
     \onslide<2->{
         \textbf{Pair-JOIN-2:} join samples $i,k$ if 
         there exists a sample triple $ijk$ that fulfills 
         3 conditions
-        (2 conditions $\approx$ s-t min-cut, 1 explicit condition)\\
+        ($\approx$ i-jk min-cut, $\approx$ ij-k min-cut, 1 explicit condition)\\
     }
     \vspace{10px}
     \onslide<3->{
@@ -235,7 +239,7 @@
         \textbf{Triple-JOIN:} join samples $i,j,k$ 
         if the condition holds\\ 
         (similar to Pair-JOIN-1)
-        (rhs $\approx$ s-t min-cut)\\
+        ($\approx$ i-jk min-cut)\\
     }
     
 \end{frame}
@@ -300,14 +304,14 @@
         the sum of rewards for joining
         some subset $\subR$ with $i \in \subR$ 
         and $\overline{\subR}$ with $j \in \overline{\subR}$
-        (rhs $\approx$ s-t min-cut)\\
+        ($\approx$ i-j min-cut)\\
     }
     \vspace{5px}
     \onslide<5->{
-        \textbf{Triple-CUT:} cutsamples $i,j,k$ 
+        \textbf{Triple-CUT:} cut samples $i,j,k$ 
         if the condition holds\\ 
         (similar to Pair-CUT)
-        (rhs $\approx$ s-t min-cut)\\
+        ($\approx$ i-jk min-cut)\\
     }
     \vspace{10px}
     \onslide<6->{
@@ -328,43 +332,6 @@
     \end{figure}
 \end{frame}
 
-\begin{frame}
-    \frametitle{Pyramid Instance: Program Logs}
-    % tested on the examples i have shown you before
-    \footnotesize
-    Clustering problem has been inited with 4 relevant triples,\\
-    (negative: 3, positive: 1)\\
-    Trying independent subproblem cut (3.1)...\\
-    Trying subset join (3.11)...\\
-    Trying pair join (3.4)...\\
-    Trying complex pair join (3.6)...\\
-    * Applying the complex pair join (3.6)\\
-    Join: a c \\
-    \vspace{5px}
-    Trying independent subproblem cut (3.1)...\\
-    Trying subset join (3.11)...\\
-    * Applying the subset join (3.11)\\
-    Join: ac b d \\
-    ---------------------------------------\\
-    \begin{minipage}{0.49\textwidth}
-        (0: cut; 1: joint; x: unknown)\\
-        Labeling:\\
-        \hspace{7px}a b c d\\ 
-        a - 1 1 1\\ 
-        b 1 - 1 1\\ 
-        c 1 1 - 1\\ 
-        d 1 1 1 -
-    \end{minipage}
-    \begin{minipage}{0.49\textwidth}
-        Unjoinable cluster triples:\\ 
-        \vspace{5px}
-        Clustering:\\ 
-        Cluster 0: abcd\\
-        \vspace{5px}
-        Problem solved: completely\\
-        Cost: -140
-    \end{minipage}
-\end{frame}
 
 
 
