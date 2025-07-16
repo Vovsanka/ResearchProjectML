@@ -5,9 +5,8 @@ pyramid instance earlier
 
 cost function explain what works, what not and why do we need this conditions
 cost function ~7min with pictures, explain ideas
+
 min, quartal25, median, quartal75, max
-seeds write out ???
-pfgplots (csv?)
 
 Graphs:
     part_optimality(sigma)

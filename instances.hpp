@@ -72,7 +72,7 @@ struct ClusteringInstance {
         std::cout << std::endl;
     }
 
-    void evaluateCosts() {
+    void evaluateCosts() const {
         std::vector<int64_t> same, diff;
         int64_t sampleCount = unlabeledSamples.size();
         for (int64_t i = 0; i < sampleCount; i++) {
