@@ -5,7 +5,7 @@
 
 
 template<typename S>
-void solveEvaluateInstance(const ClusteringInstance<S> &instance, bool costEvaluation = false) {
+void solveEvaluateInstance(const ClusteringInstance<S> &instance, std::ofstream &csvData, bool costEvaluation = false) {
     if (costEvaluation) instance.evaluateCosts();
     ClusteringProblem<S> problem(
         instance.unlabeledSamples,
@@ -17,6 +17,9 @@ void solveEvaluateInstance(const ClusteringInstance<S> &instance, bool costEvalu
     std::chrono::duration<double, std::milli> solvingDuration = endTime - startTime;
     std::cout << "Solving duration: " << std::fixed << std::setprecision(3) << solvingDuration.count() / 1e3 << " s" << std::endl;
     instance.printLabelEvaluation(problem.getLabels());
+    auto [partialOptimality, accuracy] = instance.evaluateLabels(problem.getLabels());
+    csvData << partialOptimality << "," << accuracy << ",";
+    csvData << std::fixed << std::setprecision(3) << solvingDuration.count() / 1e3 << std::endl;
     std::cout << "----------------------------------------------" << std::endl;
 }
 
@@ -36,10 +39,14 @@ int main() {
         seeds.push_back(value);
     }
     seedFile.close();
+    //
+    std::ofstream csvData("data.csv");
+    csvData << "opt,acc,time" << std::endl; 
     for (int64_t i = 0; i < 15; i++) {
         ClusteringInstance<Space::Point> spaceInstance = generateSpaceInstance(3, 7, 100, 1, seeds[i]);
-        solveEvaluateInstance(spaceInstance);
+        solveEvaluateInstance(spaceInstance, csvData);
     }
+    csvData.close();
     // 
     return 0;
 }
