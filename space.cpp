@@ -1,9 +1,5 @@
 #include "space.hpp"
 
-
-std::mt19937 gen(std::random_device{}());
-// std::mt19937 gen(42);
-
 Space::Vector::Vector(double x, double y, double z): x(x), y(y), z(z) {}
 
 Space::Vector::Vector(const Point &p) {
@@ -81,7 +77,7 @@ Space::Vector Space::Vector::getNormalizedVector() const {
     );
 }
 
-Space::Vector Space::Vector::generateUnitVector() {
+Space::Vector Space::Vector::generateUnitVector(std::mt19937 &gen) {
     std::uniform_real_distribution<double> thetaDist(0.0, 2.0 * M_PI); // [0, 2*PI)
     std::uniform_real_distribution<double> phiDist(-M_PI_2, std::nextafter(1.0, DBL_MAX)); // [-PI/2, +PI/2]
     double theta = thetaDist(gen);
@@ -152,7 +148,8 @@ std::vector<Space::Point> Space::Plane::generatePoints(
     int64_t pointCount,
     int64_t startNum,
     double maxDistance,
-    double noise
+    double noise,
+    std::mt19937 &gen
 ) {
     std::uniform_real_distribution<double> planeDist(-maxDistance, std::nextafter(maxDistance, DBL_MAX)); // [-maxDistance, +maxDistance]
     std::normal_distribution<double> noiseDist(0.0, noise);
@@ -172,7 +169,7 @@ std::vector<Space::Point> Space::Plane::generatePoints(
     return points;
 }
 
-std::vector<Space::Plane> Space::generateDistinctPlanes(int64_t planeCount) {
+std::vector<Space::Plane> Space::generateDistinctPlanes(int64_t planeCount, std::mt19937 &gen) {
     const double LOWER_ANGLE_ALMOST_PARALLEL = 45;
     const double UPPER_ANGLE_ALMOST_PARALLEL = 180 - LOWER_ANGLE_ALMOST_PARALLEL;
     std::vector<Vector> norms;
@@ -181,7 +178,7 @@ std::vector<Space::Plane> Space::generateDistinctPlanes(int64_t planeCount) {
         Vector candidate;
         do {
             denied = false;
-            candidate = Vector::generateUnitVector();
+            candidate = Vector::generateUnitVector(gen);
             for (Vector &n : norms) {
                 double angle = candidate.getAngle(n)/M_PI * 180.0;
                 if (angle < LOWER_ANGLE_ALMOST_PARALLEL || UPPER_ANGLE_ALMOST_PARALLEL < angle) {
@@ -205,17 +202,19 @@ std::vector<std::pair<Space::Point,int64_t>> Space::generateSamplePointsOnDistin
     int64_t planeCount,
     int64_t pointsPerPlane,
     double maxDistance,
-    double noise
+    double noise,
+    unsigned int seed
 ) {
+    std::mt19937 gen(seed);
     std::ofstream csvPoints("points.csv");
     std::ofstream csvPlanes("planes.csv");
     csvPoints << "n,p,x,y,z" << std::endl;
     csvPlanes << "p,x,y,z" << std::endl;
-    std::vector<Space::Plane> planes = Space::generateDistinctPlanes(planeCount);
+    std::vector<Space::Plane> planes = Space::generateDistinctPlanes(planeCount, gen);
     std::vector<std::pair<Space::Point,int64_t>> samples;
     int64_t startNum = 0;
     for (int64_t i = 0; i < planeCount; i++) {
-        std::vector<Space::Point> points = planes[i].generatePoints(pointsPerPlane, startNum, maxDistance, noise);
+        std::vector<Space::Point> points = planes[i].generatePoints(pointsPerPlane, startNum, maxDistance, noise, gen);
         csvPlanes << i << "," << planes[i].n.x << "," << planes[i].n.y << "," << planes[i].n.z << std::endl; 
         for (auto &p : points) {
             samples.push_back(std::make_pair(p, i));

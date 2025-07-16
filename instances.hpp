@@ -119,7 +119,8 @@ ClusteringInstance<Space::Point> generateSpaceInstance(
     int64_t planeCount,
     int64_t pointsPerPlane,
     double maxDistance,
-    double noise
+    double noise,
+    unsigned int seed
 );
 
 std::function<int64_t(Utuple<3,Space::Point>)> createSpaceCostFunction(

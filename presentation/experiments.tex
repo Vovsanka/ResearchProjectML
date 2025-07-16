@@ -23,9 +23,21 @@
 \end{frame}
 
 \begin{frame}
-    \frametitle{Experiment Results for 3x7 Points}
-    3x7 points: all results +
-    time-optimality-accuracy (min-max-average) 
+    \frametitle{Partial Optimality Analysis (median)}
+    \resizebox{0.95\textwidth}{!}{
+    \begin{tikzpicture}
+        \begin{axis}[
+            xlabel=$\noise$, ylabel=Partial Optimality,
+            xmin=0, xmax=5,
+            ymin=0, ymax=1,
+            grid=major,
+            every axis plot/.append style={line width=2pt}
+        ]
+            \addplot table[x=noise, y=opt7, col sep=comma] {data_of_noise.csv};
+            \addlegendentry{3x7 points}
+        \end{axis}
+    \end{tikzpicture}
+    }
 \end{frame}
 
 \begin{frame}

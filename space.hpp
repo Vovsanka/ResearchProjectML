@@ -62,7 +62,7 @@ namespace Space {
 
         Vector getNormalizedVector() const;
 
-        static Vector generateUnitVector();
+        static Vector generateUnitVector(std::mt19937 &gen);
 
         Vector generateOrthogonalVector() const;
     };
@@ -74,16 +74,17 @@ namespace Space {
         
         Plane(Vector norm);
         
-        std::vector<Point> generatePoints(int64_t pointCount, int64_t startNum, double maxDistance, double noise);
+        std::vector<Point> generatePoints(int64_t pointCount, int64_t startNum, double maxDistance, double noise, std::mt19937 &gen);
     };
 
-    std::vector<Plane> generateDistinctPlanes(int64_t planeCount);
+    std::vector<Plane> generateDistinctPlanes(int64_t planeCount, std::mt19937 &gen);
 
     std::vector<std::pair<Space::Point,int64_t>> generateSamplePointsOnDistinctPlanes(
         int64_t planeCount,
         int64_t pointsPerPlane,
         double maxDistance,
-        double noise
+        double noise,
+        unsigned int seed
     );
 
     std::ostream& operator<<(std::ostream& os, const Vector &v);

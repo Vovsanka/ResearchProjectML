@@ -29,13 +29,15 @@ ClusteringInstance<Space::Point> generateSpaceInstance(
     int64_t planeCount,
     int64_t pointsPerPlane,
     double maxDistance,
-    double noise
+    double noise,
+    unsigned int seed
 ) {
     std::vector<std::pair<Space::Point,int64_t>> labeledSamples = Space::generateSamplePointsOnDistinctPlanes(
         planeCount,
         pointsPerPlane,
         maxDistance,
-        noise
+        noise,
+        seed
     );
     std::vector<Space::Point> points;
     for (auto [point, label] : labeledSamples) {
