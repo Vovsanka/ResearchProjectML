@@ -6,14 +6,7 @@ pyramid instance earlier
 cost function explain what works, what not and why do we need this conditions
 cost function ~7min with pictures, explain ideas
 
-min, quartal25, median, quartal75, max
 
-Graphs:
-    part_optimality(sigma)
-    part_optimality(n) (x-axis: n = point size)
-    accuracy(sigma)
-    accuracy(n)
-    runtime(n) (log) (large sigme => no label fixes = worst case) (worst case n^6 complexity ???)
 
 
 
