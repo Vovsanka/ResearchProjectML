@@ -42,8 +42,8 @@ int main() {
     //
     std::ofstream csvData("data.csv");
     csvData << "opt,acc,time" << std::endl; 
-    for (int64_t i = 0; i < 7; i++) {
-        ClusteringInstance<Space::Point> spaceInstance = generateSpaceInstance(3, 20, 100, 3, seeds[i]);
+    for (int64_t i = 0; i < 15; i++) {
+        ClusteringInstance<Space::Point> spaceInstance = generateSpaceInstance(3, 7, 100, 1, seeds[i]);
         solveEvaluateInstance(spaceInstance, csvData);
     }
     csvData.close();
