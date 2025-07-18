@@ -3,27 +3,72 @@
 
 
 \begin{frame}
+    \frametitle{Cost Function Evaluation (3x15 points, $\noise=1$)}
+    % blue and red dots distributed on the y-axis,
+    % conflicts and and their bad effect on the partial optimality
+    \begin{figure}[h]
+        \centering
+        \vspace{-10px}
+        \begin{minipage}{0.17\textwidth}
+            \textbf{Blue:}\\ 
+            same\\
+            plane
+            
+            \vspace{15px}
+            \textbf{Red:}\\
+            different\\
+            planes
+        \end{minipage}
+        \begin{minipage}{0.8\textwidth}
+            \includegraphics[width=\textwidth]{c-eval-big.png}
+        \end{minipage}
+        \onslide<2->{
+        \includegraphics[width=\textwidth]{c-eval-little.png}
+        }
+        \vspace{-15px}
+    \end{figure}
+\end{frame}
+
+
+\begin{frame}
     \frametitle{Experiments}
-    My laptop characteristics, 
-    Random cubic subspace instances with different seeds 
-    max point component size 100 (noise are the percents then)
-    no noise 0,
-    small noise 1,
-    significant noise 3,
-    large noise 5,
-    (Table: instance size + noise + instance count)
+    \begin{itemize}
+        \onslide<1->{
+        \item WSL2 Ubuntu,
+        Intel Core i7-11370H (3.30 GHz), 
+        16 GB RAM} \onslide<2->{ 
+        \item Apply the algorithm to the random cubic subspace instances\\
+        with $\maxD=100$ and fixed $\noise=0,1,2,3,4,5$:
+        \begin{itemize}
+            \item 3x7 points (solve 15 instances)
+            \item 3x10 points (solve 15 instances)
+            \item 3x15 points (solve 7 instances)
+            \item 3x20 points (solve 1 instance)
+        \end{itemize}
+        } \onslide<3->{
+        \item Track
+        \begin{itemize}
+            \item computation time (s)
+            \item partial optimality (\%)
+            \item accuracy (\%) with respect to the truth (correct labeling)
+        \end{itemize}
+        } \onslide<4->{
+        \item Capture
+        \begin{itemize}
+            \item 1.quartile (Q1)
+            \item median (Q2)
+            \item 3.quartile(Q3)
+            \item the worst computation time
+        \end{itemize}
+        }
+    \end{itemize}
 \end{frame}
 
 
-\begin{frame}
-    \frametitle{Cost Function Evaluation}
-    blue and red dots,
-    conflicts and and their effect
-    (picture of the typical cost function evaluation)
-\end{frame}
+
 
 \begin{frame}
-    \frametitle{3x7 Partial Optimality / Accuracy}
+    \frametitle{Partial Optimality / Accuracy (3x7 points)}
     % not enough information to join all the same plane points!
     % losing partial optimality because of conflicts!
     \resizebox{0.95\textwidth}{!}{
@@ -58,7 +103,7 @@
 \end{frame}
 
 \begin{frame}
-    \frametitle{3x10 Partial Optimality / Accuracy}
+    \frametitle{Partial Optimality / Accuracy (3x10 points)}
     % higher accuracy, but losing partial optimality because of conflicts
     \resizebox{0.95\textwidth}{!}{
     \begin{tikzpicture}
@@ -92,7 +137,7 @@
 \end{frame}
 
 \begin{frame}
-    \frametitle{3x15 Partial Optimality / Accuracy}
+    \frametitle{Partial Optimality / Accuracy (3x15 points)}
     % even higher accuracy, but losing partial optimality because of too many conflicts!
     \resizebox{0.95\textwidth}{!}{
     \begin{tikzpicture}

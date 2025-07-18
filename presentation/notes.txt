@@ -3,8 +3,7 @@ david.stein1@tu-dresden.de (thursday!)
 improving map show and explain + show detailed subproblem cut (improving map here)
 pyramid instance earlier
 
-cost function explain what works, what not and why do we need this conditions
-cost function ~7min with pictures, explain ideas
+
 
 
 
