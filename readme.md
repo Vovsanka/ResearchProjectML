@@ -3,11 +3,11 @@
 
 C++ implementation of the partial optimality algorithm for cubic clique partitioning problem.
 
-###Requires:
+### Requires:
 - Boost
 - Eigen3
 
-##Build and run: 
+## Build and run: 
 mkdir build
 cd build
 cmake ..
