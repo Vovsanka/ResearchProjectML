@@ -4,28 +4,51 @@
 
 \begin{frame}
     \frametitle{Conclusion}
-    TODO: summarize the research results
-    Partial optimality reimplementation, 
-    Dedicated Cost Function,
-    Efficiency and Accuracy (shown by the experiments) 
-    
-    Future Work :
-    % Optimize the partial optimality algorithm
-    % Determine better parameters for the cost function
-    % Extend the cost function with more advanced conditions
+    % C++, features list
+    % cost function determined experimentally
+    % high accuracy and efficiency shown in the experiments
+    % future work: 
+    % optimize to improve the time complexity and get better scalability
+    % improve the cost function to overcome the partial optimality loss
+    % using the better parameters and more advanced criteria
+    \vspace{-5px}
+    \onslide<1->{
+    \begin{enumerate}
+        \item Implementation of the partial optimality algorithm:
+        \begin{itemize}
+            \item arbitrary sample type
+            \item sparse cost representation
+            \item pair labeling and triple cuts
+            \item reasonable adjustments of the partial optimality conditions
+            \item self-explaining logs
+        \end{itemize}
+        \onslide<2->{
+        \item Subspace instance generation using linear algebra methods,\\
+        geometric cost function $\cost$:
+        \begin{itemize}
+            \item high accuracy
+            \item significant noise tolerance
+            \item $O(k \cdot n^6)$ for $n=\text{\#points}$ and small $k$
+        \end{itemize}
+        }
+    \end{enumerate}
+    }
+    \vspace{5px}
+    \onslide<3->{
+    \textbf{Future Work}:
+    \begin{itemize}
+        \item optimize the partial optimality algorithm
+        \item overcome the partial optimality loss for $\cost$
+        \item determine better parameters for $\cost$
+        \item update $\cost$ with advanced criteria
+    \end{itemize}
+    }
 \end{frame}
 
 
 \begin{frame}
     \frametitle{References}
-    TODO: summarize the research results
-    Partial optimality reimplementation, 
-    Dedicated Cost Function,
-    Efficiency and Accuracy (shown by the experiments) 
-    
-    Future Work :
-    % Optimize the partial optimality algorithm
-    % Determine better parameters for the cost function
-    % Extend the cost function with more advanced conditions
+    \textbf{My program, scripts and presentation:}
+    \url{https://github.com/Vovsanka/ResearchProjectML}
 \end{frame}
 
