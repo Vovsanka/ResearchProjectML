@@ -224,7 +224,7 @@
     \vspace{10px}
     \onslide<3->{
         \textbf{Pair-JOIN-3:} join samples $i,j$ if
-        $\cost_{\{i,j\}}\leq$ 
+        $\cost_{ij}\leq$ 
         the sum of reward costs for joining pairs and triples 
         containing $i$ or $j$\\
     }
@@ -248,8 +248,8 @@
 \begin{frame}
     \frametitle{Pyramid Instance and CUT-conditions}
     \vspace{-5px}
-    $\cost_{\{b,c,d\}}=10$\\
-    $\cost_{\{a,b,c\}}=\cost_{\{a,b,d\}}=\cost_{\{a,c,d\}}=-50$\\
+    $\cost_{bcd}=10$\\
+    $\cost_{abc}=\cost_{abd}=\cost_{acd}=-50$\\
     \vspace{5px}
     \onslide<1->{    
         \begin{tikzpicture}[node distance=30px]
@@ -315,7 +315,7 @@
     }
     \vspace{10px}
     \onslide<6->{
-        Samples in the pyramid with $\cost_{\{b,c,d\}}=100$ are unjoinable!\\
+        Samples in the pyramid with $\cost_{bcd}=100$ are unjoinable!\\
         Triple-CUT is applied to the triple $bcd$
     }
 \end{frame}
