@@ -23,9 +23,9 @@
     ] table[
     col sep=comma,
     x=noise, 
-    y=#2_med,
-    y error minus expr=(\thisrow{#2_med} - \thisrow{#2_q1}),
-    y error plus expr=(\thisrow{#2_q3} - \thisrow{#2_med})
+    y expr=(\thisrow{#2_med} * 100),
+    y error minus expr=((\thisrow{#2_med} - \thisrow{#2_q1}) * 100),
+    y error plus expr=((\thisrow{#2_q3} - \thisrow{#2_med}) * 100)
     ] {#1};}
 \newcommand{\addsizeplot}[3]{\addplot+[
     color=#3,
@@ -35,7 +35,7 @@
     ] table[
     col sep=comma,
     x=n, 
-    y=opt_med_#2,
-    y error minus expr=(\thisrow{opt_med_#2} - \thisrow{opt_q1_#2}),
-    y error plus expr=(\thisrow{opt_q3_#2} - \thisrow{opt_med_#2})
+    y expr=(\thisrow{opt_med_#2} * 100),
+    y error minus expr=((\thisrow{opt_med_#2} - \thisrow{opt_q1_#2}) * 100),
+    y error plus expr=((\thisrow{opt_q3_#2} - \thisrow{opt_med_#2}) * 100)
     ] {#1};}
