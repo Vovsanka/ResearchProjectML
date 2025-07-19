@@ -65,106 +65,144 @@
 \end{frame}
 
 
-
-
 \begin{frame}
-    \frametitle{Partial Optimality / Accuracy (3x7 points)}
+    \frametitle{Partial Optimality (3x7 points)}
     % not enough information to join all the same plane points!
     % losing partial optimality because of conflicts!
     \resizebox{0.95\textwidth}{!}{
     \begin{tikzpicture}
         \begin{axis}[
             legend style={font=\tiny},
-            xlabel=$\noise$, ylabel=Partial Optimality / Accuracy,
-            xmin=0, xmax=5,
-            ymin=0, ymax=1,
+            xlabel=$\noise$, ylabel=Partial Optimality,
             grid=major,
+            xmin=0, ymin=0,
             legend style={
                 at={(0.35,0)},
                 anchor=south east
             },
             every axis plot/.append style={line width=1.5pt}
-        ]
-            \addplot[color=lightblue] table[x=noise, y=opt_q1, col sep=comma] {data7_of_noise.csv};
-            \addlegendentry{part.opt.Q1}
-            \addplot[color=blue, line width=3pt] table[x=noise, y=opt_med, col sep=comma] {data7_of_noise.csv};
-            \addlegendentry{part.opt.Q2}
-            \addplot[color=darkblue] table[x=noise, y=opt_q3, col sep=comma] {data7_of_noise.csv};
-            \addlegendentry{part.opt.Q3}
-            \addplot[color=lightred] table[x=noise, y=acc_q1, col sep=comma] {data7_of_noise.csv};
-            \addlegendentry{accuracy Q1}
-            \addplot[color=red, line width=3pt] table[x=noise, y=acc_med, col sep=comma] {data7_of_noise.csv};
-            \addlegendentry{accuracy Q2}
-            \addplot[color=darkred] table[x=noise, y=acc_q3, col sep=comma] {data7_of_noise.csv};
-            \addlegendentry{accuracy Q3}
+        ]   
+            \addvariableplot{data7_of_noise.csv}{opt}{blue}
         \end{axis}
     \end{tikzpicture}
     }
 \end{frame}
 
+
 \begin{frame}
-    \frametitle{Partial Optimality / Accuracy (3x10 points)}
-    % higher accuracy, but losing partial optimality because of conflicts
+    \frametitle{Accuracy (3x7 points)}
+    % not enough information to join all the same plane points!
+    % losing partial optimality because of conflicts!
     \resizebox{0.95\textwidth}{!}{
     \begin{tikzpicture}
         \begin{axis}[
             legend style={font=\tiny},
-            xlabel=$\noise$, ylabel=Partial Optimality / Accuracy,
-            xmin=0, xmax=5,
-            ymin=0, ymax=1,
+            xlabel=$\noise$, ylabel=Accuracy,
             grid=major,
+            xmin=0, ymin=0,
             legend style={
-                at={(1,0.2)},
+                at={(0.35,0)},
                 anchor=south east
             },
             every axis plot/.append style={line width=1.5pt}
-        ]
-            \addplot[color=lightblue] table[x=noise, y=opt_q1, col sep=comma] {data10_of_noise.csv};
-            \addlegendentry{part.opt.Q1}
-            \addplot[color=blue, line width=3pt] table[x=noise, y=opt_med, col sep=comma] {data10_of_noise.csv};
-            \addlegendentry{part.opt.Q2}
-            \addplot[color=darkblue] table[x=noise, y=opt_q3, col sep=comma] {data10_of_noise.csv};
-            \addlegendentry{part.opt.Q3}
-            \addplot[color=lightred] table[x=noise, y=acc_q1, col sep=comma] {data10_of_noise.csv};
-            \addlegendentry{accuracy Q1}
-            \addplot[color=red, line width=3pt] table[x=noise, y=acc_med, col sep=comma] {data10_of_noise.csv};
-            \addlegendentry{accuracy Q2}
-            \addplot[color=darkred] table[x=noise, y=acc_q3, col sep=comma] {data10_of_noise.csv};
-            \addlegendentry{accuracy Q3}
+        ]   
+            \addvariableplot{data7_of_noise.csv}{acc}{red}
         \end{axis}
     \end{tikzpicture}
     }
 \end{frame}
 
+
 \begin{frame}
-    \frametitle{Partial Optimality / Accuracy (3x15 points)}
-    % even higher accuracy, but losing partial optimality because of too many conflicts!
+    \frametitle{Partial Optimality (3x10 points)}
+    % not enough information to join all the same plane points!
+    % losing partial optimality because of conflicts!
     \resizebox{0.95\textwidth}{!}{
     \begin{tikzpicture}
         \begin{axis}[
             legend style={font=\tiny},
-            xlabel=$\noise$, ylabel=Partial Optimality / Accuracy,
-            xmin=0, xmax=5,
-            ymin=0, ymax=1,
+            xlabel=$\noise$, ylabel=Partial Optimality,
             grid=major,
+            xmin=0, ymin=0,
             legend style={
-                at={(1,0.2)},
+                at={(0.35,0)},
                 anchor=south east
             },
             every axis plot/.append style={line width=1.5pt}
-        ]
-            \addplot[color=lightblue] table[x=noise, y=opt_q1, col sep=comma] {data15_of_noise.csv};
-            \addlegendentry{part.opt.Q1}
-            \addplot[color=blue, line width=3pt] table[x=noise, y=opt_med, col sep=comma] {data15_of_noise.csv};
-            \addlegendentry{part.opt.Q2}
-            \addplot[color=darkblue] table[x=noise, y=opt_q3, col sep=comma] {data15_of_noise.csv};
-            \addlegendentry{part.opt.Q3}
-            \addplot[color=lightred] table[x=noise, y=acc_q1, col sep=comma] {data15_of_noise.csv};
-            \addlegendentry{accuracy Q1}
-            \addplot[color=red, line width=3pt] table[x=noise, y=acc_med, col sep=comma] {data15_of_noise.csv};
-            \addlegendentry{accuracy Q2}
-            \addplot[color=darkred] table[x=noise, y=acc_q3, col sep=comma] {data15_of_noise.csv};
-            \addlegendentry{accuracy Q3}
+        ]   
+            \addvariableplot{data10_of_noise.csv}{opt}{blue}
+        \end{axis}
+    \end{tikzpicture}
+    }
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{Accuracy (3x15 points)}
+    % not enough information to join all the same plane points!
+    % losing partial optimality because of conflicts!
+    \resizebox{0.95\textwidth}{!}{
+    \begin{tikzpicture}
+        \begin{axis}[
+            legend style={font=\tiny},
+            xlabel=$\noise$, ylabel=Accuracy,
+            grid=major,
+            xmin=0, ymin=0,
+            legend style={
+                at={(0.35,0)},
+                anchor=south east
+            },
+            every axis plot/.append style={line width=1.5pt}
+        ]   
+            \addvariableplot{data15_of_noise.csv}{acc}{red}
+        \end{axis}
+    \end{tikzpicture}
+    }
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{Partial Optimality (3x15 points)}
+    % not enough information to join all the same plane points!
+    % losing partial optimality because of conflicts!
+    \resizebox{0.95\textwidth}{!}{
+    \begin{tikzpicture}
+        \begin{axis}[
+            legend style={font=\tiny},
+            xlabel=$\noise$, ylabel=Partial Optimality,
+            grid=major,
+            xmin=0, ymin=0,
+            legend style={
+                at={(0.35,0)},
+                anchor=south east
+            },
+            every axis plot/.append style={line width=1.5pt}
+        ]   
+            \addvariableplot{data15_of_noise.csv}{opt}{blue}
+        \end{axis}
+    \end{tikzpicture}
+    }
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{Accuracy (3x15 points)}
+    % not enough information to join all the same plane points!
+    % losing partial optimality because of conflicts!
+    \resizebox{0.95\textwidth}{!}{
+    \begin{tikzpicture}
+        \begin{axis}[
+            legend style={font=\tiny},
+            xlabel=$\noise$, ylabel=Accuracy,
+            grid=major,
+            xmin=0, ymin=0,
+            legend style={
+                at={(0.35,0)},
+                anchor=south east
+            },
+            every axis plot/.append style={line width=1.5pt}
+        ]   
+            \addvariableplot{data15_of_noise.csv}{acc}{red}
         \end{axis}
     \end{tikzpicture}
     }

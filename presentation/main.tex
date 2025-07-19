@@ -12,7 +12,14 @@
 \usepackage{xcolor}
 \usepackage{hyperref}
 
-
+\pgfplotsset{every axis/.style={
+		error bars/y dir=both,
+		error bars/y explicit,
+		error bars/error bar style={line width=0.5pt},
+		error bars/error mark options={rotate=90, mark size=0.4ex, line width=0.5pt},
+		ylabel shift=-1ex
+	}	
+}
 
 \definecolor{lightblue}{rgb}{0.68, 0.85, 0.9}
 \definecolor{darkblue}{rgb}{0.2, 0.2, 0.6}
