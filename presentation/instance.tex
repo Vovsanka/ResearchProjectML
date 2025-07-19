@@ -38,7 +38,7 @@
 
 \begin{frame}
     \frametitle{Cost Function (1)}
-    % cost function explain what works, what not and why do we need this conditions
+    % cost function explain what works, wh_at not and why do we need this conditions
     % cost function ~7min with pictures, explain ideas
     % My contribution!!! 
     % Cost function does not depend on the point distribution bounds!!!
@@ -52,34 +52,32 @@
         \textbf{Triangle} $abc \in \binom{\fSet}{3}$
         \begin{enumerate}
             \onslide<2->{
-            \item Smallest side $s < \maxD/2$\\
+            \item[(1)] Smallest side $s < \maxD/2$\\
             $\to \cost_{abc} = 0$
             }
             \onslide<3->{
-            \item Largest angle $\alpha > 150\degree$\\
+            \item[(2)] Largest angle $\alpha > 150\degree$\\
             $\to \cost_{abc} = 0$
             }
             \onslide<4->{
-            \item $ha,hb,hc$: distances\\
-            to the best fitting plane\\
-            containing the origin\\
-            $ha + hb + hc > 3\noise + \tol$\\
+            \item[(3)] $h_a,h_b,h_c$: distances\\
+            to the best fitted plane\\
+            containing the origin;\\
+            $h_a + h_b + h_c > 3\noise + \tol$\\
             \vspace{5px}
-            $\to \cost_{abc} = \frac{(ha + hb + hc) - (3\noise + \tol)}{3\maxD}$
+            $\to \cost_{abc} = \frac{(h_a + h_b + h_c) - (3\noise + \tol)}{3\maxD}$
+            \vspace{5px}
             }
-            \vspace{5px}
             \onslide<5->{
-            
-            \item $ho$: distance from the origin\\
-            to the triangle plane\\
-            $ho > \frac{10\noise}{\#points} + \tol$\\
+            \item[(4)] $h_o$: distance from the origin\\
+            to the triangle plane;\\
+            $h_o > \frac{10}{\#points}\noise + \tol$\\
             \vspace{5px}
             $\to \cost_{abc} = 0$
             }
         \end{enumerate}
     \end{minipage}
     \begin{minipage}{0.43\textwidth}
-        \centering
         \onslide<2->{
             \begin{tikzpicture}[node distance=30px]
                 % nodes
@@ -140,9 +138,9 @@
                 \path[-] (a) edge node {} (b);
                 \path[-] (b) edge node {} (c);
                 \path[-] (c) edge node {} (a);
-                \path[-, dotted] (a) edge node[left] {\small ha} (a1);
-                \path[-, dotted] (b) edge node[right=6px, below=-6px] {\small hb} (b1);
-                \path[-, dotted] (c) edge node[right] {\small hc} (c1);
+                \path[-, dotted] (a) edge node[left] {\small $h_a$} (a1);
+                \path[-, dotted] (b) edge node[right=6px, below=-6px] {\small $h_b$} (b1);
+                \path[-, dotted] (c) edge node[right] {\small $h_c$} (c1);
             \end{tikzpicture}
         }
         
@@ -160,7 +158,7 @@
                 \path[-, dashed] (o1) edge[blue] node {} (a);
                 \path[-] (a) edge node {} (b);
                 \path[-] (b) edge node {} (c);
-                \path[-, dotted] (o) edge node[left] {\small ho} (o1);
+                \path[-, dotted] (o) edge node[left] {\small $h_o$} (o1);
             \end{tikzpicture}
         }
     \end{minipage}
@@ -169,13 +167,90 @@
 
 \begin{frame}
     \frametitle{Cost Function (2)}
-        for all points $p$:
-            $hp$: distance to the best fitting plane\\
-            choose $p$ if $hp < \noise + \tol$ and $|\vec{p}| > 0.3\maxD$\\
-            $hp'$: distance to the best fitting plane of all chosen points\\ 
-            $\delta_p = \frac{hp' - (\noise + \tol)}{\maxD}$,
-            $SAME = \{p \colon \delta_p < 0\}$,
-            $rew = \sum\limits_{p \in SAME} \delta_p$,\\
-            $|SAME| \leq 3 \to \cost_{abc} = 0$\\
-            else $\to \cost_{abc} = 2^{|SAME|-4}rew$
+        \begin{minipage}{0.55\textwidth}
+            \begin{enumerate}
+                \item[(5)] for all points $p$:\\
+                $h_p$: distance to the best fitted\\
+                plane containing the origin;\\
+                \vspace{5px}
+                \onslide<2->{
+                choose $p$ if\\ $h_p < \noise + \tol \land |\vec{p}| > 0.3\maxD$\\
+                }
+                \vspace{5px}
+                \onslide<3->{
+                $h_p'$: distance to the best fitted
+                plane to all chosen points $p$\\
+                containing the origin;\\ 
+                }
+                \vspace{10px}
+                \onslide<4->{
+                $\delta_p := \frac{hp' - (\noise + \tol)}{\maxD}$\\
+                \vspace{5px}
+                $M := \{p \mid p \text{ chosen } \land \delta_p < 0\}$    
+                }
+                \vspace{10px}
+                \onslide<5->{
+                $|M| \leq 3 \to \cost_{abc} = 0$\\
+                }
+                \vspace{10px}
+                \onslide<6->{
+                $\to \cost_{abc} = 2^{|M|-4} \cdot \sum\limits_{p \in M} \delta_p$    
+                }
+            \end{enumerate}
+        \end{minipage}
+        \begin{minipage}{0.43\textwidth}
+            \centering
+            \begin{tikzpicture}[node distance=30px]
+                % nodes
+                \node[state] (o) {o};
+                \node[state, draw=blue] (a1) [right of=o, right=10px] {a'};
+                \node[state, draw=blue] (a) [below of=a1, above=10px] {a};
+                \node[state, draw=blue] (b1) [right of=o, right=50px] {b'};
+                \node[state, draw=blue] (b) [above of=b1, below=3px] {b};
+                \node[state, draw=blue] (c1) [right of=o, right=80px] {c'};
+                \node[state, draw=blue] (c) [below of=c1, above=10px] {c};
+                \node[state, draw=blue] (p1) [right of=o,left=5px] {p'};
+                \node[state] (p) [above of=p1] {p};
+                % edges
+                \path[-, dashed] (o) edge[blue] node {} (p1);
+                \path[-, dashed] (p1) edge[blue] node {} (a1);
+                \path[-, dashed] (a1) edge[blue] node {} (b1);
+                \path[-, dashed] (b1) edge[blue] node {} (c1);
+                \path[-] (a) edge node {} (b);
+                \path[-] (b) edge node {} (c);
+                \path[-] (c) edge node {} (a);
+                \path[-, dotted] (a) edge node {} (a1);
+                \path[-, dotted] (b) edge node {} (b1);
+                \path[-, dotted] (c) edge node {} (c1);
+                \path[-, dotted] (p) edge node[left] {\small $h_p$} (p1);
+            \end{tikzpicture}
+            \vspace{20px}
+            \onslide<3->{
+            \begin{tikzpicture}[node distance=30px]
+                % nodes
+                \node[state] (o) {o};
+                \node[state, draw=blue] (p1x) [right of=o,left=5px] {$p_1'$};
+                \node[state, draw=blue] (p1) [above of=p1x] {$p_1$};
+                \node[state, draw=blue] (p2x) [right of=o, right=10px] {$p_2'$};
+                \node[state] (p2) [above of=p2x, above=5px] {$p_2$};
+                \node[state, draw=blue] (p3x) [right of=o, right=30px] {$p_3'$};
+                \node[state, draw=blue] (p3) [below of=p3x, above=10px] {$p_3$};
+                \node[state, draw=blue] (p4x) [right of=o, right=60px] {$p_4'$};
+                \node[state, draw=blue] (p4) [above of=p4x, below=5px] {$p_4$};
+                \node[state, draw=blue] (p5x) [right of=o, right=80px] {$p_5'$};
+                \node[state, draw=blue] (p5) [below of=p5x] {$p_5$};
+                % edges
+                \path[-, dashed] (o) edge[blue] node {} (p1x);
+                \path[-, dotted] (p1) edge node[left] {\small $h_{p_1}'$} (p1x);
+                \path[-, dashed] (p1x) edge[blue] node {} (p2x);
+                \path[-, dotted] (p2) edge node[left] {\small $h_{p_2}'$} (p2x);
+                \path[-, dashed] (p2x) edge[blue] node {} (p3x);
+                \path[-, dotted] (p3) edge node[right=1px] {\small $h_{p_3}'$} (p3x);
+                \path[-, dashed] (p3x) edge[blue] node {} (p4x);
+                \path[-, dotted] (p4) edge node[left] {\small $h_{p_4}'$} (p4x);
+                \path[-, dashed] (p4x) edge[blue] node {} (p5x);
+                \path[-, dotted] (p5) edge node[left] {\small $h_{p_5}'$} (p5x);
+            \end{tikzpicture}
+            }
+        \end{minipage}
 \end{frame}
