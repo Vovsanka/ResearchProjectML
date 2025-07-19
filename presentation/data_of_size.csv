@@ -1,4 +1,4 @@
-n,opt_q1_noise0,opt_med_noise0,opt_q3_noise0,opt_q1_noise1,opt_med_noise1,opt_q3_noise1,opt_q1_noise2,opt_med_noise2,opt_q3_noise2,opt_q3_noise3
-7,1.0,1.0,1.0,0.995,1.0,1.0,0.271,0.614286,1.0,0.786
-10,1.0,1.0,1.0,0.434,0.82069,1.0,0.0666667,0.193,0.49,0.205
-15,1.0,1.0,1.0,0.044,0.488,1.0,0.0,0.0,0.403,0.0
+n,opt_q1_noise0,opt_med_noise0,opt_q3_noise0,opt_q1_noise1,opt_med_noise1,opt_q3_noise1,opt_q1_noise2,opt_med_noise2,opt_q3_noise2,opt_q1_noise3,opt_med_noise3,opt_q3_noise3
+7,1.0,1.0,1.0,0.995,1.0,1.0,0.271,0.614286,1.0,0.0952381,0.352,0.786
+10,1.0,1.0,1.0,0.434,0.82069,1.0,0.0666667,0.193,0.49,0.0,0.002,0.205
+15,1.0,1.0,1.0,0.044,0.488,1.0,0.0,0.0,0.403,0.0,0.0,0.0

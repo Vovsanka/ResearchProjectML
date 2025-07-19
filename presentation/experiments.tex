@@ -82,7 +82,7 @@
             },
             every axis plot/.append style={line width=1.5pt}
         ]   
-            \addvariableplot{data7_of_noise.csv}{opt}{blue}
+            \addnoiseplot{data7_of_noise.csv}{opt}{blue}
         \end{axis}
     \end{tikzpicture}
     }
@@ -106,7 +106,7 @@
             },
             every axis plot/.append style={line width=1.5pt}
         ]   
-            \addvariableplot{data7_of_noise.csv}{acc}{red}
+            \addnoiseplot{data7_of_noise.csv}{acc}{red}
         \end{axis}
     \end{tikzpicture}
     }
@@ -130,7 +130,7 @@
             },
             every axis plot/.append style={line width=1.5pt}
         ]   
-            \addvariableplot{data10_of_noise.csv}{opt}{blue}
+            \addnoiseplot{data10_of_noise.csv}{opt}{blue}
         \end{axis}
     \end{tikzpicture}
     }
@@ -138,7 +138,7 @@
 
 
 \begin{frame}
-    \frametitle{Accuracy (3x15 points)}
+    \frametitle{Accuracy (3x10 points)}
     % not enough information to join all the same plane points!
     % losing partial optimality because of conflicts!
     \resizebox{0.95\textwidth}{!}{
@@ -154,7 +154,7 @@
             },
             every axis plot/.append style={line width=1.5pt}
         ]   
-            \addvariableplot{data15_of_noise.csv}{acc}{red}
+            \addnoiseplot{data10_of_noise.csv}{acc}{red}
         \end{axis}
     \end{tikzpicture}
     }
@@ -178,7 +178,7 @@
             },
             every axis plot/.append style={line width=1.5pt}
         ]   
-            \addvariableplot{data15_of_noise.csv}{opt}{blue}
+            \addnoiseplot{data15_of_noise.csv}{opt}{blue}
         \end{axis}
     \end{tikzpicture}
     }
@@ -202,91 +202,56 @@
             },
             every axis plot/.append style={line width=1.5pt}
         ]   
-            \addvariableplot{data15_of_noise.csv}{acc}{red}
+            \addnoiseplot{data15_of_noise.csv}{acc}{red}
         \end{axis}
     \end{tikzpicture}
     }
 \end{frame}
 
 \begin{frame}
-    \frametitle{Partial Optimality (Q1)}
+    \frametitle{Partial Optimality}
     % 1.quartile: partial optimality loss is even more noticable
-    \resizebox{0.9\textwidth}{!}{
+    \resizebox{0.95\textwidth}{!}{
     \begin{tikzpicture}
         \begin{axis}[
-            xlabel=\#points/3, ylabel=Partial Optimality,
-            xmin=7, xmax=15,
-            ymin=0, ymax=1,
+            xlabel=$\#points/3$, ylabel=Partial Optimality,
             grid=major,
+            xmin=6, xmax=16, ymin=0,
             legend style={
-                at={(0.95,0.4)},
+                at={(0.35,0)},
                 anchor=south east
             },
-            every axis plot/.append style={line width=3pt}
-        ]
-            \addplot[color=blue, mark=*] table[x=n, y=opt_q1_noise0, col sep=comma] {data_of_size.csv};
-            \addlegendentry{$\noise = 0$}
-            \addplot[color=warmorange, mark=*] table[x=n, y=opt_q1_noise1, col sep=comma] {data_of_size.csv};
-            \addlegendentry{$\noise = 1$}
-            \addplot[color=forestgreen, mark=*] table[x=n, y=opt_q1_noise2, col sep=comma] {data_of_size.csv};
-            \addlegendentry{$\noise = 2$}
+            every axis plot/.append style={line width=1.5pt}
+        ]   
+            \addsizeplot{data_of_size.csv}{noise0}{blue}
+            \addlegendentry{$\noise=0$}
+            \addsizeplot{data_of_size.csv}{noise1}{orange}
+            \addlegendentry{$\noise=1$}
         \end{axis}
     \end{tikzpicture}
     }
 \end{frame}
 
-\begin{frame}
-    % partial optimality for different point counts and different noises 
-    % noise tolerance up to 3 percents!!!
-    \frametitle{Partial Optimality (Q2)}
-    \resizebox{0.9\textwidth}{!}{
-    \begin{tikzpicture}
-        \begin{axis}[
-            xlabel=\#points/3, ylabel=Partial Optimality,
-            xmin=7, xmax=15,
-            ymin=0, ymax=1,
-            grid=major,
-            legend style={
-                at={(0.95,0.2)},
-                anchor=south east
-            },
-            every axis plot/.append style={line width=3pt}
-        ]
-            \addplot[color=blue, mark=*] table[x=n, y=opt_med_noise0, col sep=comma] {data_of_size.csv};
-            \addlegendentry{$\noise = 0$}
-            \addplot[color=warmorange, mark=*] table[x=n, y=opt_med_noise1, col sep=comma] {data_of_size.csv};
-            \addlegendentry{$\noise = 1$}
-            \addplot[color=forestgreen, mark=*] table[x=n, y=opt_med_noise2, col sep=comma] {data_of_size.csv};
-            \addlegendentry{$\noise = 2$}
-        \end{axis}
-    \end{tikzpicture}
-    }
-\end{frame}
 
 \begin{frame}
-    \frametitle{Partial Optimality (Q3)}
-    % 3.quartile:for some generated instances, the partial optimality can still be kept at pretty high level
-    \resizebox{0.9\textwidth}{!}{
+    \frametitle{Partial Optimality}
+    % 1.quartile: partial optimality loss is even more noticable
+    \resizebox{0.95\textwidth}{!}{
     \begin{tikzpicture}
         \begin{axis}[
-            xlabel=\#points/3, ylabel=Partial Optimality,
-            xmin=7, xmax=15,
-            ymin=0, ymax=1,
+            xlabel=$\#points/3$, ylabel=Partial Optimality,
             grid=major,
+            xmin=6, xmax=16, ymin=0,
             legend style={
-                at={(0.95,0.6)},
+                at={(1,0.5)},
                 anchor=south east
             },
-            every axis plot/.append style={line width=3pt}
-        ]
-            \addplot[color=blue, mark=*] table[x=n, y=opt_q3_noise0, col sep=comma] {data_of_size.csv};
-            \addlegendentry{$\noise = 0$}
-            \addplot[color=warmorange, mark=*] table[x=n, y=opt_q3_noise1, col sep=comma] {data_of_size.csv};
-            \addlegendentry{$\noise = 1$}
-            \addplot[color=forestgreen, mark=*] table[x=n, y=opt_q3_noise2, col sep=comma] {data_of_size.csv};
-            \addlegendentry{$\noise = 2$}
-            \addplot[color=plumpurple, mark=*] table[x=n, y=opt_q3_noise3, col sep=comma] {data_of_size.csv};
-            \addlegendentry{$\noise = 3$}
+            every axis plot/.append style={line width=1.5pt}
+        ]   
+            \addsizeplot{data_of_size.csv}{noise2}{green}
+            \addlegendentry{$\noise=2$}
+            \addsizeplot{data_of_size.csv}{noise3}{red}
+            \addlegendentry{$\noise=3$}
         \end{axis}
     \end{tikzpicture}
     }

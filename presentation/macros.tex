@@ -15,7 +15,7 @@
 \DeclareMathOperator{\labels}{y} % label function
 
 % other
-\newcommand{\addvariableplot}[3]{\addplot+[
+\newcommand{\addnoiseplot}[3]{\addplot+[
     color=#3,
     mark=*,
     mark options={scale=1},
@@ -26,4 +26,16 @@
     y=#2_med,
     y error minus expr=(\thisrow{#2_med} - \thisrow{#2_q1}),
     y error plus expr=(\thisrow{#2_q3} - \thisrow{#2_med})
+    ] {#1};}
+\newcommand{\addsizeplot}[3]{\addplot+[
+    color=#3,
+    mark=*,
+    mark options={scale=1},
+    error bars/error bar style={thick}
+    ] table[
+    col sep=comma,
+    x=n, 
+    y=opt_med_#2,
+    y error minus expr=(\thisrow{opt_med_#2} - \thisrow{opt_q1_#2}),
+    y error plus expr=(\thisrow{opt_q3_#2} - \thisrow{opt_med_#2})
     ] {#1};}
