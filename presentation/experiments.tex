@@ -277,7 +277,7 @@
         \begin{axis}[
             legend style={font=\small},
             xlabel=\#points/3, ylabel=$\log_{10}(\text{Computation Time/s})$,
-            xmin=7, xmax=50,
+            xmin=7, xmax=30,
             xmode=log, ymode=log,
             grid=major,
             legend style={
@@ -288,7 +288,7 @@
         ]
             \addplot[color=pink, line width=4pt] table[x=n, y=time_estimated, col sep=comma] {data_time.csv};
             \addlegendentry{$\frac{1}{8}\cdot10^{-6}\cdot(\#points)^6$}
-            \addplot[color=blue, mark=*, line width=2pt] table[x=n, y=time_worst, col sep=comma] {data_time.csv};
+            \addplot[color=blue, mark=*, only marks, line width=2pt] table[x=n, y=time_worst, col sep=comma] {data_time.csv};
             \addlegendentry{worst computation time}
         \end{axis}
     \end{tikzpicture}
