@@ -13,6 +13,13 @@ diff_c = np.loadtxt("./build/diff.txt")
 same_y = np.linspace(0, 1, len(same_c))
 diff_y = np.linspace(0, 1, len(diff_c))
 
+# with open("./presentation/diff_c.csv","w") as file:
+#     file.write("c,y\n")
+#     for i in range(len(diff_c)):
+#         if diff_c[i] >= 0 and i % 10 != 0:
+#             continue
+#         file.write(f"{diff_c[i]},{diff_y[i]}\n")
+
 plt.plot(same_c, same_y, color='blue', marker='o')
 plt.plot(diff_c, diff_y, color='red', marker='o')
 plt.axhline(0, color='black', linewidth=2)  # Horizontal axis (y=0)

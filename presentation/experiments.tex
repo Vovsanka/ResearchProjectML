@@ -4,29 +4,53 @@
 
 \begin{frame}
     \frametitle{Cost Function Evaluation (3x15 points, $\noise=1$)}
-    % blue and red dots distributed on the y-axis,
     % conflicts and and their bad effect on the partial optimality
-    \begin{figure}[h]
-        \centering
-        \vspace{-10px}
-        \begin{minipage}{0.17\textwidth}
-            \textbf{Blue:}\\ 
-            same\\
-            plane
-            
-            \vspace{15px}
-            \textbf{Red:}\\
-            different\\
-            planes
-        \end{minipage}
-        \begin{minipage}{0.8\textwidth}
-            \includegraphics[width=\textwidth]{c-eval-big.png}
-        \end{minipage}
-        \onslide<2->{
-        \includegraphics[width=\textwidth]{c-eval-little.png}
-        }
-        \vspace{-15px}
-    \end{figure}
+    % the cost values are equally distributed on the y-axis in the interval [0, 1]
+    % blue values are sorted differently
+    \onslide<1->{
+        \hspace{-20px}
+        \begin{tikzpicture}
+            \begin{axis}[
+                only marks,
+                xlabel=$\cost$, ylabel=$y$,
+                grid=major,
+                legend style={
+                    at={(0.42,0.2)},
+                    anchor=south east
+                },
+                width=\textwidth,
+                height=130px
+            ]   
+                \addplot[color=blue, mark=*, mark options={scale=0.4}] table[col sep=comma, x=c, y=y] {same_c.csv};
+                \addlegendentry{same plane costs}
+                \addplot[color=red, mark=*, mark options={scale=0.4}] table[col sep=comma, x=c, y=y] {diff_c.csv};
+                \addlegendentry{different plane costs}
+            \end{axis}
+        \end{tikzpicture}
+    }
+
+    \onslide<2->{
+        \hspace{-20px}
+        \begin{tikzpicture}
+            \begin{axis}[
+                only marks,
+                xlabel=$\cost$,
+                grid=major,
+                xmin=-50, ymax=0.1,
+                legend style={
+                    at={(0.42,0.2)},
+                    anchor=south east
+                },
+                width=\textwidth,
+                height=130px
+            ]   
+                \addplot[color=blue, mark=*, mark options={scale=0.8}] table[col sep=comma, x=c, y=y] {same_c.csv};
+                \addlegendentry{same plane costs}
+                \addplot[color=red, mark=*, mark options={scale=0.8}] table[col sep=comma, x=c, y=y] {diff_c.csv};
+                \addlegendentry{different plane costs}
+            \end{axis}
+        \end{tikzpicture}
+    }
 \end{frame}
 
 
