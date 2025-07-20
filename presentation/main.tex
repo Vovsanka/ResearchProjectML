@@ -11,6 +11,11 @@
 \usepackage{pgfplots}
 \usepackage{xcolor}
 \usepackage{hyperref}
+\usepackage[style=authortitle, backend=biber]{biblatex}
+
+
+\nocite{*}  % includes all entries from the .bib file
+\addbibresource{refs.bib}
 
 
 \pgfplotsset{every axis/.style={

@@ -73,28 +73,34 @@
 
 \begin{frame}
     \frametitle{Research Goals and Contributions}
-    \onslide<1->{
+    % Paper (basiert sich auf 2 unten)
+    % https://arxiv.org/abs/1812.01426
+    % https://scholar.google.com/citations?view_op=view_citation&hl=de&user=qdVbsUYAAAAJ&citation_for_view=qdVbsUYAAAAJ:2osOgNQ5qMEC
+    % 2 alt: https://www.webofscience.com/wos/woscc/full-record/WOS:000683379203001
+    \vspace{-5px}
     \textbf{Related Work:}\\
-    TODO: 1 + 2 (citation at the end!) \\
+    {\footnotesize
+    \begin{itemize}
+        \item \cite{stein2023partial}
+        \item \cite{lange2018partial}
+        \item \cite{lange2019combinatorial}
+    \end{itemize}
     }
-    \vspace{5px}
     \onslide<2->{
     \textbf{Tasks and Solutions:}
     \begin{enumerate}
         \onslide<2->{
-        \item Read \cite{TODO}, implement the partial optimality algorithm\\
-        $\to$ implementation in C++ (with some adjustments)  
+        \item Read \cite{stein2023partial}, implement the partial optimality algorithm\\
+        $\to$ implementation in C++
         }
         \onslide<3->{
         \item Construct subspace instances of increasing difficulty\\
-        $\to$ point generation, appropriate cost function $\cost$\\
-        (high accuracy, significant noise tolerance) 
+        $\to$ point generation, appropriate \textbf{cost function} $\cost$\\
         } 
         \onslide<4->{
         \item Apply algorithm to the subspace instances,
         assess partial optimality, accuracy and computation time\\
         $\to$ experiments and evaluation 
-        (prove the quality of $\cost$)
         }
     \end{enumerate}
     }
@@ -109,7 +115,6 @@
     %     \vspace{-7px}
     %     read
     %     `Partial Optimality in Cubic Correlation Clustering'
-    %     \cite{TODO};
     %     implement the algorithm for establishing partial optimality
     %     to the cubic clique partition problem;
     %     } &
