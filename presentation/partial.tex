@@ -6,7 +6,7 @@
     \frametitle{Partial Optimality for Cubic Clique Partition Problem}
     % mention triple, pairs and constant!!! because we will solve subproblems
     % fix labels if something holds
-    % improving map
+    % establish partial optimality conditions by constructing improving map
     % reformulate the problem
     % 2 correct join conditions cannot be combined in the optimal solution
     % so when applied simultaneously they result into a suboptimal solution. 
@@ -52,8 +52,8 @@
         and $\impmap$ an improving map.
         If for every $\labels \in \allL$,
         $\impmap(\labels) \in Q$,
-        then there is an optimal solution  $\labels^* \in Q$.
-        to $\min\limits_{\labels \in \allL}\obj$.
+        then there is an optimal solution  $\labels^* \in Q$
+        to $\min\limits_{\labels \in \allL}\obj$.\\
     }
     \vspace{5px}
     \onslide<5->{
@@ -350,7 +350,7 @@
 \begin{frame}
     \frametitle{Other JOIN-conditions}
     \onslide<1->{
-        \textbf{Pair-JOIN-1:} join samples $ij \in \binom{\fSet}{2}$ if
+        \textbf{Pair-JOIN-1:} join $ij \in \binom{\fSet}{2}$ if
         their overall joining reward $\geq$
         the sum of rewards and penalties for joining
         some subset $\subR$ with $i \in \subR \land j \notin \subR$ 
@@ -359,28 +359,28 @@
     }
     \vspace{10px}
     \onslide<2->{
-        \textbf{Pair-JOIN-2:} join samples $ik \in \binom{\fSet}{2}$ if 
+        \textbf{Pair-JOIN-2:} join $ik \in \binom{\fSet}{2}$ if 
         there exist $ijk \in \binom{\fSet}{3}$ that fulfills 
         3 conditions
         ($\approx$ i-jk min-cut, $\approx$ ij-k min-cut, 1 explicit condition)\\
     }
     \vspace{10px}
     \onslide<3->{
-        \textbf{Pair-JOIN-3:} join samples $ij \in \binom{\fSet}{2}$ if
+        \textbf{Pair-JOIN-3:} join $ij \in \binom{\fSet}{2}$ if
         $\cost_{ij}\leq$ 
         the sum of reward costs for joining pairs and triples 
         containing $i$ or $j$\\
     }
     \vspace{10px}
     \onslide<4->{
-        \textbf{Pair-JOIN-4:} join samples $ik \in \binom{\fSet}{2}$
+        \textbf{Pair-JOIN-4:} join $ik \in \binom{\fSet}{2}$
         if there exists $ijk \in \binom{\fSet}{3}$ such that 
         7 explicit conditions hold\\
     }
     \vspace{10px}
     \onslide<5->{
-        \textbf{Triple-JOIN:} join samples $ijk \in \binom{\fSet}{3}$ 
-        if the condition holds\\ 
+        \textbf{Triple-JOIN:} join $ijk \in \binom{\fSet}{3}$ 
+        if a condition holds\\ 
         (similar to Pair-JOIN-1)
         ($\approx$ i-jk min-cut)\\
     }
@@ -442,7 +442,7 @@
     
     \vspace{10px}
     \onslide<4->{
-        \textbf{Pair-CUT:} cut samples $i,j$ if
+        \textbf{Pair-CUT:} cut $ij \in \binom{\fSet}{2}$ if
         the direct joing penalty $\geq$
         the sum of rewards for joining
         some subset $\subR$ with $i \in \subR \land j \notin \subR$ 
@@ -451,8 +451,8 @@
     }
     \vspace{5px}
     \onslide<5->{
-        \textbf{Triple-CUT:} cut samples $i,j,k$ 
-        if the condition holds\\ 
+        \textbf{Triple-CUT:} cut $ijk \in \binom{\fSet}{3}$ 
+        if a condition holds\\ 
         (similar to Pair-CUT)
         ($\approx$ i-jk min-cut)\\
     }
